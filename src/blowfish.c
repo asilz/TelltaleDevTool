@@ -21,46 +21,6 @@ static uint32_t F(uint32_t leftHalf)
     return out;
 }
 
-static void cryptBlock(uint64_t *block, bool encrypt)
-{
-    uint32_t rightHalf = (uint32_t)(*block & 0xFFFFFFFF);
-    uint32_t leftHalf = (uint32_t)(*block >> 32);
-    uint32_t temp;
-    int index;
-    for (int i = 0; i < pArrayLength - 2; ++i)
-    {
-        if (encrypt)
-        {
-            index = i;
-        }
-        else
-        {
-            index = pArrayLength - 1 - i;
-        }
-        leftHalf = leftHalf ^ pArray[index];
-        rightHalf = F(leftHalf) ^ rightHalf;
-        temp = leftHalf;
-        leftHalf = rightHalf;
-        rightHalf = temp;
-    }
-
-    temp = leftHalf;
-    leftHalf = rightHalf;
-    rightHalf = temp;
-    if (encrypt)
-    {
-        rightHalf = rightHalf ^ pArray[++index];
-        leftHalf = leftHalf ^ pArray[++index];
-    }
-    else
-    {
-        rightHalf = rightHalf ^ pArray[--index];
-        leftHalf = leftHalf ^ pArray[--index];
-    }
-
-    *block = ((uint64_t)leftHalf << 32) | rightHalf;
-}
-
 void encryptBlock(uint64_t *block)
 {
     // printf("Encrypting block\n");
@@ -89,7 +49,6 @@ void encryptBlock(uint64_t *block)
 
 void decryptBlock(uint64_t *block)
 {
-    // printf("decrypting block\n");
     uint32_t rightHalf = (uint32_t)(*block & 0xFFFFFFFF);
     uint32_t leftHalf = (uint32_t)(*block >> 32);
     uint32_t temp;
@@ -341,21 +300,7 @@ void initBlowfish7(uint8_t *key, size_t keyLength)
 
 int main(void)
 {
-    // uint8_t set_key[24] = {0xF0, 0xE1, 0xD2, 0xC3, 0xB4, 0xA5, 0x96, 0x87,0x78, 0x69, 0x5A, 0x4B, 0x3C, 0x2D, 0x1E, 0x0F,0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
     uint8_t set_key[keyLength] = "\x96\xCA\x99\x9F\x8D\xDA\x9A\x87\xD7\xCD\xD9\xBB\x93\xD1\xBE\xC0\xD7\x91\x71\xDC\x9E\xD9\x8D\xD0\xD1\x8C\xD8\xC3\xA0\xB0\xC6\x95\xC3\x9C\x93\xBB\xCC\xCC\xA7\xD3\xB9\xD9\xD9\xD0\x8E\x93\xBE\xDA\xAE\xD1\x8D\x77\xD5\xD3\xA3\x96\xCA\x99\x9F\x8D\xDA\x9A\x87\xD7\xCD\xD9\xBB\x93\xD1\xBE\xC0\xD7\x91\x71\xDC\x9E\xD9\x8D\xD0\xD1\x8C\xD8\xC3\xA0\xB0\xC6\x95\xC3\x9C\x93\xBB\xCC\xCC\xA7\xD3\xB9\xD9\xD9\xD0\x8E\x93\xBE\xDA\xAE\xD1\x8D\x77\xD5\xD3\xA3";
-    // uint8_t set_key[] = "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF";
-    // uint8_t set_key[] = "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF";
-
-    /*
-    uint8_t key[] = "\x7C\xA1\x10\x45\x4A\x1A\x6E\x57";
-    uint64_t plainText[] = {0x01A1D6D039776742, 0x01A1D6D039776742};
-    initBlowfish(key, keyLength);
-    printData(plainText, 2);
-    encryptData(plainText, 2);
-    printData(plainText, 2);
-    decryptData(plainText, 2);
-    printData(plainText, 2);
-    */
 
     uint8_t *buf = malloc(dataLength);
     uint8_t *throw = malloc(4);
@@ -367,26 +312,12 @@ int main(void)
     printf("%s", buf);
     uint64_t *buffer = (uint64_t *)buf;
 
-    /*
-    for (int i = 0; i < dataLength / sizeof(uint64_t); ++i)
-    {
-        buffer[i] = ((buffer[i] & 0xff00000000000000) >> 56) | ((buffer[i] & 0x00ff000000000000) >> 40) | ((buffer[i] & 0x0000ff0000000000) >> 24) | ((buffer[i] & 0x000000ff00000000) >> 8) | ((buffer[i] & 0x00000000ff000000) << 8) | ((buffer[i] & 0x0000000000ff0000) << 24) | ((buffer[i] & 0x000000000000ff00) << 40) | ((buffer[i] & 0x00000000000000ff) << 56);
-    }
-    */
-
     initBlowfish7(set_key, keyLength);
     printData(buffer, dataLength / sizeof(uint64_t));
     printf("\n------------------------------------------------------------------------------\n");
     decryptData7(buffer, dataLength / sizeof(uint64_t));
     printText(buffer, dataLength / sizeof(uint64_t));
     printf("\n------------------------------------------------------------------------------\n");
-
-    /*
-    for (int i = 0; i < dataLength / sizeof(uint64_t); ++i)
-    {
-        buffer[i] = ((buffer[i] & 0xff00000000000000) >> 56) | ((buffer[i] & 0x00ff000000000000) >> 40) | ((buffer[i] & 0x0000ff0000000000) >> 24) | ((buffer[i] & 0x000000ff00000000) >> 8) | ((buffer[i] & 0x00000000ff000000) << 8) | ((buffer[i] & 0x0000000000ff0000) << 24) | ((buffer[i] & 0x000000000000ff00) << 40) | ((buffer[i] & 0x00000000000000ff) << 56);
-    }
-    */
 
     printText(buffer, dataLength / sizeof(uint64_t));
     FILE *pFile = fopen("../plainTexts/_resdesc_50_WalkingDead301.lua", "wb");
