@@ -1,5 +1,6 @@
 #include "blowfish.h"
-// g++ main.cpp -o out // -lgmpxx -lgmp
+#include "lua.h"
+#include "crc64.h"
 
 static uint32_t F(uint32_t leftHalf)
 {
@@ -295,36 +296,14 @@ void initBlowfish7(uint8_t *key, size_t keyLength)
     }
 }
 
-#define keyLength 110
-#define dataLength 967
+#define dataLength 4562957
 
 int main(void)
 {
-    uint8_t set_key[keyLength] = "\x96\xCA\x99\x9F\x8D\xDA\x9A\x87\xD7\xCD\xD9\xBB\x93\xD1\xBE\xC0\xD7\x91\x71\xDC\x9E\xD9\x8D\xD0\xD1\x8C\xD8\xC3\xA0\xB0\xC6\x95\xC3\x9C\x93\xBB\xCC\xCC\xA7\xD3\xB9\xD9\xD9\xD0\x8E\x93\xBE\xDA\xAE\xD1\x8D\x77\xD5\xD3\xA3\x96\xCA\x99\x9F\x8D\xDA\x9A\x87\xD7\xCD\xD9\xBB\x93\xD1\xBE\xC0\xD7\x91\x71\xDC\x9E\xD9\x8D\xD0\xD1\x8C\xD8\xC3\xA0\xB0\xC6\x95\xC3\x9C\x93\xBB\xCC\xCC\xA7\xD3\xB9\xD9\xD9\xD0\x8E\x93\xBE\xDA\xAE\xD1\x8D\x77\xD5\xD3\xA3";
+    // uint8_t gameKey[keyLength] = {0x96, 0xCA, 0x99, 0x9F, 0x8D, 0xDA, 0x9A, 0x87, 0xD7, 0xCD, 0xD9, 0xBB, 0x93, 0xD1, 0xBE, 0xC0, 0xD7, 0x91, 0x71, 0xDC, 0x9E, 0xD9, 0x8D, 0xD0, 0xD1, 0x8C, 0xD8, 0xC3, 0xA0, 0xB0, 0xC6, 0x95, 0xC3, 0x9C, 0x93, 0xBB, 0xCC, 0xCC, 0xA7, 0xD3, 0xB9, 0xD9, 0xD9, 0xD0, 0x8E, 0x93, 0xBE, 0xDA, 0xAE, 0xD1, 0x8D, 0x77, 0xD5, 0xD3, 0xA3, 0x96, 0xCA, 0x99, 0x9F, 0x8D, 0xDA, 0x9A, 0x87, 0xD7, 0xCD, 0xD9, 0xBB, 0x93, 0xD1, 0xBE, 0xC0, 0xD7, 0x91, 0x71, 0xDC, 0x9E, 0xD9, 0x8D, 0xD0, 0xD1, 0x8C, 0xD8, 0xC3, 0xA0, 0xB0, 0xC6, 0x95, 0xC3, 0x9C, 0x93, 0xBB, 0xCC, 0xCC, 0xA7, 0xD3, 0xB9, 0xD9, 0xD9, 0xD0, 0x8E, 0x93, 0xBE, 0xDA, 0xAE, 0xD1, 0x8D, 0x77, 0xD5, 0xD3, 0xA3};
 
-    uint8_t *buf = malloc(dataLength);
-    uint8_t *throw = malloc(4);
-    FILE *ptr;
-    ptr = fopen("../cipherTexts/_resdesc_50_WalkingDead301.lua", "rb");
-    fread(throw, 4, 1, ptr);
-    fread(buf, dataLength, 1, ptr);
-    fclose(ptr);
-    printf("%s", buf);
-    uint64_t *buffer = (uint64_t *)buf;
-
-    initBlowfish7(set_key, keyLength);
-    printData(buffer, dataLength / sizeof(uint64_t));
-    printf("\n------------------------------------------------------------------------------\n");
-    decryptData7(buffer, dataLength / sizeof(uint64_t));
-    printText(buffer, dataLength / sizeof(uint64_t));
-    printf("\n------------------------------------------------------------------------------\n");
-
-    printText(buffer, dataLength / sizeof(uint64_t));
-    FILE *pFile = fopen("../plainTexts/_resdesc_50_WalkingDead301.lua", "wb");
-    fwrite(buffer, dataLength, 1, pFile);
-    fclose(pFile);
-    free(buffer);
-    free(throw);
+    initBlowfish7(gameKey, keyLen);
+    decryptLua("../cipherTexts/WDC_pc_WalkingDead301_data.ttarch2", "../plainTexts/WDC_pc_WalkingDead301_data.ttarch2", dataLength);
 
     return 0;
 }
