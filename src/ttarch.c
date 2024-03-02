@@ -6,13 +6,10 @@
 #include <assert.h>
 #include "blowfish.h"
 
-int64_t _z_decompress(uint8_t *in, int64_t insz, uint8_t *out, int64_t outsz);
-int64_t (*do_decompress)(uint8_t *in, int64_t insz, uint8_t *out, int64_t outsz) = _z_decompress;
-
 struct FileHeader
 {
     uint64_t crcName; // CRC64 EMCA 182 format
-    uint64_t offset;  // How many bytes after the name table the files is located
+    uint64_t offset;  // How many bytes after the name table the file is located
     uint32_t size;
     uint32_t unkownBytes;
     uint16_t nameTableChunkIndex;
@@ -21,9 +18,8 @@ struct FileHeader
 
 struct ArchiveHeader
 {
-    uint32_t type;
     uint32_t version;
-    uint32_t blockSize; // AKA NameTable chunkSize
+    uint32_t nameSize; // nameTable total size?
     uint32_t fileCount;
 };
 
@@ -49,168 +45,140 @@ struct CompressedArchive
     uint8_t *chunkData;
 };
 
-static uint64_t g_dbg_offset = 0;
-
-int64_t _z_decompress(uint8_t *in, int64_t insz, uint8_t *out, int64_t outsz)
+int ZlibDecompress(void *source, unsigned int sourceLen, const void *dest, unsigned int *destLen)
 {
-    static z_stream *z_zlib = NULL;
-    static z_stream *z_deflate = NULL;
-    z_stream *z;
+    z_stream stream;
+    int err;
+    const uInt max = (uInt)-1;
+    uLong len, left;
+    unsigned char buf[1];
 
-#define UNZIP_INIT(X, Y)                                      \
-    if (!z_##X)                                               \
-    {                                                         \
-        z_##X = calloc(1, sizeof(z_stream));                  \
-        if (!z_##X)                                           \
-            return -33;                                       \
-        z_##X->zalloc = (alloc_func)0;                        \
-        z_##X->zfree = (free_func)0;                          \
-        z_##X->opaque = (voidpf)0;                            \
-        if (inflateInit2(z_##X, Y))                           \
-        {                                                     \
-            printf("\nError: " #X " initialization error\n"); \
-            exit(1);                                          \
-        }                                                     \
-    }
-#define UNZIP_END(X)       \
-    if (z_##X)             \
-    {                      \
-        inflateEnd(z_##X); \
-        free(z_##X);       \
-        z_##X = NULL;      \
-    }
-
-    if (!insz || !outsz)
-        return (0);
-    if (!in && !out)
+    len = sourceLen;
+    if (*destLen)
     {
-        UNZIP_END(zlib)
-        UNZIP_END(deflate)
-        return (-1);
+        left = *destLen;
+        *destLen = 0;
+    }
+    else
+    {
+        left = 1;
+        dest = buf;
     }
 
-    UNZIP_INIT(zlib, 15)
-    UNZIP_INIT(deflate, -15)
-    z = z_zlib;
-redo:
-    inflateReset(z);
+    stream.next_in = (z_const Bytef *)source;
+    stream.avail_in = 0;
+    stream.zalloc = (alloc_func)0;
+    stream.zfree = (free_func)0;
+    stream.opaque = (voidpf)0;
 
-    z->next_in = in;
-    z->avail_in = insz;
-    z->next_out = out;
-    z->avail_out = outsz;
-    if (inflate(z, Z_FINISH) != Z_STREAM_END)
+    err = inflateInit2(&stream, -15);
+    if (err != Z_OK)
+        return err;
+
+    stream.next_out = (Bytef *)dest;
+    stream.avail_out = 0;
+
+    do
     {
-        if (z == z_zlib)
+        if (stream.avail_out == 0)
         {
-            z = z_deflate;
-            goto redo;
+            stream.avail_out = left > (uLong)max ? max : (uInt)left;
+            left -= stream.avail_out;
         }
-        printf("\nError: the compressed zlib/deflate input at offset 0x%08x (%d -> %d) is wrong or incomplete\n", (int)g_dbg_offset, (int)insz, (int)outsz);
-        exit(1);
-    }
-    return (z->total_out);
+        if (stream.avail_in == 0)
+        {
+            stream.avail_in = len > (uLong)max ? max : (uInt)len;
+            len -= stream.avail_in;
+        }
+        err = inflate(&stream, Z_NO_FLUSH);
+    } while (err == Z_OK);
+
+    sourceLen -= len + stream.avail_in;
+    if (dest != buf)
+        *destLen = stream.total_out;
+    else if (stream.total_out && err == Z_BUF_ERROR)
+        left = 1;
+
+    inflateEnd(&stream);
+    return err == Z_STREAM_END ? 1 /*Z_OK*/ : err == Z_NEED_DICT                          ? 0 /*Z_DATA_ERROR*/
+                                          : err == Z_BUF_ERROR && left + stream.avail_out ? 0 /*Z_DATA_ERROR*/
+                                                                                          : 0 /*err*/;
 }
 
-int64_t _z_decompress2(uint8_t *in, int64_t insz, uint8_t *out, int64_t outsz)
+void endianSwapUint64(uint64_t *value)
 {
-    int ret;
-    z_stream strm;
-
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
-    strm.opaque = Z_NULL;
-    strm.avail_in = 0;
-    strm.next_in = Z_NULL;
-    ret = inflateInit(&strm);
-
-    if (ret != Z_OK)
-    {
-        printf("Zlib error: inflateInit() failed");
-        return -1;
-    }
-
-    strm.avail_in = insz;
-    strm.next_in = (uint8_t *)in;
-    strm.avail_out = outsz;
-    strm.next_out = (uint8_t *)out;
-
-    ret = inflate(&strm, Z_NO_FLUSH);
-
-    switch (ret)
-    {
-    case Z_NEED_DICT:
-        ret = Z_DATA_ERROR;
-    case Z_DATA_ERROR:
-    case Z_MEM_ERROR:
-        printf("Zlib error: inflate()");
-        return ret;
-    }
-    inflateEnd(&strm);
+    *value = ((*value & 0x00000000000000FFULL) << 56) |
+             ((*value & 0x000000000000FF00ULL) << 40) |
+             ((*value & 0x0000000000FF0000ULL) << 24) |
+             ((*value & 0x00000000FF000000ULL) << 8) |
+             ((*value & 0x000000FF00000000ULL) >> 8) |
+             ((*value & 0x0000FF0000000000ULL) >> 24) |
+             ((*value & 0x00FF000000000000ULL) >> 40) |
+             ((*value & 0xFF00000000000000ULL) >> 56);
 }
 
 int archiveExtract(uint8_t *archivePath, uint8_t *outPath, size_t fileSize)
 {
+    int err;
+
     printf("Archive Extract\n");
-    uint8_t *buffer = calloc(fileSize, 1);
+    uint8_t *buffer = malloc(sizeof(struct CompressedHeader));
+
     if (buffer == NULL)
     {
         printf("alloc failed\n");
     }
-    FILE *ptr = fopen(archivePath, "rb");
-    fread(buffer, fileSize, 1, ptr);
-    if (fclose(ptr) == EOF)
+
+    FILE *compressedFile = fopen(archivePath, "rb");
+    FILE *decompressedFile = fopen("../plainTexts/WDC_pc_WalkingDead301_data.ttarch2", "wb");
+
+    fread(buffer, sizeof(struct CompressedHeader), 1, compressedFile);
+    struct CompressedHeader *header = (struct CompressedHeader *)buffer;
+
+    printf("version = 0x%x\n", header->version);
+    printf("chunk size = 0x%x\n", header->chunkDecompressedSize);
+    printf("found %d compressed chunks\n", header->chunkCount);
+
+    uint8_t *compressedChunk = malloc(header->chunkDecompressedSize); // This compressedChunk buffer will probably have more space than the space required for the chunk
+    uint8_t *decompressedChunk = malloc(header->chunkDecompressedSize);
+
+    uint64_t *chunkOffsets = malloc(sizeof(uint64_t) * header->chunkCount);
+    fread(chunkOffsets, sizeof(uint64_t), header->chunkCount, compressedFile);
+    for (uint32_t i = 0; i < header->chunkCount; ++i)
     {
-        return EOF;
+        printf("0x%lx\n", chunkOffsets[i]);
     }
 
-    for (int i = 0; i < 128; ++i)
+    fseek(compressedFile, chunkOffsets[0], SEEK_SET);
+    for (uint32_t i = 1; i < header->chunkCount; ++i)
     {
-        printf("%x ", (buffer + sizeof(uint32_t) * 3)[i]);
-    }
-    printf("\n");
+        // printf("loop %d\n", i);
+        fread(compressedChunk, chunkOffsets[i] - chunkOffsets[i - 1], 1, compressedFile);
 
-    // printf("%s\n", buffer);
+        decryptData7((uint64_t *)compressedChunk, (chunkOffsets[i] - chunkOffsets[i - 1]) / sizeof(uint64_t));
 
-    struct CompressedHeader *compressedHeader = (struct CompressedHeader *)buffer;
-    buffer += sizeof(struct CompressedHeader);
-    printf("version = 0x%x\n", compressedHeader->version);
-    printf("chunk size = 0x%x\n", compressedHeader->chunkDecompressedSize);
-    printf("found %d compressed chunks\n", compressedHeader->chunkCount);
-    for (int i = 0; i < 128; ++i)
-    {
-        printf("%x ", buffer[i]);
-    }
-    printf("\n");
-    for (int i = 0; i < compressedHeader->chunkCount; ++i)
-    {
-        printf("%lx\n", ((uint64_t *)(buffer))[i]);
-    }
-
-    ptr = fopen("../plainTexts/WDC_pc_WalkingDead301_data.ttarch2", "wb");
-    uint8_t *decompressedChunk = malloc(compressedHeader->chunkDecompressedSize);
-
-    for (int i = 1; i < compressedHeader->chunkCount; ++i)
-    {
-        printf("loop %d\n", i);
-        g_dbg_offset = ((uint64_t *)(buffer))[i];
-        uint64_t *chunk = (uint64_t *)(buffer + sizeof(uint64_t) * compressedHeader->chunkCount + *((uint64_t *)(buffer + sizeof(uint64_t) * (i - 1))));
-        // printf("%lx\n", *((uint64_t *)(buffer + sizeof(uint64_t) * (i - 1))) + sizeof(uint64_t) * compressedHeader->chunkCount);
-        decryptData7(chunk, (*((uint64_t *)(buffer + sizeof(uint64_t) * i)) - *((uint64_t *)(buffer + sizeof(uint64_t) * (i - 1)))) / 8);
-        int err = _z_decompress((uint8_t *)chunk, (*((uint64_t *)(buffer + sizeof(uint64_t) * i)) - *((uint64_t *)(buffer + sizeof(uint64_t) * (i - 1)))), decompressedChunk, compressedHeader->chunkDecompressedSize);
-        fwrite(decompressedChunk, compressedHeader->chunkDecompressedSize, 1, ptr);
+        uint32_t size = header->chunkDecompressedSize;
+        int err = ZlibDecompress(compressedChunk, chunkOffsets[i] - chunkOffsets[i - 1], decompressedChunk, &size);
         if (err)
         {
             printf("%d\n", err);
         }
+        printf("%d", size);
+        size_t bytesWritten = fwrite(decompressedChunk, header->chunkDecompressedSize, 1, decompressedFile);
     }
 
     // fwrite(buffer, fileSize, 1, ptr);
-    if (fclose(ptr) == EOF)
+    if (fclose(decompressedFile) == EOF)
     {
         return EOF;
     }
-    free(buffer - sizeof(struct CompressedHeader));
+    if (fclose(compressedFile) == EOF)
+    {
+        return EOF;
+    }
+    free(buffer);
+    free(decompressedChunk);
+    free(compressedChunk);
     return 0;
 
     /*
