@@ -3,28 +3,28 @@
 
 int decryptLua(uint8_t *encryptedFilePath, uint8_t *decryptedFilePath)
 {
-    uint64_t *buffer = malloc(sizeof(uint64_t));
+    uint64_t buffer;
     FILE *encryptedFile = fopen(encryptedFilePath, "rb");
 
-    fread(buffer, 4, 1, encryptedFile);
+    fread(&buffer, 4, 1, encryptedFile);
 
-    if (*buffer != 0x000000006F454C1B)
+    if ((uint32_t)buffer != 0x6F454C1B)
     {
-        printf("Warning: Unexpected header in lua file %lx\n", *buffer);
+        printf("Warning: Unexpected header in lua file %lx\n", buffer);
     }
 
     FILE *decryptedFile = fopen(decryptedFilePath, "wb");
 
     while (1)
     {
-        size_t bytesRead = fread(buffer, 1, sizeof(uint64_t), encryptedFile);
+        size_t bytesRead = fread(&buffer, 1, sizeof(uint64_t), encryptedFile);
         if (bytesRead < sizeof(uint64_t))
         {
-            fwrite(buffer, bytesRead, 1, decryptedFile);
+            fwrite(&buffer, bytesRead, 1, decryptedFile);
             break;
         }
-        decryptBlock7(buffer);
-        fwrite(buffer, sizeof(uint64_t), 1, decryptedFile);
+        decryptBlock7(&buffer);
+        fwrite(&buffer, sizeof(uint64_t), 1, decryptedFile);
     }
 
     if (fclose(encryptedFile) == EOF)
@@ -36,13 +36,13 @@ int decryptLua(uint8_t *encryptedFilePath, uint8_t *decryptedFilePath)
     {
         return EOF;
     }
-    free(buffer);
+
     return 0;
 }
 
 int encryptLua(uint8_t *decryptedFilePath, uint8_t *encryptedFilePath)
 {
-    uint64_t *buffer = malloc(sizeof(uint64_t));
+    uint64_t buffer;
     FILE *decryptedFile = fopen(decryptedFilePath, "rb");
     FILE *encryptedFile = fopen(encryptedFilePath, "wb");
 
@@ -50,14 +50,14 @@ int encryptLua(uint8_t *decryptedFilePath, uint8_t *encryptedFilePath)
 
     while (1)
     {
-        size_t bytesRead = fread(buffer, 1, sizeof(uint64_t), decryptedFile);
+        size_t bytesRead = fread(&buffer, 1, sizeof(uint64_t), decryptedFile);
         if (bytesRead < sizeof(uint64_t))
         {
-            fwrite(buffer, bytesRead, 1, encryptedFile);
+            fwrite(&buffer, bytesRead, 1, encryptedFile);
             break;
         }
-        encryptBlock7(buffer);
-        fwrite(buffer, sizeof(uint64_t), 1, encryptedFile);
+        encryptBlock7(&buffer);
+        fwrite(&buffer, sizeof(uint64_t), 1, encryptedFile);
     }
 
     if (fclose(decryptedFile) == EOF)
@@ -68,6 +68,6 @@ int encryptLua(uint8_t *decryptedFilePath, uint8_t *encryptedFilePath)
     {
         return EOF;
     }
-    free(buffer);
+
     return 0;
 }
