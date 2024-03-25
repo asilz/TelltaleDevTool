@@ -9,11 +9,6 @@ struct Symbol
     uint64_t crc64;
 };
 
-struct Flags
-{
-    int32_t flags;
-};
-
 struct KeyInfo
 {
     struct Flags flags;
@@ -48,7 +43,7 @@ int readProp(FILE *stream, struct PropertySet *prop)
         fread(&(prop->groups[i].numValues), sizeof(prop->groups[i].numValues), 1, stream);
 
         enum Type groupType = searchDatabase("./protonDatabase.db", prop->groups[i].typeSymbol);
-        printf("Type = %lx\n", (uint64_t)prop->groups[i].typeSymbol);
+        printf("Type = %lx\n", (uint64_t)groupType);
 
         switch (groupType)
         {
@@ -141,6 +136,28 @@ int readProp(FILE *stream, struct PropertySet *prop)
                 mapPtr->pairs = malloc(mapPtr->size * (sizeof(struct StringPropertyPair)));
                 readString(stream, &(mapPtr->pairs->string));
                 readProp(stream, &(mapPtr->pairs->property));
+            }
+            break;
+        case Flags:
+            printf("flags\n");
+            prop->groups[i].typeStruct = malloc(sizeof(Flags) * (prop->groups[i].numValues));
+            for (int j = 0; j < prop->groups[i].numValues; ++j)
+            {
+                fseek(stream, sizeof(uint64_t), SEEK_CUR);
+
+                struct Flags *flagsPtr = ((struct Flags *)(prop->groups[i].typeStruct) + j);
+                fread(flagsPtr, sizeof(struct Flags), 1, stream);
+            }
+            break;
+        case float_type:
+            printf("float_type\n");
+            prop->groups[i].typeStruct = malloc(sizeof(float) * (prop->groups[i].numValues));
+            for (int j = 0; j < prop->groups[i].numValues; ++j)
+            {
+                fseek(stream, sizeof(uint64_t), SEEK_CUR);
+
+                float *floatPtr = ((float *)(prop->groups[i].typeStruct) + j);
+                fread(floatPtr, sizeof(float), 1, stream);
             }
             break;
         default:
