@@ -1,5 +1,7 @@
 #include <inttypes.h>
+#include <stdio.h>
 #include "crc64.h"
+#include "types.h"
 
 const uint64_t crc64_table[] = {
     0x0000000000000000, 0x42F0E1EBA9EA3693, 0x85E1C3D753D46D26, 0xC711223CFA3E5BB5,
@@ -91,4 +93,50 @@ uint64_t CRC64(uint64_t crc, const char *const buf)
         buf1++;
     }
     return crc;
+}
+
+enum Type searchDatabase(char *databasePath, uint64_t crc)
+{
+    FILE *database = fopen(databasePath, "rb");
+    uint16_t value;
+    fseek(database, crc % 0xFFFFFFFF, SEEK_SET);
+    fread(&value, 2, 1, database);
+    fclose(database);
+    return (enum Type)value;
+}
+
+void writeDatabase()
+{
+    FILE *database = fopen("./protonDatabase.db", "wb");
+    for (int i = 0; i < UINT32_MAX; ++i)
+    {
+        uint8_t zero = 0;
+        fwrite(&zero, 1, 1, database);
+    }
+
+    FILE *typeFile = fopen("./typeNames2.txt", "rb");
+    uint8_t buffer[256];
+    for (uint16_t i = 0; i < UINT16_MAX; ++i)
+    {
+        for (int j = 0; j < 256; ++j)
+        {
+            uint8_t byte;
+            if (fread(&byte, 1, 1, typeFile) == 0)
+            {
+                fclose(database);
+                fclose(typeFile);
+                return;
+            }
+            if (byte == '\n')
+            {
+                buffer[j] = '\0';
+                break;
+            }
+            buffer[j] = byte;
+        }
+        fseek(database, CRC64_CaseInsensitive(0, buffer) % 0xFFFFFFFF, SEEK_SET);
+        fwrite(&i, sizeof(i), 1, database);
+    }
+    fclose(database);
+    fclose(typeFile);
 }
