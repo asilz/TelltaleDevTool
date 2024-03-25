@@ -997,25 +997,25 @@ struct __attribute__((__packed__)) TypeGroup
     void *typeStruct; // The number of structs is equal to numValues. The type of these structs can be determined from the typeSymbol
 };
 
-struct __attribute__((__packed__)) Boolean
+struct Boolean
 {
     uint8_t value;
 };
 
-struct __attribute__((__packed__)) String
+struct String
 {
     uint32_t size;
     uint8_t *data;
 };
 
-struct __attribute__((__packed__)) Vector3
+struct Vector3
 {
     uint32_t floatX;
     uint32_t floatY;
     uint32_t floatZ;
 };
 
-struct __attribute__((__packed__)) Color
+struct Color
 {
     uint32_t floatRed;
     uint32_t floatGreen;
@@ -1023,20 +1023,20 @@ struct __attribute__((__packed__)) Color
     uint32_t floatAlpha;
 };
 
-struct __attribute__((__packed__)) AnimOrChore // Not sure what all the bytes are or represent, but they totaled to the amount of 32 bytes
+struct AnimOrChore // Not sure what all the bytes are or represent, but they totaled to the amount of 32 bytes
 {
     uint64_t symbol;
     uint64_t animationHandle;
     uint64_t choreHandle;
 };
 
-struct __attribute__((__packed__)) DCArrayTempHandleTempD3DMeshLateLate
+struct DCArrayTempHandleTempD3DMeshLateLate
 {
     uint32_t size; // The number of elements
     uint64_t *d3dmeshHandle;
 };
 
-struct __attribute__((__packed__)) HandleTempSkeletonLate
+struct HandleTempSkeletonLate
 {
     uint64_t symbol;
 };
@@ -1047,10 +1047,15 @@ struct StringPropertyPair
     struct PropertySet property;
 };
 
-struct __attribute__((__packed__)) MapTempStringPropertySetstdlessTempStringLateLate
+struct MapTempStringPropertySetstdlessTempStringLateLate
 {
     uint32_t size;
     struct StringPropertyPair *pairs;
+};
+
+struct Flags
+{
+    uint32_t flags;
 };
 
 int readProp(FILE *stream, struct PropertySet *prop);
