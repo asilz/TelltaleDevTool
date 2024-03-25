@@ -45,7 +45,7 @@ int readProp(FILE *stream, struct PropertySet *prop)
         enum Type groupType = searchDatabase("./protonDatabase.db", prop->groups[i].typeSymbol);
         printf("Type = %lx\n", (uint64_t)groupType);
 
-        switch (groupType)
+        switch (groupType) // Could have used function pointers and just called the function based on the groupType, but I think that does not provide a huge benefit and it makes the code harder to read
         {
         case bool_type:
             printf("bool\n");
@@ -125,7 +125,7 @@ int readProp(FILE *stream, struct PropertySet *prop)
             break;
         case MapTempStringPropertySetstdlessTempStringLateLate:
             printf("Map\n");
-            prop->groups[i].typeStruct = malloc(sizeof(MapTempStringPropertySetstdlessTempStringLateLate) * (prop->groups[i].numValues));
+            prop->groups[i].typeStruct = malloc(sizeof(struct MapTempStringPropertySetstdlessTempStringLateLate) * (prop->groups[i].numValues));
             for (int j = 0; j < prop->groups[i].numValues; ++j)
             {
                 fseek(stream, sizeof(uint64_t), SEEK_CUR);
@@ -134,8 +134,11 @@ int readProp(FILE *stream, struct PropertySet *prop)
                 fread(mapPtr, sizeof(mapPtr->size), 1, stream);
 
                 mapPtr->pairs = malloc(mapPtr->size * (sizeof(struct StringPropertyPair)));
-                readString(stream, &(mapPtr->pairs->string));
-                readProp(stream, &(mapPtr->pairs->property));
+                for (int k = 0; k < mapPtr->size; ++k)
+                {
+                    readString(stream, &(mapPtr->pairs[k].string));
+                    readProp(stream, &(mapPtr->pairs[k].property));
+                }
             }
             break;
         case Flags:
