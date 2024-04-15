@@ -7,12 +7,13 @@
 #include "blowfish.h"
 #include "crc64.h"
 
+// TODO: Stop using packed attribute since it is bad or something.
 struct __attribute__((__packed__)) FileHeader // This has to be packed otherwise the OS will try to use 32 bytes instead of 28 bytes for it
 {
     uint64_t crcName; // CRC64 EMCA 182 format
     uint64_t offset;  // How many bytes after the name table the file is located
     uint32_t size;
-    uint32_t unkownBytes;
+    uint32_t unkownBytes; // TODO: Figure what these are or just ask Lucas
     uint16_t nameTableChunkIndex;
     uint16_t nameTableOffset;
 };
@@ -106,35 +107,22 @@ int ZlibDecompress(void *source, unsigned int sourceLen, const void *dest, unsig
                                                                                           : 0 /*err*/;
 }
 
-void endianSwapUint64(uint64_t *value)
-{
-    *value = ((*value & 0x00000000000000FFULL) << 56) |
-             ((*value & 0x000000000000FF00ULL) << 40) |
-             ((*value & 0x0000000000FF0000ULL) << 24) |
-             ((*value & 0x00000000FF000000ULL) << 8) |
-             ((*value & 0x000000FF00000000ULL) >> 8) |
-             ((*value & 0x0000FF0000000000ULL) >> 24) |
-             ((*value & 0x00FF000000000000ULL) >> 40) |
-             ((*value & 0xFF00000000000000ULL) >> 56);
-}
-
-int archiveDecrypt(uint8_t *archivePath, uint8_t *outPath)
+int streamDecrypt(FILE **compressedStreamPtr)
 {
     int err;
 
-    printf("Archive Extract\n");
-    uint8_t *buffer = malloc(sizeof(struct CompressedHeader));
+    uint64_t initialPosition = ftell(*compressedStreamPtr);
+    rewind(*compressedStreamPtr);
 
-    if (buffer == NULL)
+    FILE *outputStream = tmpfile();
+
+    for (uint64_t i = 0; i < initialPosition; ++i)
     {
-        printf("alloc failed\n");
+        fputc(fgetc(*compressedStreamPtr), outputStream);
     }
 
-    FILE *compressedFile = fopen(archivePath, "rb");
-    FILE *decompressedFile = fopen(outPath, "wb");
-
-    fread(buffer, sizeof(struct CompressedHeader), 1, compressedFile);
-    struct CompressedHeader *header = (struct CompressedHeader *)buffer;
+    struct CompressedHeader *header = malloc(sizeof(struct CompressedHeader));
+    fread((uint8_t *)header, sizeof(struct CompressedHeader), 1, *compressedStreamPtr);
 
     printf("version = 0x%x\n", header->version);
     printf("chunk size = 0x%x\n", header->chunkDecompressedSize);
@@ -144,64 +132,70 @@ int archiveDecrypt(uint8_t *archivePath, uint8_t *outPath)
     uint8_t *decompressedChunk = malloc(header->chunkDecompressedSize);
 
     uint64_t *chunkOffsets = malloc(sizeof(uint64_t) * header->chunkCount);
-    fread(chunkOffsets, sizeof(uint64_t), header->chunkCount, compressedFile);
+    fread(chunkOffsets, sizeof(uint64_t), header->chunkCount, *compressedStreamPtr);
 
-    fseek(compressedFile, chunkOffsets[0], SEEK_SET);
+    fseek(*compressedStreamPtr, chunkOffsets[0] + initialPosition, SEEK_SET);
     for (uint32_t i = 1; i < header->chunkCount; ++i)
     {
-        fread(compressedChunk, chunkOffsets[i] - chunkOffsets[i - 1], 1, compressedFile);
+        fread(compressedChunk, chunkOffsets[i] - chunkOffsets[i - 1], 1, *compressedStreamPtr);
 
-        decryptData7((uint64_t *)compressedChunk, (chunkOffsets[i] - chunkOffsets[i - 1]) / sizeof(uint64_t));
+        if ((uint8_t)header->version == 'E')
+        {
+            decryptData7((uint64_t *)compressedChunk, (chunkOffsets[i] - chunkOffsets[i - 1]) / sizeof(uint64_t));
+        }
 
         uint32_t size = header->chunkDecompressedSize;
         ZlibDecompress(compressedChunk, chunkOffsets[i] - chunkOffsets[i - 1], decompressedChunk, &size);
         // printf("%d", size);
-        fwrite(decompressedChunk, header->chunkDecompressedSize, 1, decompressedFile);
+        fwrite(decompressedChunk, header->chunkDecompressedSize, 1, outputStream);
     }
 
-    if (fclose(decompressedFile) == EOF)
+    uint64_t compressedEnd = ftell(outputStream);
+
+    for (int i = fgetc(*compressedStreamPtr); i != EOF; i = fgetc(*compressedStreamPtr))
     {
-        return EOF;
+        fputc(i, outputStream);
     }
-    if (fclose(compressedFile) == EOF)
+
+    fseek(outputStream, compressedEnd, SEEK_SET);
+
+    err = fclose(*compressedStreamPtr);
+    if (err)
     {
-        return EOF;
+        printf("fclose return %d\n", err);
+        exit(err);
     }
-    free(buffer);
+    *compressedStreamPtr = outputStream;
+
     free(decompressedChunk);
     free(compressedChunk);
+    free(chunkOffsets);
     return 0;
 }
 
-int archiveSplit(uint8_t *archivePath, uint8_t *outPath)
+int archiveSplit(FILE *stream, uint8_t *outPath)
 {
-    FILE *decompressedFile = fopen(archivePath, "rb");
-    if (decompressedFile == NULL)
-    {
-        printf("Error: Failed to open file at %s\n", archivePath);
-        return -1;
-    }
 
     struct ArchiveHeader *header = malloc(sizeof(struct ArchiveHeader));
-    fread((uint8_t *)header, sizeof(struct ArchiveHeader), 1, decompressedFile);
+    fread((uint8_t *)header, sizeof(struct ArchiveHeader), 1, stream);
     printf("fileCount = %d \n", header->fileCount);
 
     struct FileHeader *entries = malloc(sizeof(struct FileHeader) * header->fileCount);
-    fread((uint8_t *)entries, sizeof(struct FileHeader) * header->fileCount, 1, decompressedFile);
+    fread((uint8_t *)entries, sizeof(struct FileHeader) * header->fileCount, 1, stream);
 
-    int64_t nameTableOffset = sizeof(struct FileHeader) * header->fileCount + sizeof(struct ArchiveHeader);
+    uint64_t nameTableOffset = sizeof(struct FileHeader) * header->fileCount + sizeof(struct ArchiveHeader);
 
-    uint8_t *filePath = malloc(512);
+    uint8_t filePath[512];
     size_t outPathLength = strlen(outPath);
     memcpy(filePath, outPath, outPathLength);
 
     for (uint32_t i = 0; i < header->fileCount; ++i)
     {
-        fseek(decompressedFile, nameTableOffset + entries[i].nameTableChunkIndex * 0x10000 + entries[i].nameTableOffset, SEEK_SET);
+        fseek(stream, nameTableOffset + entries[i].nameTableChunkIndex * 0x10000 + entries[i].nameTableOffset, SEEK_SET);
 
         for (int j = 0; j < 512 - outPathLength; ++j)
         {
-            filePath[outPathLength + j] = fgetc(decompressedFile);
+            filePath[outPathLength + j] = fgetc(stream);
             if (filePath[outPathLength + j] == '\0')
             {
                 break;
@@ -212,16 +206,15 @@ int archiveSplit(uint8_t *archivePath, uint8_t *outPath)
         {
             printf("Warning: Name does not match crc Name = %s\n", filePath + outPathLength);
         }
-        fseek(decompressedFile, nameTableOffset + header->nameSize + entries[i].offset, SEEK_SET);
+        fseek(stream, nameTableOffset + header->nameSize + entries[i].offset, SEEK_SET);
 
         uint8_t *fileData = malloc(entries[i].size);
-        fread(fileData, entries[i].size, 1, decompressedFile);
+        fread(fileData, entries[i].size, 1, stream);
 
         FILE *file = fopen(filePath, "wb");
         if (file == NULL)
         {
             printf("Error: Failed to open file at %s\n", filePath);
-            free(filePath);
             free(header);
             free(entries);
             return -1;
@@ -230,8 +223,6 @@ int archiveSplit(uint8_t *archivePath, uint8_t *outPath)
         fwrite(fileData, entries[i].size, 1, file);
         fclose(file);
     }
-    fclose(decompressedFile);
-    free(filePath);
     free(header);
     free(entries);
     return 0;
