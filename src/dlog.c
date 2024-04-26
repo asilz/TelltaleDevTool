@@ -9,14 +9,18 @@ env_airportExterior.dlog
 0x2D8 is end of Metastream
 0x359 is end of landb (B1) !
 0x38A is end of prop (04) !
+0x3C3 is start of first child (2C) !
 0x3EF is end of first child chain head (00) !
 0x448 is start of second child (0x2C) !
 0x6D5 is end of first childset (Symbol) !
 0x1093 is end of second folder
 0x11E0 is end of third folder
 0x1543 is end of folders (7E) !
-
-
+0x631e is prev node death (DlgNodeStart)
+Attempted change (address = 0x3c60, nodeIDprev = 0xa98446baf288280f, change nodeID to 834d722d0c22174d) (Changing address 0x34a0) Result is nothing, but upon quitting removing the mod and reloading the save, the save became stuck.
+Attempted change (Change all death references (7ac1df47b0ea45af and a98446baf288280f) to 0x834d722d0c22174d) Result = Upon death, you instead get a new attempt.
+Attempted change (Change all death prev references to 37b2d8cb291b9b0f) //In hindsight, that was somewhat stupid. I should be changing nodes with next. So let's do that // Though a node with a death node as its prev node seems really confusing (Unless paradise exists (or hell))
+Attempted change: Same as above, but next references.
 */
 
 struct DependencyLoader
@@ -103,7 +107,7 @@ struct DlgFolderChild // 0x7bdcf5ceaf476dbb
     struct DlgChild child;
 };
 
-struct DlgCondition
+struct DlgCondition // 0x8e47b65968d5f15f
 {
 };
 
@@ -143,20 +147,44 @@ struct DlgNode
     uint32_t chainContextTypeID;
 };
 
-struct DlgNodeIdle // 0x987d701bcf0be72e
+struct DlgNodeIdle // 0x987d701bcf0be72e // Unfinished
 {
+    uint32_t choreHandleBlock;
+    uint64_t choreHandle;
+    uint32_t overrideOption;      // eUseDefaults = 1, eOverride = 2
+    uint32_t overrideOptionStyle; // eUseDefaults = 1, eOverride = 2
+    float transitionTimeOverride;
+    uint32_t transitionStyleOverride;
+    uint32_t idleSlot;
 };
 
-struct DlgNodeCriteria // 0x7432d6a8b467e336
+struct DlgNodeCriteria // 0x7432d68ab467e336 // Unfinished
 {
+    uint32_t testType;          // required = 1, forbidden = 2
+    uint32_t flagThreshold;     // Enum: render = 0, capture = 1, all = 2, dataFlow_enum_count = 3
+    uint32_t criteriaThreshold; // Enum: render = 0, capture = 1, all = 2, dataFlow_enum_count = 3
+    uint32_t defaultResult;     // Enum: defaultToPass = 0x1, defaultToNotPass = 0x2, defaultToNotPassUnlessTransparent = 0x3
+    uint32_t classFlags;
+    void *classIDs;
 };
 
-struct DlgNodeExchange // 0x5e5c7c866aa411f5
+struct DlgNodeExchange // 0x979ec6c0f454d985 // Unfinished
 {
+    float priority; // 9900
+    uint32_t choreHandleBlock;
+    uint64_t choreHandle;
+    struct DlgNode node;
 };
 
-struct DlgNodeSequence // 0x59f8b5e15f177d70
+struct DlgNodeSequence // 0x59f8b5e15f177d70 // Unfinished
 {
+    struct DlgNode node;
+    uint32_t elementsBlock;
+    struct DlgChildSet elements;
+    uint32_t playbackMode; // sequential = 1, shuffle = 2
+    uint32_t lifetimeMode; // looping = 1, singleSequence = 2, singleSequenceRepeatFinal = 3
+    uint32_t elementUseCriteriaBlock;
+    struct DlgNodeCriteria elementUseCriteria;
 };
 
 struct DlgNodeWait // 0x62398665690a223b
@@ -169,6 +197,9 @@ struct DlgNodeLogic // 0xcead330a880c7ed9
 
 struct DlgNodeStart // 0x2a8b64c603022291
 {
+    struct DlgNode node;
+    uint32_t prodReportPropBlock;
+    struct PropertySet prodReportProp;
 };
 
 struct DlgNodeNotes // 0xd80d7ae46db975c4
@@ -275,10 +306,10 @@ void dlgRead(FILE *stream, uint8_t *headerBuffer, struct TreeNode *nodes)
     headerBuffer += blockRead(stream, headerBuffer); // dependency
     headerBuffer += blockRead(stream, headerBuffer); // prop
     headerBuffer += blockRead(stream, headerBuffer); // Jira
-    headerBuffer += fread(headerBuffer, 4, 1, stream);
+    headerBuffer += fread(headerBuffer, sizeof(uint8_t), 1, stream);
     uint32_t folderCount = (*(uint32_t *)(headerBuffer - sizeof(uint32_t)));
 
-    struct TreeNode *trees;
+    struct TreeNode *nodeTree;
 
     for (uint32_t i = 0; i < folderCount; ++i)
     {
@@ -292,4 +323,9 @@ void dlgRead(FILE *stream, uint8_t *headerBuffer, struct TreeNode *nodes)
     for (uint32_t i = 0; i < nodeCount; ++i)
     {
     }
+}
+
+void dlgDebug(FILE *stream, struct TreeNode *nodes)
+{
+    fseek(stream, 0x1543, SEEK_SET);
 }
