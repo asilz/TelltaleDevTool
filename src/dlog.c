@@ -20,7 +20,19 @@ env_airportExterior.dlog
 Attempted change (address = 0x3c60, nodeIDprev = 0xa98446baf288280f, change nodeID to 834d722d0c22174d) (Changing address 0x34a0) Result is nothing, but upon quitting removing the mod and reloading the save, the save became stuck.
 Attempted change (Change all death references (7ac1df47b0ea45af and a98446baf288280f) to 0x834d722d0c22174d) Result = Upon death, you instead get a new attempt.
 Attempted change (Change all death prev references to 37b2d8cb291b9b0f) //In hindsight, that was somewhat stupid. I should be changing nodes with next. So let's do that // Though a node with a death node as its prev node seems really confusing (Unless paradise exists (or hell))
-Attempted change: Same as above, but next references.
+Attempted change: Same as above, but next references. (This led to the game stalling)
+So it seems like I can't simply "jump" to a specific node by just changing the node link as I theorized. This is more annoying than I thought. Or perhaps I need to jump to the correct node?
+Let's try jumping to a DlgNodeStart: 0x6AAA is a DlgNodeStart (Id = 0x597e6e09efab41a5). Setting all next death references to that address. Result = The game stalled for the first death in the scene, but upon the second death things just reset.
+There is a potentially identifiable node around 0x6a80, contains a script for a checkpoint
+At around 0x15b0 there is a checkpoint for "cs_approachPrescott" (ID = 0xa50b93addf206925).
+
+Current understanding: Child is start of a chain of nodes. The first node (after child) will have its prev point to the chain head ID and the chain head link will point to the first node.
+addr = 0x1910, 0x1820 <- Remember to check this later.
+
+
+
+
+
 */
 
 struct DependencyLoader
@@ -70,7 +82,7 @@ struct DlgObjectProps
 
 struct DlgObjectPropsOwner
 {
-    uint32_t block; // Always equal to 0x08
+    uint32_t block; // Always equal to 0x08 (Nope that is wrong)
     struct DlgObjectProps objectProps;
 };
 
@@ -102,6 +114,19 @@ struct DlgChild
     struct DlgNodeLink parent;
 };
 
+struct DlgChildSymbol
+{
+    uint64_t childSymbol;
+    uint32_t childBlock;
+    struct DlgChild child;
+};
+
+struct DlgChildSet
+{
+    uint32_t childCount;
+    struct DlgChildSymbol *children;
+};
+
 struct DlgFolderChild // 0x7bdcf5ceaf476dbb
 {
     struct DlgChild child;
@@ -109,24 +134,28 @@ struct DlgFolderChild // 0x7bdcf5ceaf476dbb
 
 struct DlgCondition // 0x8e47b65968d5f15f
 {
+    struct DlgObjectIDOwner objectIDOwner;
 };
 
-struct DlgConditionSet // 0x98d5fd53a80e7c13
+struct DlgConditionSet
 {
+    struct SymbolDlgConditionPair
+    {
+        uint64_t conditionTypeSymbol;
+        struct DlgCondition condition; // Type is conditionTypeSymbol
+    };
+    uint32_t conditionsBlock;
     uint32_t conditionCount;
+    struct SymbolDlgConditionPair *conditions;
 };
 
-struct DlgChoice // 0xe985d67eccd73fee
+struct DlgChoice // 0x98d5fd53a80e7c13
 {
     struct DlgChild child;
     struct DlgConditionSet conditionSet;
 };
 
 struct DlgConditionRule // 0xfd444bb730c2d4f6
-{
-};
-
-struct DlgChoicesChildPre // 0x171bdf4066e69130
 {
 };
 
@@ -147,8 +176,52 @@ struct DlgNode
     uint32_t chainContextTypeID;
 };
 
-struct DlgNodeIdle // 0x987d701bcf0be72e // Unfinished
+struct DlgChildSetChoicesChildPost
 {
+    uint32_t childSetBlock;
+    struct DlgChildSet childSet;
+};
+
+struct DlgChildSetChoicesChildPre
+{
+    uint32_t childSetBlock;
+    struct DlgChildSet childSet;
+};
+
+struct DlgChildSetChoice
+{
+    uint32_t childSetBlock;
+    struct DlgChildSet childSet;
+};
+
+struct DlgNodeChoices // 0x9134de0b6f8d9913
+{
+    struct DlgNode node;
+    uint32_t choiceBlock;
+    struct DlgChildSetChoice choice;
+    uint32_t preChoiceBlock;
+    struct DlgChildSetChoicesChildPre preChoice;
+    uint32_t postChoiceBlock;
+    struct DlgChildSetChoicesChildPost postChoice;
+};
+
+struct DlgNodeJump // 0x987d701bcf0be72e
+{
+    struct DlgNode node;
+    uint32_t jumpToLinkBlock;
+    struct DlgNodeLink jumpToLink;
+    uint64_t jumpToNameSymbol;
+    uint32_t jumpTargetClass;     // Enum: eToNae = 0x1, eToParent = 0x2, eToNodeAfterParentWaitNode = 0x3 }
+    uint32_t jumpBehaviour;       // Enum: eJumpAndExecute = 0x1, eJumpExecuteAndReturn = 0x2, eReturn = 0x3 }
+    uint32_t visibilityBehaviour; // Enum: eIgnoreVisibility = 0x1, eObeyVisibility = 0x2 }
+    uint32_t choiceTransparency;
+    uint32_t jumpToDlgHandleBlock;
+    uint64_t jumpToDlgHandle;
+};
+
+struct DlgNodeIdle
+{
+    struct DlgNode node;
     uint32_t choreHandleBlock;
     uint64_t choreHandle;
     uint32_t overrideOption;      // eUseDefaults = 1, eOverride = 2
@@ -158,7 +231,7 @@ struct DlgNodeIdle // 0x987d701bcf0be72e // Unfinished
     uint32_t idleSlot;
 };
 
-struct DlgNodeCriteria // 0x7432d68ab467e336 // Unfinished
+struct DlgNodeCriteria // 0x3b3c5055276b4321 // Unfinished
 {
     uint32_t testType;          // required = 1, forbidden = 2
     uint32_t flagThreshold;     // Enum: render = 0, capture = 1, all = 2, dataFlow_enum_count = 3
@@ -187,12 +260,91 @@ struct DlgNodeSequence // 0x59f8b5e15f177d70 // Unfinished
     struct DlgNodeCriteria elementUseCriteria;
 };
 
-struct DlgNodeWait // 0x62398665690a223b
+struct DlgNodeMarker // 0x62398665690a223b
 {
+    struct DlgNode node;
+};
+
+struct DlgNodeWait
+{
+};
+
+struct SymbolBoolPair
+{
+    uint64_t symbol;
+    uint8_t negate;
+};
+
+struct SymbolIntPair
+{
+    uint64_t symbol;
+    uint32_t num;
+};
+
+struct LogicItem
+{
+    struct PropertySet prop;
+    uint32_t nameBlock;
+    struct String name;
+    uint32_t keyNegateListBlock;
+    uint32_t keyNegateCount;
+    struct SymbolBoolPair *keyNegateList;
+    uint32_t keyComparisonListBlock;
+    uint32_t keyComparisonCount;
+    struct SymbolIntPair *keyComparisonList;
+    uint32_t keyActionListBlock;
+    uint32_t keyActionCount;
+    struct SymbolIntPair *keyActionList;
+    uint32_t referenceKeyListBlock;
+    uint32_t referenceKeyCount;
+    struct String *referenceKeyList;
+};
+
+struct StringLogicItemPair
+{
+    struct String string;
+    struct LogicItem item;
+};
+
+struct LogicGroup
+{
+    uint32_t operator;
+    uint32_t itemsBlock;
+    uint32_t itemsCount;
+    struct StringLogicItemPair *items;
+    uint32_t logicGroupBlock;
+    uint32_t logicGroupCount;
+    struct LogicGroup *logicGroups;
+    uint32_t groupOperator;
+    uint32_t type;
+    uint32_t nameBlock;
+    struct String name;
+};
+// 001be489
+// addr = 0x665fd9
+// 824462
+struct Rule
+{
+    uint32_t nameBlock;
+    struct String name;
+    uint32_t runtimePropNameBlock;
+    struct String runtimePropName;
+    uint32_t flags;
+    uint32_t conditionsBlock;
+    struct LogicGroup conditions;
+    uint32_t actionsBlock;
+    struct LogicGroup actions;
+    uint32_t elseBlock;
+    struct LogicGroup nullptr; // You seriously called a variable "else". I will one up you telltale and call my variable "nullptr" and that is valid code since I am using a superior language. For the record the variable is called "mElse"
+    uint32_t agentCategoryBlock;
+    struct String agentCategory;
 };
 
 struct DlgNodeLogic // 0xcead330a880c7ed9
 {
+    struct DlgNode node;
+    uint32_t ruleBlock;
+    struct Rule rule;
 };
 
 struct DlgNodeStart // 0x2a8b64c603022291
@@ -204,6 +356,9 @@ struct DlgNodeStart // 0x2a8b64c603022291
 
 struct DlgNodeNotes // 0xd80d7ae46db975c4
 {
+    struct DlgNode node;
+    uint32_t noteTextBlock;
+    struct String noteText;
 };
 
 struct DlgNodeExit // 0x8d8b0107aea7a818
@@ -224,19 +379,6 @@ struct DlgNodeStart // 0x2a8b64c603022291
     struct DlgNode node;
     uint32_t propBlock;
     struct PropertySet prodReportProp;
-};
-
-struct DlgChildSymbol
-{
-    uint64_t childSymbol;
-    uint32_t childBlock;
-    struct DlgChild child;
-};
-
-struct DlgChildSet
-{
-    uint32_t childCount;
-    struct DlgChildSymbol *children;
 };
 
 struct DlgNodeSymbol
