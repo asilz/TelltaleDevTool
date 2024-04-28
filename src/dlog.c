@@ -3,6 +3,7 @@
 #include "landb.h"
 #include "types.h"
 #include "tree.h"
+#include "crc64.h"
 
 /*
 env_airportExterior.dlog
@@ -56,6 +57,7 @@ struct DlgVisibilityConditions
     struct DlgDownstreamVisibilityConditions downStreamConditions;
     uint32_t scriptBlock;
     struct String scriptVisCond; // lua code
+    struct Rule rule;            // if flags & 1
 };
 
 struct DlgVisibilityConditionsOwner
@@ -132,9 +134,14 @@ struct DlgFolderChild // 0x7bdcf5ceaf476dbb
     struct DlgChild child;
 };
 
-struct DlgCondition // 0x8e47b65968d5f15f
+struct DlgCondition
 {
     struct DlgObjectIDOwner objectIDOwner;
+};
+
+struct DlgConditionInput // 0x8e47b65968d5f15f
+{
+    struct DlgCondition condition;
 };
 
 struct DlgConditionSet
@@ -147,6 +154,11 @@ struct DlgConditionSet
     uint32_t conditionsBlock;
     uint32_t conditionCount;
     struct SymbolDlgConditionPair *conditions;
+};
+
+struct DlgConditionalCase
+{
+    struct DlgChild child;
 };
 
 struct DlgChoice // 0x98d5fd53a80e7c13
@@ -176,13 +188,24 @@ struct DlgNode
     uint32_t chainContextTypeID;
 };
 
-struct DlgChildSetChoicesChildPost
+struct DlgNodeConditional
+{
+    struct DlgChildSetConditionalCase
+    {
+        struct DlgChildSet childSet;
+    };
+    struct DlgNode node;
+    uint32_t casesBlock;
+    struct DlgChildSetConditionalCase cases;
+};
+
+struct DlgChildSetChoicesChildPost // 0x171bdf4066e69130
 {
     uint32_t childSetBlock;
     struct DlgChildSet childSet;
 };
 
-struct DlgChildSetChoicesChildPre
+struct DlgChildSetChoicesChildPre // 0xe985d67eccd73fee
 {
     uint32_t childSetBlock;
     struct DlgChildSet childSet;
@@ -219,7 +242,7 @@ struct DlgNodeJump // 0x987d701bcf0be72e
     uint64_t jumpToDlgHandle;
 };
 
-struct DlgNodeIdle
+struct DlgNodeIdle // 0x8d8b0107aea7a818
 {
     struct DlgNode node;
     uint32_t choreHandleBlock;
@@ -241,7 +264,7 @@ struct DlgNodeCriteria // 0x3b3c5055276b4321 // Unfinished
     void *classIDs;
 };
 
-struct DlgNodeExchange // 0x979ec6c0f454d985 // Unfinished
+struct DlgNodeExchange // 0x979ec6c0f454d985
 {
     float priority; // 9900
     uint32_t choreHandleBlock;
@@ -361,7 +384,7 @@ struct DlgNodeNotes // 0xd80d7ae46db975c4
     struct String noteText;
 };
 
-struct DlgNodeExit // 0x8d8b0107aea7a818
+struct DlgNodeExit
 {
 };
 
@@ -467,7 +490,11 @@ void dlgRead(FILE *stream, uint8_t *headerBuffer, struct TreeNode *nodes)
     }
 }
 
-void dlgDebug(FILE *stream, struct TreeNode *nodes)
+void readChain(struct LinkedListNode *node, FILE *stream)
 {
-    fseek(stream, 0x1543, SEEK_SET);
+    uint64_t symbol;
+    uint32_t size;
+    fread(&symbol, sizeof(symbol), 1, stream);
+    fread(&size, sizeof(size), 1, stream);
+    enum Type type = searchDatabase("./protonDatabase.db", symbol);
 }
