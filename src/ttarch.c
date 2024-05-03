@@ -4,11 +4,10 @@
 #include <string.h>
 #include <zlib.h>
 #include <assert.h>
-#include "blowfish.h"
-#include "crc64.h"
+#include <blowfish.h>
+#include <crc64.h>
 
-// TODO: Stop using packed attribute since it is bad or something.
-struct __attribute__((__packed__)) FileHeader // This has to be packed otherwise the OS will try to use 32 bytes instead of 28 bytes for it
+struct FileHeader
 {
     uint64_t crcName; // CRC64 EMCA 182 format
     uint64_t offset;  // How many bytes after the name table the file is located
@@ -121,33 +120,33 @@ int streamDecrypt(FILE **compressedStreamPtr)
         fputc(fgetc(*compressedStreamPtr), outputStream);
     }
 
-    struct CompressedHeader *header = malloc(sizeof(struct CompressedHeader));
-    fread((uint8_t *)header, sizeof(struct CompressedHeader), 1, *compressedStreamPtr);
+    struct CompressedHeader header;
+    fread((uint8_t *)(&header), sizeof(struct CompressedHeader), 1, *compressedStreamPtr);
 
-    printf("version = 0x%x\n", header->version);
-    printf("chunk size = 0x%x\n", header->chunkDecompressedSize);
-    printf("found %d compressed chunks\n", header->chunkCount);
+    printf("version = 0x%x\n", header.version);
+    printf("chunk size = 0x%x\n", header.chunkDecompressedSize);
+    printf("found %d compressed chunks\n", header.chunkCount);
 
-    uint8_t *compressedChunk = malloc(header->chunkDecompressedSize); // This compressedChunk buffer will probably have more space than the space required for the chunk
-    uint8_t *decompressedChunk = malloc(header->chunkDecompressedSize);
+    uint8_t *compressedChunk = malloc(header.chunkDecompressedSize); // This compressedChunk buffer will probably have more space than the space required for the chunk
+    uint8_t *decompressedChunk = malloc(header.chunkDecompressedSize);
 
-    uint64_t *chunkOffsets = malloc(sizeof(uint64_t) * header->chunkCount);
-    fread(chunkOffsets, sizeof(uint64_t), header->chunkCount, *compressedStreamPtr);
+    uint64_t *chunkOffsets = malloc(sizeof(uint64_t) * header.chunkCount);
+    fread(chunkOffsets, sizeof(uint64_t), header.chunkCount, *compressedStreamPtr);
 
     fseek(*compressedStreamPtr, chunkOffsets[0] + initialPosition, SEEK_SET);
-    for (uint32_t i = 1; i < header->chunkCount; ++i)
+    for (uint32_t i = 1; i < header.chunkCount; ++i)
     {
         fread(compressedChunk, chunkOffsets[i] - chunkOffsets[i - 1], 1, *compressedStreamPtr);
 
-        if ((uint8_t)header->version == 'E')
+        if ((uint8_t)header.version == 'E')
         {
             decryptData7((uint64_t *)compressedChunk, (chunkOffsets[i] - chunkOffsets[i - 1]) / sizeof(uint64_t));
         }
 
-        uint32_t size = header->chunkDecompressedSize;
+        uint32_t size = header.chunkDecompressedSize;
         ZlibDecompress(compressedChunk, chunkOffsets[i] - chunkOffsets[i - 1], decompressedChunk, &size);
         // printf("%d", size);
-        fwrite(decompressedChunk, header->chunkDecompressedSize, 1, outputStream);
+        fwrite(decompressedChunk, header.chunkDecompressedSize, 1, outputStream);
     }
 
     uint64_t compressedEnd = ftell(outputStream);
@@ -173,25 +172,26 @@ int streamDecrypt(FILE **compressedStreamPtr)
     return 0;
 }
 
-int archiveSplit(FILE *stream, uint8_t *outPath)
+int archiveSplit(FILE *stream, uint8_t *folderPath)
 {
 
-    struct ArchiveHeader *header = malloc(sizeof(struct ArchiveHeader));
-    fread((uint8_t *)header, sizeof(struct ArchiveHeader), 1, stream);
-    printf("fileCount = %d \n", header->fileCount);
+    struct ArchiveHeader header;
+    fread((uint8_t *)(&header), sizeof(struct ArchiveHeader), 1, stream);
+    printf("fileCount = %d \n", header.fileCount);
 
-    struct FileHeader *entries = malloc(sizeof(struct FileHeader) * header->fileCount);
-    fread((uint8_t *)entries, sizeof(struct FileHeader) * header->fileCount, 1, stream);
-
-    uint64_t nameTableOffset = sizeof(struct FileHeader) * header->fileCount + sizeof(struct ArchiveHeader);
+    uint64_t nameTableOffset = 28 * header.fileCount + sizeof(struct ArchiveHeader); // 28 is the size of all the FileHeader members. Using sizeof(struct FileHeader) will return the size including the 4 byte trailing padding.
 
     uint8_t filePath[512];
-    size_t outPathLength = strlen(outPath);
-    memcpy(filePath, outPath, outPathLength);
+    size_t outPathLength = strlen(folderPath);
+    memcpy(filePath, folderPath, outPathLength);
 
-    for (uint32_t i = 0; i < header->fileCount; ++i)
+    for (uint32_t i = 0; i < header.fileCount; ++i)
     {
-        fseek(stream, nameTableOffset + entries[i].nameTableChunkIndex * 0x10000 + entries[i].nameTableOffset, SEEK_SET);
+        struct FileHeader entry;
+        fseek(stream, sizeof(struct ArchiveHeader) + 28 * i, SEEK_SET);
+        fread((uint8_t *)(&entry), 28, 1, stream);
+
+        fseek(stream, nameTableOffset + entry.nameTableChunkIndex * 0x10000 + entry.nameTableOffset, SEEK_SET);
 
         for (int j = 0; j < 512 - outPathLength; ++j)
         {
@@ -202,28 +202,43 @@ int archiveSplit(FILE *stream, uint8_t *outPath)
             }
         }
 
-        if (entries[i].crcName != CRC64_CaseInsensitive(0, filePath + outPathLength))
+        if (entry.crcName != CRC64_CaseInsensitive(0, filePath + outPathLength))
         {
             printf("Warning: Name does not match crc Name = %s\n", filePath + outPathLength);
         }
-        fseek(stream, nameTableOffset + header->nameSize + entries[i].offset, SEEK_SET);
+        fseek(stream, nameTableOffset + header.nameSize + entry.offset, SEEK_SET);
 
-        uint8_t *fileData = malloc(entries[i].size);
-        fread(fileData, entries[i].size, 1, stream);
+        uint8_t *fileData = malloc(entry.size);
+        fread(fileData, entry.size, 1, stream);
 
         FILE *file = fopen(filePath, "wb");
         if (file == NULL)
         {
             printf("Error: Failed to open file at %s\n", filePath);
-            free(header);
-            free(entries);
+            free(fileData);
             return -1;
         }
 
-        fwrite(fileData, entries[i].size, 1, file);
+        fwrite(fileData, entry.size, 1, file);
         fclose(file);
+        free(fileData);
     }
-    free(header);
-    free(entries);
     return 0;
+}
+
+int streamToFile(FILE *stream, uint8_t *outputPath)
+{
+    int err;
+
+    FILE *outputStream = fopen(outputPath, "wb");
+    if (outputStream == NULL)
+    {
+        printf("fopen error\n");
+        return EOF;
+    }
+
+    for (int i = fgetc(stream); i != EOF; i = fgetc(stream))
+    {
+        fputc(i, outputStream);
+    }
 }
