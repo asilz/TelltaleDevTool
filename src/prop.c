@@ -1,8 +1,10 @@
 #include <inttypes.h>
 #include <stdio.h>
-#include "crc64.h"
-#include "types.h"
+#include <crc64.h>
+#include <types.h>
+#include <string.h>
 #include <stdlib.h>
+#include <meta.h>
 
 struct Symbol
 {
@@ -15,15 +17,34 @@ struct KeyInfo
     struct Symbol crcName;
 };
 
-int readString(FILE *stream, struct String *buffer)
+struct PropertySet
 {
-    fread(&(buffer->size), sizeof(buffer->size), 1, stream);
-    buffer->data = malloc(buffer->size); // Remember to clean up to avoid memory leaks
-    fread(buffer->data, buffer->size, 1, stream);
-}
+    uint32_t version;
+    uint32_t flags;
+    uint32_t size; // Int at BlockStart which is the total size of the values all serialized between BlockStart and BlockEnd in bytes (includes the 4 byte block length in the size!).
+    uint32_t parentCount;
+    uint64_t *parentSymbols;
+    uint32_t numTypes;
+    struct TypeGroup *groups; // Number of groups is equal to numTypes
+};
 
-int readProp(FILE *stream, struct PropertySet *prop)
+struct NameTypePair
 {
+    uint64_t nameSymbol;
+    void *buffer;
+};
+
+struct TypeGroup
+{
+    uint64_t typeSymbol;
+    uint32_t numValues;
+    struct NameTypePair *typeStruct // The number of structs is equal to numValues. The type of these structs can be determined from the typeSymbol
+};
+
+int readProp(FILE *stream, void **property, uint32_t flags)
+{
+    *property = malloc(sizeof(struct PropertySet));
+    struct PropertySet *prop = *property;
     printf("readProp\n");
     fread(&(prop->version), sizeof(prop->version), 1, stream);
     fread(&(prop->flags), sizeof(prop->flags), 1, stream);
@@ -37,136 +58,17 @@ int readProp(FILE *stream, struct PropertySet *prop)
 
     prop->groups = malloc(prop->numTypes * sizeof(struct TypeGroup));
 
-    for (int i = 0; i < prop->numTypes; ++i)
+    for (uint32_t i = 0; i < prop->numTypes; ++i)
     {
         fread(&(prop->groups[i].typeSymbol), sizeof(prop->groups[i].typeSymbol), 1, stream);
         fread(&(prop->groups[i].numValues), sizeof(prop->groups[i].numValues), 1, stream);
 
-        enum Type groupType = searchDatabase("./protonDatabase.db", prop->groups[i].typeSymbol);
-        printf("Type = %lx\n", (uint64_t)groupType);
+        prop->groups[i].typeStruct = malloc(prop->groups[i].numValues * sizeof(struct NameTypePair));
 
-        switch (groupType) // Could have used function pointers and just called the function based on the groupType, but I think that does not provide a huge benefit and it makes the code harder to read
+        for (uint32_t j = 0; j < prop->groups[i].numValues; ++j)
         {
-        case bool_type:
-            printf("bool\n");
-            prop->groups[i].typeStruct = malloc(sizeof(struct Boolean) * (prop->groups[i].numValues));
-
-            for (int j = 0; j < prop->groups[i].numValues; ++j)
-            {
-                struct Boolean *booleanPtr = ((struct Boolean *)(prop->groups->typeStruct)) + j;
-                fseek(stream, sizeof(uint64_t), SEEK_CUR); // Skipping symbol for now since I have no idea what it represents
-                fread(booleanPtr, sizeof(struct Boolean), 1, stream);
-            }
-            break;
-        case String:
-            printf("String\n");
-            prop->groups[i].typeStruct = malloc(sizeof(struct String) * (prop->groups[i].numValues));
-            for (int j = 0; j < prop->groups[i].numValues; ++j)
-            {
-                fseek(stream, sizeof(uint64_t), SEEK_CUR);
-                struct String *stringPtr = ((struct String *)(prop->groups[i].typeStruct) + j);
-                readString(stream, stringPtr);
-            }
-            break;
-        case Vector3:
-            printf("Vector3\n");
-            prop->groups[i].typeStruct = malloc(sizeof(struct Vector3) * (prop->groups[i].numValues));
-            for (int j = 0; j < prop->groups[i].numValues; ++j)
-            {
-                fseek(stream, sizeof(uint64_t), SEEK_CUR);
-                struct Vector3 *vector3Ptr = ((struct Vector3 *)(prop->groups->typeStruct)) + j;
-                fread(vector3Ptr, sizeof(struct Vector3), 1, stream);
-            }
-
-            break;
-        case Color:
-            printf("Color\n");
-            prop->groups[i].typeStruct = malloc(sizeof(struct Color) * (prop->groups[i].numValues));
-            for (int j = 0; j < prop->groups[i].numValues; ++j)
-            {
-                fseek(stream, sizeof(uint64_t), SEEK_CUR);
-                struct Color *colorPtr = ((struct Color *)(prop->groups->typeStruct)) + j;
-                fread(colorPtr, sizeof(struct Color), 1, stream);
-            }
-            break;
-        case AnimOrChore:
-            printf("AnimOrChore\n");
-            prop->groups[i].typeStruct = malloc(sizeof(struct AnimOrChore) * (prop->groups[i].numValues));
-            for (int j = 0; j < prop->groups[i].numValues; ++j)
-            {
-                fseek(stream, sizeof(uint64_t), SEEK_CUR);
-                struct AnimOrChore *animOrChorePtr = ((struct AnimOrChore *)(prop->groups->typeStruct)) + j;
-                fread(animOrChorePtr, sizeof(struct AnimOrChore), 1, stream);
-            }
-            break;
-
-        case DCArrayTempHandleTempD3DMeshLateLate:
-            printf("DCArray<Handle<D3DMesh>>\n");
-            prop->groups[i].typeStruct = malloc(sizeof(struct AnimOrChore) * (prop->groups[i].numValues));
-            for (int j = 0; j < prop->groups[i].numValues; ++j)
-            {
-                fseek(stream, sizeof(uint64_t), SEEK_CUR);
-
-                struct DCArrayTempHandleTempD3DMeshLateLate *arrayPtr = ((struct DCArrayTempHandleTempD3DMeshLateLate *)(prop->groups[i].typeStruct) + j);
-                fread(&(arrayPtr->size), sizeof(arrayPtr->size), 1, stream);
-                arrayPtr->d3dmeshHandle = malloc(arrayPtr->size * sizeof(uint64_t));
-                fread(arrayPtr->d3dmeshHandle, arrayPtr->size * sizeof(uint64_t), 1, stream);
-            }
-            break;
-        case HandleTempSkeletonLate:
-            printf("Handle<Skeleton>\n");
-            prop->groups[i].typeStruct = malloc(sizeof(struct HandleTempSkeletonLate) * (prop->groups[i].numValues));
-            for (int j = 0; j < prop->groups[i].numValues; ++j)
-            {
-                fseek(stream, sizeof(uint64_t), SEEK_CUR);
-                struct HandleTempSkeletonLate *handlePtr = ((struct HandleTempSkeletonLate *)(prop->groups[i].typeStruct) + j);
-                fread(handlePtr, sizeof(struct HandleTempSkeletonLate), 1, stream);
-            }
-            break;
-        case MapTempStringPropertySetstdlessTempStringLateLate:
-            printf("Map\n");
-            prop->groups[i].typeStruct = malloc(sizeof(struct MapTempStringPropertySetstdlessTempStringLateLate) * (prop->groups[i].numValues));
-            for (int j = 0; j < prop->groups[i].numValues; ++j)
-            {
-                fseek(stream, sizeof(uint64_t), SEEK_CUR);
-
-                struct MapTempStringPropertySetstdlessTempStringLateLate *mapPtr = ((struct MapTempStringPropertySetstdlessTempStringLateLate *)(prop->groups[i].typeStruct) + j);
-                fread(mapPtr, sizeof(mapPtr->size), 1, stream);
-
-                mapPtr->pairs = malloc(mapPtr->size * (sizeof(struct StringPropertyPair)));
-                for (int k = 0; k < mapPtr->size; ++k)
-                {
-                    readString(stream, &(mapPtr->pairs[k].string));
-                    readProp(stream, &(mapPtr->pairs[k].property));
-                }
-            }
-            break;
-        case Flags:
-            printf("flags\n");
-            prop->groups[i].typeStruct = malloc(sizeof(Flags) * (prop->groups[i].numValues));
-            for (int j = 0; j < prop->groups[i].numValues; ++j)
-            {
-                fseek(stream, sizeof(uint64_t), SEEK_CUR);
-
-                struct Flags *flagsPtr = ((struct Flags *)(prop->groups[i].typeStruct) + j);
-                fread(flagsPtr, sizeof(struct Flags), 1, stream);
-            }
-            break;
-        case float_type:
-            printf("float_type\n");
-            prop->groups[i].typeStruct = malloc(sizeof(float) * (prop->groups[i].numValues));
-            for (int j = 0; j < prop->groups[i].numValues; ++j)
-            {
-                fseek(stream, sizeof(uint64_t), SEEK_CUR);
-
-                float *floatPtr = ((float *)(prop->groups[i].typeStruct) + j);
-                fread(floatPtr, sizeof(float), 1, stream);
-            }
-            break;
-        default:
-            printf("Error: prop: Type not yet supported\n");
-            return -1;
-            break;
+            fread(&prop->groups[i].typeStruct[j].nameSymbol, sizeof(prop->groups[i].typeStruct[j].nameSymbol), 1, stream);
+            readMetaClass(stream, &(prop->groups[i].typeStruct[j].buffer), prop->groups[i].typeSymbol, flags);
         }
     }
     return 0;
@@ -174,7 +76,13 @@ int readProp(FILE *stream, struct PropertySet *prop)
 
 int freeProp(struct PropertySet *prop)
 {
-    free(prop->groups->typeStruct);
+    for (uint32_t i = 0; i < prop->numTypes; ++i)
+    {
+        for (uint32_t j = 0; j < prop->groups[i].numValues; ++j)
+        {
+        }
+        free(prop->groups[i].typeStruct)
+    }
     free(prop->groups);
     free(prop->parentSymbols);
     return 0;
