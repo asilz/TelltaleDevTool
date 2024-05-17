@@ -9,7 +9,7 @@
 #include <ttbool.h>
 #include <dlg.h>
 
-#define META_CLASS_DESCRIPTIONS_COUNT 977
+#define META_CLASS_DESCRIPTIONS_COUNT 978
 
 typedef int (*serializeFunction)(FILE *stream, void **object, uint32_t flags);
 
@@ -1095,6 +1095,7 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[bool_type].read = readBool;
     metaClassDescriptions[LanguageResProxy].read = readLanguageResProxy;
 
+    /* Dlg Functions */
     metaClassDescriptions[DlgNodeLogic].read = DlgNodeLogicRead;
     metaClassDescriptions[DlgNodeExchange].read = DlgNodeExchangeRead;
     metaClassDescriptions[DlgNodeChoices].read = DlgNodeChoicesRead;
