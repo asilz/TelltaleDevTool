@@ -3,8 +3,8 @@
 
 struct MetaStreamCrc
 {
-    uint64_t *typeSymbolCrc;
-    uint32_t *versionCrc;
+    uint64_t typeSymbolCrc;
+    uint32_t versionCrc;
 };
 
 struct MetaStreamHeader // Based on Lucas Saragosa's Telltale inspector
@@ -16,3 +16,9 @@ struct MetaStreamHeader // Based on Lucas Saragosa's Telltale inspector
     uint32_t numVersion; // A number between 0 and 0x3E8. It defines the length of the next variable
     struct MetaStreamCrc *crc;
 };
+
+void readMetaStream(FILE *stream, struct MetaStreamHeader *header);
+int readMetaClass(FILE *stream, void **object, uint64_t typeSymbol, uint32_t flags);
+int writeMetaClass(FILE *stream, void **object, uint64_t typeSymbol, uint32_t flags);
+int initializeMetaClassDescriptions();
+char *getMetaClassName(uint64_t typeSymbol);
