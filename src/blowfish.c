@@ -1,6 +1,12 @@
-#include "blowfish.h"
-#include "lua.h"
-#include "crc64.h"
+#include <blowfish_tab.h>
+#include <lua.h>
+#include <crc64.h>
+#include <ttarch.h>
+#include <meta.h>
+#include <types.h>
+#include <stdlib.h>
+#include <prop.h>
+#include <dlg.h>
 
 static uint32_t F(uint32_t leftHalf)
 {
@@ -73,7 +79,7 @@ void decryptBlock(uint64_t *block)
     *block = ((uint64_t)leftHalf << 32) | rightHalf;
 }
 
-void encryptData(uint64_t *data, size_t dataLength)
+inline void encryptData(uint64_t *data, size_t dataLength)
 {
     for (int i = 0; i < dataLength; ++i)
     {
@@ -81,7 +87,7 @@ void encryptData(uint64_t *data, size_t dataLength)
     }
 }
 
-void decryptData(uint64_t *data, size_t dataLength)
+inline void decryptData(uint64_t *data, size_t dataLength)
 {
     for (int i = 0; i < dataLength; ++i)
     {
@@ -144,7 +150,6 @@ void printText(uint64_t *data, size_t length)
 
 void decryptBlock7(uint64_t *block)
 {
-
     uint32_t leftHalf = (uint32_t)(*block & 0xFFFFFFFF);
     uint32_t rightHalf = (uint32_t)(*block >> 32);
     uint32_t temp;
@@ -245,8 +250,10 @@ void encryptData7(uint64_t *data, size_t dataLength)
 
 void decryptData7(uint64_t *data, size_t dataLength)
 {
+
     for (int i = 0; i < dataLength; ++i)
     {
+        // printf("Decryptdata7 %d\n", i);
         decryptBlock7(data + i);
     }
 }
@@ -298,12 +305,131 @@ void initBlowfish7(uint8_t *key, size_t keyLength)
 
 #define dataLength 4562957
 
+#define crc_print                                           \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "int8"));      \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "uint16"));    \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "int16"));     \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "int"));       \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "long"));      \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "uint64"));    \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "float"));     \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "int64"));     \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "double"));    \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "int32"));     \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "uint32"));    \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "Symbol"));    \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "uint8"));     \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "bool"));      \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "String"));    \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "Sphere"));    \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "Transform")); \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "Vector2"));   \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "Vector3"));   \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "Vector4"));   \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "Color"));     \
+    printf("%lx\n", CRC64_CaseInsensitive(0, "Quaternion"));
+
+void versDB()
+{
+    FILE *dataBase = fopen("../dataBase/WDC.VersDB", "rb");
+    FILE *text = fopen("./typeNames3.txt", "wb");
+    fseek(dataBase, 0x27950, SEEK_SET);
+    while (1)
+    {
+        uint8_t byte;
+        uint8_t bytesRead = fread(&byte, 1, 1, dataBase);
+        if (bytesRead == 0)
+        {
+            break;
+        }
+        if (byte == '\0')
+        {
+            uint8_t comma = ',';
+            fwrite(&comma, 1, 1, text);
+            byte = '\n';
+        }
+        fwrite(&byte, 1, 1, text);
+    }
+    fclose(dataBase);
+    fclose(text);
+}
+
 int main(void)
 {
     // uint8_t gameKey[keyLength] = {0x96, 0xCA, 0x99, 0x9F, 0x8D, 0xDA, 0x9A, 0x87, 0xD7, 0xCD, 0xD9, 0xBB, 0x93, 0xD1, 0xBE, 0xC0, 0xD7, 0x91, 0x71, 0xDC, 0x9E, 0xD9, 0x8D, 0xD0, 0xD1, 0x8C, 0xD8, 0xC3, 0xA0, 0xB0, 0xC6, 0x95, 0xC3, 0x9C, 0x93, 0xBB, 0xCC, 0xCC, 0xA7, 0xD3, 0xB9, 0xD9, 0xD9, 0xD0, 0x8E, 0x93, 0xBE, 0xDA, 0xAE, 0xD1, 0x8D, 0x77, 0xD5, 0xD3, 0xA3, 0x96, 0xCA, 0x99, 0x9F, 0x8D, 0xDA, 0x9A, 0x87, 0xD7, 0xCD, 0xD9, 0xBB, 0x93, 0xD1, 0xBE, 0xC0, 0xD7, 0x91, 0x71, 0xDC, 0x9E, 0xD9, 0x8D, 0xD0, 0xD1, 0x8C, 0xD8, 0xC3, 0xA0, 0xB0, 0xC6, 0x95, 0xC3, 0x9C, 0x93, 0xBB, 0xCC, 0xCC, 0xA7, 0xD3, 0xB9, 0xD9, 0xD9, 0xD0, 0x8E, 0x93, 0xBE, 0xDA, 0xAE, 0xD1, 0x8D, 0x77, 0xD5, 0xD3, 0xA3};
-
     initBlowfish7(gameKey, keyLen);
-    decryptLua("../cipherTexts/WDC_pc_WalkingDead301_data.ttarch2", "../plainTexts/WDC_pc_WalkingDead301_data.ttarch2", dataLength);
+    initializeMetaClassDescriptions();
+    printf("inited blowfish\n");
+
+    // int err = decryptLua("../cipherTexts/BeaconTown.lua", "../plainTexts/BeaconTown.lua");
+    // err = encryptLua("../plainTexts/_resdesc_50_WalkingDead302.lua", "../cipherTexts/_resdesc_50_WalkingDead3022.lua");
+    // printf("%d\n", err);
+
+    // FILE *cipherPtr = fopen("../cipherTexts/WDC_pc_WalkingDead301_data.ttarch2", "rb");
+    // FILE *plainPtr = fopen("../plainTexts/WDC_pc_WalkingDead301_data.ttarch2", "wb");
+    // int err = inf(cipherPtr, plainPtr);
+    // fclose(cipherPtr);
+    // fclose(plainPtr);
+    // printf("%d", err);
+    //  inf("../cipherTexts/WDC_pc_WalkingDead301_data.ttarch2", "../plainTexts/WDC_pc_WalkingDead301_data.ttarch2");
+
+    /*
+    FILE *file = fopen("../cipherTexts/ttarch/WDC_pc_WalkingDead301_data.ttarch2", "rb");
+    size_t pos = ftell(file);
+    streamDecrypt(&file);
+    fseek(file, pos, SEEK_SET);
+    archiveSplit(file, "../plainTexts/ttarchDump/");
+    */
+
+    uint8_t *name = "DlgNodeCriteria";
+    uint64_t out = CRC64_CaseInsensitive(0, name);
+    printf("%lx\n", out);
+
+    // FILE *zip = fopen("../cipherTexts/_WDC.exe.extracted/104E289.zlib", "rb");
+    // FILE *file = fopen("../plainTexts/104E289.txt", "wb");
+
+    // writeDatabase();
+
+    // enum Type type = searchDatabase("protonDatabase.db", 0x988d0903f713877b);
+    // printf("%d", (uint16_t)type);
+
+    /*
+     FILE *propFile = fopen("../cipherTexts/sk62_clementine.prop", "rb");
+     struct MetaStreamHeader header;
+     readMetaStreamHeader(propFile, &header);
+     struct PropertySet prop;
+     readProp(propFile, &prop);
+
+     freeProp(&prop);
+     free(header.versionCrc);
+     free(header.typeSymbolCrc);
+     */
+
+    printf("%d\n", (uint32_t)searchDatabase("./protonDatabase.db", 0x707D175FE1B5F859));
+
+    /*
+    FILE *stream = fopen("../cipherTexts/landb/env_virginiarailroad_english.landb", "rb");
+    if (stream == NULL)
+    {
+        printf("Stream is NULL\n");
+        return 1;
+    }
+    struct MetaStreamHeader header;
+    readMetaStream(stream, &header);
+
+    struct LanguageDB db;
+    LanguageRead(stream, &db);
+    streamToFile(stream, "../plainTexts/landbDump/env_virginiarailroad_english.landb");
+    */
+
+    // FILE *file = fopen("../cipherTexts/dlog/env_hardwareStore.dlog", "rb");
+    // binWalk(file);
+
+    FILE *stream = fopen("../cipherTexts/dlog/edited/env_airportExterior.dlog", "rb");
+    struct MetaStreamHeader header;
+    readMetaStream(stream, &header);
+    struct Dlg dlg;
+    DlgRead(stream, &dlg, 0);
 
     return 0;
 }

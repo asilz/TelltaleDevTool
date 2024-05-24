@@ -6,12 +6,13 @@
 #include <crc64.h>
 #include <types.h>
 #include <string.h>
-#include <ttbool.h>
+#include <intrinsic.h>
+#include <tree.h>
 #include <dlg.h>
 
 #define META_CLASS_DESCRIPTIONS_COUNT 978
 
-typedef int (*serializeFunction)(FILE *stream, void **object, uint32_t flags);
+typedef int (*serializeFunction)(FILE *stream, struct TreeNode *node, uint32_t flags);
 
 struct MetaClassDescription
 {
@@ -21,7 +22,7 @@ struct MetaClassDescription
     serializeFunction write;
 };
 
-static struct MetaClassDescription metaClassDescriptions[META_CLASS_DESCRIPTIONS_COUNT] = {0};
+static struct MetaClassDescription metaClassDescriptions[META_CLASS_DESCRIPTIONS_COUNT] = {{0}};
 
 void readMetaStreamHeader(FILE *stream, struct MetaStreamHeader *header)
 {
@@ -78,28 +79,29 @@ void readMetaStream(FILE *stream, struct MetaStreamHeader *header)
     fseek(stream, (-((int64_t)header->defaultSize + (int64_t)header->debugSize + (int64_t)header->asyncSize)), SEEK_CUR); // Seeks back to the end of header
 }
 
-int readMetaClass(FILE *stream, void **object, uint64_t typeSymbol, uint32_t flags)
+int readMetaClass(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    enum Type type = searchDatabase("protonDatabase.db", typeSymbol);
+    enum Type type = searchDatabase("protonDatabase.db", node->typeSymbol);
+    // printf("Call %s\n", metaClassDescriptions[type].name);
     serializeFunction readFunction = metaClassDescriptions[type].read;
     if (readFunction == NULL)
     {
-        printf("Error: Read function not implemented for %s\n", metaClassDescriptions[type].name);
+        printf("Error: Read function not implemented for %s type = %lx\n", metaClassDescriptions[type].name, node->typeSymbol);
         return -1;
     }
-    return metaClassDescriptions[type].read(stream, object, flags);
+    return metaClassDescriptions[type].read(stream, node, flags);
 }
 
-int writeMetaClass(FILE *stream, void **object, uint64_t typeSymbol, uint32_t flags)
+int writeMetaClass(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    enum Type type = searchDatabase("protonDatabase.db", typeSymbol);
+    enum Type type = searchDatabase("protonDatabase.db", node->typeSymbol);
     serializeFunction writeFunction = metaClassDescriptions[type].write;
     if (writeFunction == NULL)
     {
-        printf("Error: Write function not implemented for %s\n", metaClassDescriptions[type].name);
+        printf("Error: Write function not implemented for %s, type = %lx\n", metaClassDescriptions[type].name, node->typeSymbol);
         return -1;
     }
-    return metaClassDescriptions[type].write(stream, object, flags);
+    return metaClassDescriptions[type].write(stream, node, flags);
 }
 
 char *getMetaClassName(uint64_t typeSymbol)
@@ -107,15 +109,10 @@ char *getMetaClassName(uint64_t typeSymbol)
     return metaClassDescriptions[searchDatabase("protonDatabase.db", typeSymbol)].name;
 }
 
-int readLanguageResProxy(FILE *stream, void **languageResProxy, uint32_t flags)
-{
-    *languageResProxy = malloc(sizeof(uint32_t));
-    fread(*languageResProxy, sizeof(uint32_t), 1, stream);
-}
-
 int initializeMetaClassDescriptions()
 {
     // Now you might think writing this function took ages... and you would be correct.
+
     metaClassDescriptions[Animation].name = "Animation";
     metaClassDescriptions[anm].name = "anm";
     metaClassDescriptions[LogicGroup].name = "LogicGroup";
@@ -448,6 +445,7 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[DCArrayTempChoreResourceBlockLate].name = "DCArray<ChoreResource::Block>";
     metaClassDescriptions[RenderObject_Mesh].name = "RenderObject_Mesh";
     metaClassDescriptions[EnumMeshDebugRenderType].name = "EnumMeshDebugRenderType";
+    metaClassDescriptions[DCArrayTempLightGroupInstanceLate].name = "DCArray<LightGroupInstance>";
     metaClassDescriptions[DCArrayTempRenderObject_MeshTextureInstanceLate].name = "DCArray<RenderObject_Mesh::TextureInstance>";
     metaClassDescriptions[DCArrayTempRenderObject_MeshMeshInstanceLate].name = "DCArray<RenderObject_Mesh::MeshInstance>";
     metaClassDescriptions[RenderObjectInterface].name = "RenderObjectInterface";
@@ -786,6 +784,7 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[SaveGame].name = "SaveGame";
     metaClassDescriptions[save].name = "save";
     metaClassDescriptions[DCArrayTempSaveGameAgentInfoLate].name = "DCArray<SaveGame::AgentInfo>";
+    metaClassDescriptions[Rules].name = "rules";
     metaClassDescriptions[rules].name = "rules";
     metaClassDescriptions[MapTempStringRule__ptr64stdlessTempStringLateLate].name = "Map<String,Rule*__ptr64,less<String>>";
     metaClassDescriptions[HandleTempRuleLate].name = "Handle<Rule>";
@@ -1092,10 +1091,15 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[unsignedchar_type].name = "unsignedchar";
     metaClassDescriptions[char_type].name = "char";
 
-    metaClassDescriptions[bool_type].read = readBool;
-    metaClassDescriptions[LanguageResProxy].read = readLanguageResProxy;
+    metaClassDescriptions[bool_type].read = BoolRead;
+    metaClassDescriptions[int32_type].read = intrinsic4Read;
+    metaClassDescriptions[LanguageResProxy].read = intrinsic4Read;
+    metaClassDescriptions[ScriptEnumDialogMode].read = ScriptEnumRead;
+    metaClassDescriptions[String].read = StringRead;
+    metaClassDescriptions[AnimOrChore].read = AnimOrChoreRead;
 
     /* Dlg Functions */
+
     metaClassDescriptions[DlgNodeLogic].read = DlgNodeLogicRead;
     metaClassDescriptions[DlgNodeExchange].read = DlgNodeExchangeRead;
     metaClassDescriptions[DlgNodeChoices].read = DlgNodeChoicesRead;
@@ -1114,6 +1118,9 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[DlgFolderChild].read = DlgFolderChildRead;
     metaClassDescriptions[DlgChoicesChildPre].read = DlgChoicesChildPreRead;
     metaClassDescriptions[DlgChoicesChildPost].read = DlgChoicesChildPostRead;
+    metaClassDescriptions[DlgConditionInput].read = DlgConditionInputRead;
+    metaClassDescriptions[DlgConditionTime].read = DlgConditionTimeRead;
+    metaClassDescriptions[DlgNodeSequenceElement].read = DlgNodeSequenceElementRead;
 
     printf("init metaClassDescriptions\n");
     return 0;

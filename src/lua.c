@@ -1,5 +1,5 @@
-#include "blowfish.h"
-#include "lua.h"
+#include <blowfish.h>
+#include <lua.h>
 
 int decryptLua(uint8_t *encryptedFilePath, uint8_t *decryptedFilePath)
 {
@@ -8,12 +8,16 @@ int decryptLua(uint8_t *encryptedFilePath, uint8_t *decryptedFilePath)
 
     fread(&buffer, 4, 1, encryptedFile);
 
-    if ((uint32_t)buffer != 0x6F454C1B)
+    FILE *decryptedFile = fopen(decryptedFilePath, "wb");
+
+    if ((uint32_t)buffer == 0x6E454C1B) // \x1BLEn
+    {
+        fwrite("\x1BLua", 4, 1, decryptedFile);
+    }
+    else if ((uint32_t)buffer != 0x6F454C1B) // \x1BLEo
     {
         printf("Warning: Unexpected header in lua file %lx\n", buffer);
     }
-
-    FILE *decryptedFile = fopen(decryptedFilePath, "wb");
 
     while (1)
     {
@@ -46,7 +50,16 @@ int encryptLua(uint8_t *decryptedFilePath, uint8_t *encryptedFilePath)
     FILE *decryptedFile = fopen(decryptedFilePath, "rb");
     FILE *encryptedFile = fopen(encryptedFilePath, "wb");
 
-    fwrite("\x1BLEo", 4, 1, encryptedFile);
+    fread(&buffer, sizeof(uint32_t), 1, decryptedFile);
+    if ((uint32_t)buffer == 0x61754C1B) // \x1BLua
+    {
+        fwrite("\x1BLEn", 4, 1, encryptedFile);
+    }
+    else
+    {
+        rewind(decryptedFile);
+        fwrite("\x1BLEo", 4, 1, encryptedFile);
+    }
 
     while (1)
     {

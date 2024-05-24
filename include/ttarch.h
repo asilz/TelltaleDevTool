@@ -9,10 +9,12 @@
 int streamDecrypt(FILE **compressedStreamPtr);
 
 /**
- * @brief Splits files contained in @p stream and stores them in @p outpath
+ * @brief Splits files contained in @p stream and stores them in @p folderPath
  * assuming @p stream is an archive
  *
  * @param stream archive stream
- * @param outpath Path to folder where output files will be stored
+ * @param folderPath Path to folder where output files will be stored
  */
-int archiveSplit(FILE *stream, uint8_t *outPath);
+int archiveSplit(FILE *stream, uint8_t *folderPath);
+
+int streamToFile(FILE *stream, uint8_t outputPath);

@@ -1,6 +1,8 @@
+#include <ttstring.h>
+
 enum Type
 {
-    Animation,
+    Animation = 1,
     anm,
     LogicGroup,
     Rule,
@@ -396,7 +398,7 @@ enum Type
     IdleTransitionSettings,
     Rect,
     DCArrayTempMapTempStringStringstdlessTempStringLateLateLate,
-    MapTempSymbolint_typestdlessTempSymbolLateLate,
+    MapTempSymbolintstdlessTempSymbolLateLate,
     T3MeshPropertyEntry,
     DCArrayTempT3MeshPropertyEntryLate,
     EnumHBAOPreset,
@@ -412,21 +414,21 @@ enum Type
     HandleTempT3OverlayDataLate,
     MapTempSymbolLocalizationLanguagestdlessTempSymbolLateLate,
     MapTempSymbolPropertySetstdlessTempSymbolLateLate,
-    MapTempStringint_typestdlessTempStringLateLate,
+    MapTempStringintstdlessTempStringLateLate,
     uint32_type,
     LocalizationLanguage,
     MapTempSymbolStringstdlessTempSymbolLateLate,
-    SetTempint_typestdlessTempintLateLate,
-    MapTempint_typeSymbolstdlessTempintLateLate,
+    SetTempintstdlessTempintLateLate,
+    MapTempintSymbolstdlessTempintLateLate,
     ChorecorderParameters,
     MapTempStringChorecorderParametersstdlessTempStringLateLate,
-    uint64,
+    uint64_type,
     MapTempStringSetTempSymbolstdlessTempSymbolLateLateStringCompareCaseInsensitiveLate,
     MapTempSymbolMapTempSymbolSetTempSymbolstdlessTempSymbolLateLatestdlessTempSymbolLateLatestdlessTempSymbolLateLate,
-    MapTempSymbolMapTempSymbolint_typestdlessTempSymbolLateLatestdlessTempSymbolLateLate,
+    MapTempSymbolMapTempSymbolintstdlessTempSymbolLateLatestdlessTempSymbolLateLate,
     MapTempSymbolPreloadPackageResourceSeenTimesstdlessTempSymbolLateLate,
     MapTempPreloadPackageResourceKeyPreloadPackageResourceSeenTimesstdlessTempPreloadPackageResourceKeyLateLate,
-    MapTempunsignedint_typeSetTempSymbolstdlessTempSymbolLateLatestdlessTempunsignedintLateLate,
+    MapTempunsignedintSetTempSymbolstdlessTempSymbolLateLatestdlessTempunsignedintLateLate,
     MapTempunsignedlongFontGlyphInfostdlessTempunsignedlongLateLate,
     MapTempunsignedlongLanguageResstdlessTempunsignedlongLateLate,
     MapTempStringHandleTempPropertySetLatestdlessTempStringLateLate,
@@ -437,12 +439,12 @@ enum Type
     MapTempStringSetTempStringstdlessTempStringLateLatestdlessTempStringLateLate,
     MapTempStringPhonemeTablePhonemeEntrystdlessTempStringLateLate,
     MapTempStringMapTempStringDCArrayTempStringLatestdlessTempStringLateLatestdlessTempStringLateLate,
-    MapTempStringfloat_typestdlessTempStringLateLate,
+    MapTempStringfloatstdlessTempStringLateLate,
     MapTempStringAnimOrChorestdlessTempStringLateLate,
-    MapTempMetaClassDescriptionconst__ptr64int_typestdlessTempMetaClassDescriptionconst__ptr64LateLate,
-    MapTempint_typePropertySetstdlessTempintLateLate,
-    MapTempint_typeint_typestdlessTempintLateLate,
-    MapTempDlgObjIDint_typeDlgObjIDLessLate,
+    MapTempMetaClassDescriptionconst__ptr64intstdlessTempMetaClassDescriptionconst__ptr64LateLate,
+    MapTempintPropertySetstdlessTempintLateLate,
+    MapTempintintstdlessTempintLateLate,
+    MapTempDlgObjIDintDlgObjIDLessLate,
     MapTempStringDCArrayTempunsignedcharLatestdlessTempStringLateLate,
     ListTempVector3Late,
     ListTempunsignedintLate,
@@ -683,14 +685,14 @@ enum Type
     HandleTempPreloadPackageRuntimeDataDialogLate,
     HandleTempPhysicsObjectLate,
     DCArrayTempParticleSpriteAnimationLate,
-    SArrayTempHandleTempT3TextureLateLate,
+    SArrayTempHandleTempT3TextureLate1Late,
     ParticleProperties,
     particle,
     DCArrayTempParticlePropertiesAnimationLate,
     HandleTempLocomotionDBLate,
     LocomotionDB,
     ldb,
-    MapTempStringLocomotionDBAnimationInfostdlessTempStringLateLate,
+    MapTempStringLocomotionDBAnimationInfolessTempStringLateLate,
     LightProbeData,
     probe,
     HandleTempLanguageResourceLate,
@@ -699,23 +701,23 @@ enum Type
     HandleTempLanguageDatabaseLate,
     LanguageDatabase,
     langdb,
-    MapTempint_typeLanguageResourcestdlessTempintLateLate,
+    MapTempintLanguageResourcelessTempintLateLate,
     HandleTempInputMapperLate,
     DCArrayTempInputMapperEventMappingLate,
     DCArrayTempunsignedintLate,
     DCArrayTempT3TextureLate,
-    MapTempunsignedint_typeFontGlyphInfostdlessTempunsignedintLateLate,
+    MapTempunsignedintFontGlyphInfolessTempunsignedintLateLate,
     HandleTempEventStorageLate,
     JiraRecordManager,
-    MapTempStringPtrTempJiraRecordLatestdlessTempStringLateLate,
+    MapTempStringPtrTempJiraRecordLatelessTempStringLateLate,
     DialogResource,
     dlg,
-    MapTempint_typePtrTempDialogTextLatestdlessTempintLateLate,
-    MapTempint_typePtrTempDialogLineLatestdlessTempintLateLate,
-    MapTempint_typePtrTempDialogExchangeLatestdlessTempintLateLate,
-    MapTempint_typePtrTempDialogItemLatestdlessTempintLateLate,
-    MapTempint_typePtrTempDialogBranchLatestdlessTempintLateLate,
-    MapTempint_typePtrTempDialogDialogLatestdlessTempintLateLate,
+    MapTempintPtrTempDialogTextLatelessTempintLateLate,
+    MapTempintPtrTempDialogLineLatelessTempintLateLate,
+    MapTempintPtrTempDialogExchangeLatelessTempintLateLate,
+    MapTempintPtrTempDialogItemLatelessTempintLateLate,
+    MapTempintPtrTempDialogBranchLatelessTempintLateLate,
+    MapTempintPtrTempDialogDialogLatelessTempintLateLate,
     DArrayTempintLate,
     DCArrayTempHandleBaseLate,
     DCArrayTempT3MeshEffectPreloadLate,
@@ -725,7 +727,7 @@ enum Type
     DCArrayTempT3MeshMaterialLate,
     DCArrayTempT3MeshTextureLate,
     DCArrayTempT3MeshLODLate,
-    MapTempSymbolWalkPathstdlessTempSymbolLateLate,
+    MapTempSymbolWalkPathlessTempSymbolLateLate,
     DependencyLoaderTemp1Late,
     HandleTempSoundEventSnapshotDataLate,
     SoundEventSnapshotData,
@@ -736,7 +738,7 @@ enum Type
     AudioData,
     HandleTempAnimOrChoreLate,
     HandleTempAgentMapLate,
-    MapTempStringAgentMapAgentMapEntrystdlessTempStringLateLate,
+    MapTempStringAgentMapAgentMapEntrylessTempStringLateLate,
     HandleTempActorAgentMapperLate,
     ActorAgentMapper,
     aam,
@@ -754,7 +756,7 @@ enum Type
     TextAlignmentType,
     T3ToonGradientRegion,
     T3RenderStateBlock,
-    SArrayTempunsignedint_type3Late,
+    SArrayTempunsignedint3Late,
     T3OcclusionMeshData,
     DCArrayTempT3OcclusionMeshBatchLate,
     T3MaterialSwizzleParams,
@@ -765,20 +767,20 @@ enum Type
     WalkPath,
     TransitionMap,
     tmap,
-    MapTempSymbolTransitionMapTransitionMapInfostdlessTempSymbolLateLate,
+    MapTempSymbolTransitionMapTransitionMapInfolessTempSymbolLateLate,
     StyleIdleTransitionsRes,
     trans,
     SceneAgentQualitySettings,
     StringFilter,
     SoundEventBankMap,
     soundeventbankmap,
-    MapTempStringDCArrayTempStringLatestdlessTempStringLateLate,
+    MapTempStringDCArrayTempStringLatelessTempStringLateLate,
     SoundBankWaveMap,
     bankwavemap,
-    MapTempSymbolSoundBankWaveMapEntrystdlessTempSymbolLateLate,
+    MapTempSymbolSoundBankWaveMapEntrylessTempSymbolLateLate,
     SoundBusSnapshotSnapshotSuite,
     snapshotsuite,
-    MapTempSymbolHandleTempSoundBusSnapshotSnapshotLatestdlessTempSymbolLateLate,
+    MapTempSymbolHandleTempSoundBusSnapshotSnapshotLatelessTempSymbolLateLate,
     SoundBusSnapshotSnapshot,
     bussnapshot,
     SoundReverbDefinition,
@@ -791,8 +793,8 @@ enum Type
     DCArrayTempSkeletonPoseValueBoneEntryLate,
     SingleVector3Value,
     SingleQuaternionValue,
-    SArrayTempunsignedcharLate32,
-    MapTempSymbolfloat_typestdlessTempSymbolLateLate,
+    SArrayTempunsignedchar32Late,
+    MapTempSymbolfloatlessTempSymbolLateLate,
     ProceduralEyes,
     eyes,
     DCArrayTempPtrTempAnimationValueInterfaceBaseLateLate,
@@ -810,7 +812,7 @@ enum Type
     PhysicsData,
     t3bullet,
     BinaryBuffer,
-    MapTempSymbolPhonemeTablePhonemeEntrystdlessTempSymbolLateLate,
+    MapTempSymbolPhonemeTablePhonemeEntrylessTempSymbolLateLate,
     PerAgentClipResourceFilter,
     SetTempStringStringCompareCaseInsensitiveLate,
     MapTempStringClipResourceFilterStringCompareCaseInsensitiveLate,
@@ -822,7 +824,7 @@ enum Type
     DCArrayTempunsignedshortLate,
     DCArrayTempMeshSceneLightmapDataEntryLate,
     Matrix4,
-    MapTempStringMapTempStringStringstdlessTempStringLateLatestdlessTempStringLateLate,
+    MapTempStringMapTempStringStringlessTempStringLateLatelessTempStringLateLate,
     KeyframedValueTempHandleTempChoreLateLate,
     DCArrayTempKeyframedValueTempHandleTempChoreLateLateSampleLate,
     AnimatedValueInterfaceTempHandleTempChoreLateLate,
@@ -838,7 +840,7 @@ enum Type
     InverseKinematicsDerived,
     HermiteCurvePathSegment,
     PathBase,
-    MapTempSoundFootstepsEnumMaterialSoundEventNameTemp0LatestdlessTempSoundFootstepsEnumMaterialLateLate,
+    MapTempSoundFootstepsEnumMaterialSoundEventNameTemp0LatelessTempSoundFootstepsEnumMaterialLateLate,
     FootStepsFootstepBank,
     FilterArea,
     FileNameTempSoundEventBankDummyLate,
@@ -873,7 +875,7 @@ enum Type
     DCArrayTempLanguageResLocalLate,
     DCArrayTempProjectDatabaseIDPairLate,
     ToolProps,
-    MapTempunsignedint_typeLanguageResstdlessTempunsignedintLateLate,
+    MapTempunsignedintLanguageReslessTempunsignedintLateLate,
     DlgNodeStatsCohort,
     DlgNodeStats,
     DlgNodeStatsDlgChildSetCohort,
@@ -906,7 +908,7 @@ enum Type
     DlgConditionTime,
     DlgConditionRule,
     DCArrayTempLogicGroupLate,
-    MapTempStringLogicGroupLogicItemstdlessTempStringLateLate,
+    MapTempStringLogicGroupLogicItemlessTempStringLateLate,
     DlgConditionInput,
     DlgCondition,
     DlgChoicesChildPost,
@@ -967,22 +969,22 @@ enum Type
     int16_type,
     int8_type,
     double_type,
-    unsigned__int64,
-    __int64,
-    unsignedlong,
+    unsigned__int64_type,
+    __int64_type,
+    unsignedlong_type,
     long_type,
     unsignedint_type,
     int_type,
-    unsignedshort,
+    unsignedshort_type,
     short_type,
-    unsignedchar,
+    unsignedchar_type,
     char_type,
 };
 
 struct PropertySet
 {
-    int32_t version;
-    int32_t flags;
+    uint32_t version;
+    uint32_t flags;
     uint32_t size; // Int at BlockStart which is the total size of the values all serialized between BlockStart and BlockEnd in bytes (includes the 4 byte block length in the size!).
     uint32_t parentCount;
     uint64_t *parentSymbols;
@@ -1000,12 +1002,6 @@ struct __attribute__((__packed__)) TypeGroup
 struct Boolean
 {
     uint8_t value;
-};
-
-struct String
-{
-    uint32_t size;
-    uint8_t *data;
 };
 
 struct Vector3
@@ -1041,12 +1037,6 @@ struct HandleTempSkeletonLate
     uint64_t symbol;
 };
 
-struct StringPropertyPair
-{
-    struct String string;
-    struct PropertySet property;
-};
-
 struct MapTempStringPropertySetstdlessTempStringLateLate
 {
     uint32_t size;
@@ -1056,6 +1046,15 @@ struct MapTempStringPropertySetstdlessTempStringLateLate
 struct Flags
 {
     uint32_t flags;
+};
+
+struct HandleBase
+{
+    uint64_t symbol;
+};
+
+struct Chore
+{
 };
 
 int readProp(FILE *stream, struct PropertySet *prop);

@@ -1,9 +1,10 @@
 #include <inttypes.h>
-#include "string.h"
-#include "landb.h"
-#include "types.h"
-#include "tree.h"
-#include "crc64.h"
+#include <string.h>
+#include <landb.h>
+#include <types.h>
+#include <crc64.h>
+#include <stdlib.h>
+#include <tree.h>
 
 /*
 env_airportExterior.dlog
@@ -30,7 +31,8 @@ At around 0x15b0 there is a checkpoint for "cs_approachPrescott" (ID = 0xa50b93a
 Current understanding: Child is start of a chain of nodes. The first node (after child) will have its prev point to the chain head ID and the chain head link will point to the first node.
 addr = 0x1910, 0x1820 <- Remember to check this later.
 
-
+Attempted Change: Swap chore of A465D8 and 3631F8 by swapping the chore handle. A465D8 chore = 0x730EB2ADC9BA91CB, 3631F8 chore = 7F4DE458542A5D0C
+Result: Swapped the connsequence of your choice.
 
 
 
@@ -80,6 +82,9 @@ struct DlgObjectIDOwner // 0x0C (12) bytes
 struct DlgObjectProps
 {
     uint32_t flags; // Enum (DlgObjectProps::PropsTypeT) = eUserProps = 0x1, eProductionProps = 0x2, eToolProps = 0x4
+    // if mFlags.mFlags & eUserProps: 		PropertySet *mUserProps
+    // if mFlags.mFlags & eProductionProps: 	PropertySet *mProductionProps
+    // if mFlags.mFlags & eToolProps: 		PropertySet *mToolProps
 };
 
 struct DlgObjectPropsOwner
@@ -136,34 +141,46 @@ struct DlgFolderChild // 0x7bdcf5ceaf476dbb
 
 struct DlgCondition
 {
+    uint32_t block;
     struct DlgObjectIDOwner objectIDOwner;
+};
+
+struct DlgConditionTime
+{
+    uint32_t block;
+    struct DlgCondition condition;
+    uint32_t durationClass;
+    float seconds;
 };
 
 struct DlgConditionInput // 0x8e47b65968d5f15f
 {
+    uint32_t block;
     struct DlgCondition condition;
 };
 
-struct DlgConditionSet
+struct DlgConditionSet // addr = 0x18F6
 {
     struct SymbolDlgConditionPair
     {
         uint64_t conditionTypeSymbol;
         struct DlgCondition condition; // Type is conditionTypeSymbol
     };
-    uint32_t conditionsBlock;
     uint32_t conditionCount;
     struct SymbolDlgConditionPair *conditions;
 };
 
-struct DlgConditionalCase
+struct DlgConditionalCase // 0x9afb075db044fa59
 {
+    uint32_t block;
     struct DlgChild child;
 };
 
 struct DlgChoice // 0x98d5fd53a80e7c13
 {
+    uint32_t childBlock;
     struct DlgChild child;
+    uint32_t conditionSetBlock;
     struct DlgConditionSet conditionSet;
 };
 
@@ -188,15 +205,26 @@ struct DlgNode
     uint32_t chainContextTypeID;
 };
 
-struct DlgNodeConditional
+struct DlgNodeConditional // 0x28668D1ACB589778
 {
     struct DlgChildSetConditionalCase
     {
+        uint32_t block;
         struct DlgChildSet childSet;
     };
     struct DlgNode node;
     uint32_t casesBlock;
     struct DlgChildSetConditionalCase cases;
+};
+
+struct DlgChoicesChildPre // 0xe985d67eccd73fee
+{
+    struct DlgChild child;
+};
+
+struct DlgChoicesChildPost
+{
+    struct DlgChild child;
 };
 
 struct DlgChildSetChoicesChildPost // 0x171bdf4066e69130
@@ -205,7 +233,7 @@ struct DlgChildSetChoicesChildPost // 0x171bdf4066e69130
     struct DlgChildSet childSet;
 };
 
-struct DlgChildSetChoicesChildPre // 0xe985d67eccd73fee
+struct DlgChildSetChoicesChildPre
 {
     uint32_t childSetBlock;
     struct DlgChildSet childSet;
@@ -234,7 +262,7 @@ struct DlgNodeJump // 0x987d701bcf0be72e
     uint32_t jumpToLinkBlock;
     struct DlgNodeLink jumpToLink;
     uint64_t jumpToNameSymbol;
-    uint32_t jumpTargetClass;     // Enum: eToNae = 0x1, eToParent = 0x2, eToNodeAfterParentWaitNode = 0x3 }
+    uint32_t jumpTargetClass;     // Enum: eToName = 0x1, eToParent = 0x2, eToNodeAfterParentWaitNode = 0x3 }
     uint32_t jumpBehaviour;       // Enum: eJumpAndExecute = 0x1, eJumpExecuteAndReturn = 0x2, eReturn = 0x3 }
     uint32_t visibilityBehaviour; // Enum: eIgnoreVisibility = 0x1, eObeyVisibility = 0x2 }
     uint32_t choiceTransparency;
@@ -256,27 +284,112 @@ struct DlgNodeIdle // 0x8d8b0107aea7a818
 
 struct DlgNodeCriteria // 0x3b3c5055276b4321 // Unfinished
 {
-    uint32_t testType;          // required = 1, forbidden = 2
-    uint32_t flagThreshold;     // Enum: render = 0, capture = 1, all = 2, dataFlow_enum_count = 3
-    uint32_t criteriaThreshold; // Enum: render = 0, capture = 1, all = 2, dataFlow_enum_count = 3
-    uint32_t defaultResult;     // Enum: defaultToPass = 0x1, defaultToNotPass = 0x2, defaultToNotPassUnlessTransparent = 0x3
+
+    enum EnumThresholdT
+    {
+        eAny = 0x1,
+        eAll = 0x2
+    };
+    enum EnumTestT
+    {
+        eRequired = 0x1,
+        eForbidden = 0x2
+    };
+    enum EnumDefaultResultT
+    {
+        eDefaultToPass = 0x1,
+        eDefaultToNotPass = 0x2,
+        eDefaultToNotPassUnlessTransparent = 0x3
+    };
+    uint32_t testBlock;
+    enum EnumTestT testType;
+    uint32_t flagThresholdBlock;
+    enum EnumThresholdT flagThreshold;
+    uint32_t criteriaThresholdBlock;
+    enum EnumThresholdT criteriaThreshold;
+    uint32_t defaultResultBlock;
+    enum EnumDefaultResultT defaultResult;
     uint32_t classFlags;
     void *classIDs;
 };
 
+struct DlgLine
+{
+    uint32_t generatorBlock;
+    uint32_t UIDGenerator;
+    uint32_t IDOwnerBlock;
+    struct DlgObjectIDOwner IDOwner;
+    uint32_t languageResProxyBlock;
+    uint32_t languageResProxy;
+};
+
+struct DlgLineCollection
+{
+    struct IntDlgLinePair
+    {
+        uint32_t num;
+        struct DlgLine line;
+    };
+    uint32_t generatorBlock;
+    uint32_t UIDGenerator;
+    uint32_t mapBlock;
+    uint32_t pairCount;
+    struct IntDlgLinePair *pairs;
+};
+
 struct DlgNodeExchange // 0x979ec6c0f454d985
 {
+    struct NodeExchangeEntry
+    {
+        uint32_t ID;
+        uint32_t type;
+    };
     float priority; // 9900
     uint32_t choreHandleBlock;
     uint64_t choreHandle;
     struct DlgNode node;
+    uint32_t entriesBlock;
+    uint32_t entriesCount;
+    struct NodeExchangeEntry *entries;
 };
 
-struct DlgNodeSequence // 0x59f8b5e15f177d70 // Unfinished
+struct DlgChildSetElement
 {
+    uint32_t block;
+    struct DlgChildSet childSet;
+};
+
+struct DlgNodeSequenceElement // 0x59f8b5e15f177d70
+{
+    uint32_t childBlock;
+    struct DlgChild child;
+    uint32_t repeatBlock;
+    enum RepeatT
+    {
+        eIndefinitely = 0x1,
+        eOne = 0x2,
+        eTwo = 0x3,
+        eThree = 0x4,
+        eFour = 0x5,
+        eFive = 0x6,
+        eSix = 0x7,
+        eMaxPlusOne = 0x8
+    } mRepeat;
+    uint32_t playPositionBlock;
+    enum PlayPositionT
+    {
+        eUnspecified = 0x1,
+        eFirst = 0x2,
+        eLast = 0x3
+    } mPlayPosition;
+};
+
+struct DlgNodeSequence // 0x7432d68ab467e336
+{
+    uint32_t nodeBlock;
     struct DlgNode node;
     uint32_t elementsBlock;
-    struct DlgChildSet elements;
+    struct DlgChildSetElement elements;
     uint32_t playbackMode; // sequential = 1, shuffle = 2
     uint32_t lifetimeMode; // looping = 1, singleSequence = 2, singleSequenceRepeatFinal = 3
     uint32_t elementUseCriteriaBlock;
@@ -288,24 +401,27 @@ struct DlgNodeMarker // 0x62398665690a223b
     struct DlgNode node;
 };
 
-struct DlgNodeWait
+struct DlgNodeWait // 0xb8b173c4b0bbd87b
 {
-};
-
-struct SymbolBoolPair
-{
-    uint64_t symbol;
-    uint8_t negate;
-};
-
-struct SymbolIntPair
-{
-    uint64_t symbol;
-    uint32_t num;
+    uint32_t nodeBlock;
+    struct DlgNode node;
+    uint32_t conditionSetBlock;
+    struct DlgConditionSet conditionSet;
 };
 
 struct LogicItem
 {
+    struct SymbolBoolPair
+    {
+        uint64_t symbol;
+        uint8_t negate;
+    };
+    struct SymbolIntPair
+    {
+        uint64_t symbol;
+        uint32_t num; // 0 to check if equal, 1 to check if less, 2 to check if greater, 3 to check if less or equal , 4 to check if greater or equal (keyComparisonList)
+    };
+    uint32_t propBlock;
     struct PropertySet prop;
     uint32_t nameBlock;
     struct String name;
@@ -323,15 +439,14 @@ struct LogicItem
     struct String *referenceKeyList;
 };
 
-struct StringLogicItemPair
-{
-    struct String string;
-    struct LogicItem item;
-};
-
 struct LogicGroup
 {
-    uint32_t operator;
+    struct StringLogicItemPair
+    {
+        struct String string;
+        struct LogicItem item;
+    };
+    uint32_t operator; // 1 is +=, 2 is -= according to Lucas. Looking at address 14068d7ee in GameApp.exe. 1 is "and", any other value is "or"
     uint32_t itemsBlock;
     uint32_t itemsCount;
     struct StringLogicItemPair *items;
@@ -346,13 +461,14 @@ struct LogicGroup
 // 001be489
 // addr = 0x665fd9
 // 824462
+
 struct Rule
 {
     uint32_t nameBlock;
     struct String name;
     uint32_t runtimePropNameBlock;
     struct String runtimePropName;
-    uint32_t flags;
+    uint32_t flags; // flags >> 5 & 1 is toggle inactive on execute
     uint32_t conditionsBlock;
     struct LogicGroup conditions;
     uint32_t actionsBlock;
@@ -386,6 +502,7 @@ struct DlgNodeNotes // 0xd80d7ae46db975c4
 
 struct DlgNodeExit
 {
+    struct DlgNode node;
 };
 
 struct DlgNodeScript // 0xb6dc854d60a36ce0 (big endian)
@@ -395,13 +512,6 @@ struct DlgNodeScript // 0xb6dc854d60a36ce0 (big endian)
     struct String luaScript;
     uint8_t blocking;
     uint8_t executeOnInstanceRetire;
-};
-
-struct DlgNodeStart // 0x2a8b64c603022291
-{
-    struct DlgNode node;
-    uint32_t propBlock;
-    struct PropertySet prodReportProp;
 };
 
 struct DlgNodeSymbol
@@ -434,15 +544,15 @@ struct Dlg
     uint32_t idBlock;
     struct DlgObjectID id;
     uint32_t langBlock;
-    struct LanguageDB db;
+    struct LanguageDB *db;
     uint32_t projectID;
     uint64_t resourceLocationID;
     uint32_t chronolgy;
     uint32_t flags;
     uint32_t dependencyBlock;
-    struct DependencyLoader dependencyLoader;
+    struct DependencyLoader *dependencyLoader;
     uint32_t propBlock;
-    struct PropertySet prodReportProps;
+    struct PropertySet *prodReportProps;
     uint32_t jiraBlock; // Always equal to 4. Turn on the emergency alarms if it is not.
     uint8_t hasToolOnlyData;
     uint32_t folderCount;
@@ -451,46 +561,13 @@ struct Dlg
     struct DlgNodeSymbol *nodes;
 };
 
-size_t blockRead(FILE *stream, uint8_t *buffer)
+struct Child
 {
-    size_t bytesRead = 0;
-    bytesRead += fread(buffer, sizeof(uint32_t), 1, stream);
-    buffer += bytesRead;
-    bytesRead += fread(buffer, (*(uint32_t *)(buffer - sizeof(uint32_t)) - 4), 1, stream);
-    return bytesRead;
-}
+    struct DlgChild child;
+    void *childSpecificData;
+};
 
-void dlgRead(FILE *stream, uint8_t *headerBuffer, struct TreeNode *nodes)
-{
-    headerBuffer += blockRead(stream, headerBuffer); // idOwner
-    headerBuffer += blockRead(stream, headerBuffer); // string
-    headerBuffer += fread(headerBuffer, sizeof(uint32_t), 1, stream);
-    headerBuffer += blockRead(stream, headerBuffer); // objectID
-    headerBuffer += blockRead(stream, headerBuffer); // landb
-    headerBuffer += fread(headerBuffer, 20, 1, stream);
-    headerBuffer += blockRead(stream, headerBuffer); // dependency
-    headerBuffer += blockRead(stream, headerBuffer); // prop
-    headerBuffer += blockRead(stream, headerBuffer); // Jira
-    headerBuffer += fread(headerBuffer, sizeof(uint8_t), 1, stream);
-    uint32_t folderCount = (*(uint32_t *)(headerBuffer - sizeof(uint32_t)));
-
-    struct TreeNode *nodeTree;
-
-    for (uint32_t i = 0; i < folderCount; ++i)
-    {
-        headerBuffer += blockRead(stream, headerBuffer);
-        headerBuffer += blockRead(stream, headerBuffer);
-    }
-
-    fseek(stream, 0x1543, SEEK_SET);
-    uint32_t nodeCount;
-    fread(&nodeCount, sizeof(nodeCount), 1, stream);
-    for (uint32_t i = 0; i < nodeCount; ++i)
-    {
-    }
-}
-
-void readChain(struct LinkedListNode *node, FILE *stream)
+void readChain(struct Child child, FILE *stream)
 {
     uint64_t symbol;
     uint32_t size;

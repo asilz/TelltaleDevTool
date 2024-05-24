@@ -1,5 +1,5 @@
-#include <inttypes.h>
 #include <stdio.h>
+#include <tree.h>
 
 struct MetaStreamCrc
 {
@@ -18,7 +18,7 @@ struct MetaStreamHeader // Based on Lucas Saragosa's Telltale inspector
 };
 
 void readMetaStream(FILE *stream, struct MetaStreamHeader *header);
-int readMetaClass(FILE *stream, void **object, uint64_t typeSymbol, uint32_t flags);
-int writeMetaClass(FILE *stream, void **object, uint64_t typeSymbol, uint32_t flags);
+int readMetaClass(FILE *stream, struct TreeNode *node, uint32_t flags);
+int writeMetaClass(FILE *stream, struct TreeNode *node, uint32_t flags);
 int initializeMetaClassDescriptions();
 char *getMetaClassName(uint64_t typeSymbol);

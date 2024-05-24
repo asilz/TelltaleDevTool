@@ -1,20 +1,18 @@
-#include <inttypes.h>
-#include <stdio.h>
-#include <crc64.h>
-#include <types.h>
-#include <string.h>
 #include <stdlib.h>
 #include <meta.h>
+#include <intrinsic.h>
+#include <prop.h>
+#include <container.h>
 
-struct Symbol
+struct TypeGroup
 {
-    uint64_t crc64;
-};
-
-struct KeyInfo
-{
-    struct Flags flags;
-    struct Symbol crcName;
+    uint64_t typeSymbol;
+    uint32_t numValues;
+    struct NameTypePair
+    {
+        uint64_t nameSymbol;
+        void *buffer;
+    } *typeStruct; // The number of structs is equal to numValues. The type of these structs can be determined from the typeSymbol
 };
 
 struct PropertySet
@@ -28,62 +26,89 @@ struct PropertySet
     struct TypeGroup *groups; // Number of groups is equal to numTypes
 };
 
-struct NameTypePair
+int TypeGroupRead(FILE *stream, struct TreeNode *group, uint32_t flags)
 {
-    uint64_t nameSymbol;
-    void *buffer;
-};
+    group->childCount = 2;
+    group->children = malloc(group->childCount * sizeof(struct TreeNode *));
 
-struct TypeGroup
-{
-    uint64_t typeSymbol;
-    uint32_t numValues;
-    struct NameTypePair *typeStruct // The number of structs is equal to numValues. The type of these structs can be determined from the typeSymbol
-};
+    group->children[0] = calloc(1, sizeof(struct TreeNode));
+    group->children[0]->parent = group;
+    group->children[0]->typeSymbol = 0x4f023463d89fb0; // crc64 of "Symbol"
+    intrinsic8Read(stream, group->children[0], flags);
 
-int readProp(FILE *stream, void **property, uint32_t flags)
-{
-    *property = malloc(sizeof(struct PropertySet));
-    struct PropertySet *prop = *property;
-    printf("readProp\n");
-    fread(&(prop->version), sizeof(prop->version), 1, stream);
-    fread(&(prop->flags), sizeof(prop->flags), 1, stream);
-    fread(&(prop->size), sizeof(prop->size), 1, stream);
-    fread(&(prop->parentCount), sizeof(prop->parentCount), 1, stream);
+    group->children[1] = calloc(1, sizeof(struct TreeNode));
+    group->children[1]->parent = group;
+    group->children[1]->typeSymbol = 0; // TODO: Set symbol
 
-    prop->parentSymbols = malloc(prop->parentCount * sizeof(uint64_t));
-    fread(prop->parentSymbols, prop->parentCount * sizeof(uint64_t), 1, stream);
+    group->children[1]->childCount = 1;
+    group->children[1]->children = malloc(group->children[1]->childCount * sizeof(struct TreeNode *));
 
-    fread(&(prop->numTypes), sizeof(prop->numTypes), 1, stream);
+    group->children[1]->children[0] = calloc(1, sizeof(struct TreeNode));
+    group->children[1]->children[0]->typeSymbol = 0x99d7c52ea7f0f97d; // crc64 of "int"
+    intrinsic4Read(stream, group->children[1]->children[0], flags);
+    group->children[1]->children[0]->parent = group->children[1];
 
-    prop->groups = malloc(prop->numTypes * sizeof(struct TypeGroup));
+    group->children[1]->childCount += *(uint32_t *)(group->children[1]->children[0]->data.staticBuffer) * 2;
+    group->children[1]->children = realloc(group->children[1]->children, group->children[1]->childCount);
 
-    for (uint32_t i = 0; i < prop->numTypes; ++i)
+    for (uint16_t i = 1; i < group->children[1]->childCount; ++i)
     {
-        fread(&(prop->groups[i].typeSymbol), sizeof(prop->groups[i].typeSymbol), 1, stream);
-        fread(&(prop->groups[i].numValues), sizeof(prop->groups[i].numValues), 1, stream);
-
-        prop->groups[i].typeStruct = malloc(prop->groups[i].numValues * sizeof(struct NameTypePair));
-
-        for (uint32_t j = 0; j < prop->groups[i].numValues; ++j)
+        group->children[1]->children[i] = calloc(1, sizeof(struct TreeNode));
+        group->children[1]->children[i]->parent = group->children[1];
+        if (i % 2)
         {
-            fread(&prop->groups[i].typeStruct[j].nameSymbol, sizeof(prop->groups[i].typeStruct[j].nameSymbol), 1, stream);
-            readMetaClass(stream, &(prop->groups[i].typeStruct[j].buffer), prop->groups[i].typeSymbol, flags);
+            group->children[1]->children[i]->typeSymbol = 0x4f023463d89fb0; // crc64 of "Symbol"
+            intrinsic8Read(stream, group->children[1]->children[i], flags);
+        }
+        else
+        {
+            group->children[1]->children[i]->typeSymbol = *(uint64_t *)(group->children[0]->data.staticBuffer);
+            readMetaClass(stream, group->children[1]->children[i], flags);
         }
     }
+
     return 0;
 }
 
-int freeProp(struct PropertySet *prop)
+static int PropCoreRead(FILE *stream, struct TreeNode *prop, uint32_t flags) // Don't know what to name it
 {
-    for (uint32_t i = 0; i < prop->numTypes; ++i)
+    prop->childCount = 2;
+    prop->children = malloc(prop->childCount * sizeof(struct TreeNode *));
+
+    prop->children[0] = calloc(1, sizeof(struct TreeNode));
+    prop->children[0]->parent = prop;
+    prop->children[0]->typeSymbol = 0;                                                      // TODO: Set symbol
+    genericArrayRead(stream, prop->children[0], flags, intrinsic8Read, 0x387e6b9ca558ac8d); // List of Handle<PropertySet>
+
+    prop->children[1] = calloc(1, sizeof(struct TreeNode));
+    prop->children[1]->parent = prop;
+    prop->children[1]->typeSymbol = 0;                                    // TODO: Set symbol
+    genericArrayRead(stream, prop->children[1], flags, TypeGroupRead, 0); // TODO: Set symbol
+
+    return 0;
+}
+
+int PropRead(FILE *stream, struct TreeNode *prop, uint32_t flags)
+{
+    prop->childCount = 3;
+    prop->children = malloc(prop->childCount * sizeof(struct TreeNode *));
+
+    for (uint16_t i = 0; i < prop->childCount; ++i)
     {
-        for (uint32_t j = 0; j < prop->groups[i].numValues; ++j)
-        {
-        }
-        free(prop->groups[i].typeStruct)
+        prop->children[i] = calloc(1, sizeof(struct TreeNode));
+        prop->children[i]->parent = prop;
     }
-    free(prop->groups);
-    free(prop->parentSymbols);
+
+    prop->children[0]->typeSymbol = 0x99d7c52ea7f0f97d; // crc64 of "int"
+    intrinsic4Read(stream, prop->children[0], flags);
+
+    prop->children[1]->typeSymbol = 0x84283cb979d71641; // crc64 of "Flags"
+    intrinsic4Read(stream, prop->children[1], flags);
+
+    prop->children[2]->isBlocked = 1;
+    fseek(stream, sizeof(uint32_t), SEEK_CUR);
+    prop->children[2]->typeSymbol = 0; // TODO: Set value
+    PropCoreRead(stream, prop->children[2], flags);
+
     return 0;
 }

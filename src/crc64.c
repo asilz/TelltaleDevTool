@@ -1,7 +1,7 @@
 #include <inttypes.h>
 #include <stdio.h>
-#include "crc64.h"
-#include "types.h"
+#include <crc64.h>
+#include <types.h>
 
 const uint64_t crc64_table[] = {
     0x0000000000000000, 0x42F0E1EBA9EA3693, 0x85E1C3D753D46D26, 0xC711223CFA3E5BB5,
@@ -108,15 +108,15 @@ enum Type searchDatabase(char *databasePath, uint64_t crc)
 void writeDatabase()
 {
     FILE *database = fopen("./protonDatabase.db", "wb");
-    for (int i = 0; i < UINT32_MAX; ++i)
+    for (int i = 0; i < UINT32_MAX / sizeof(uint64_t); ++i)
     {
-        uint8_t zero = 0;
-        fwrite(&zero, 1, 1, database);
+        uint64_t zero = 0;
+        fwrite(&zero, sizeof(zero), 1, database);
     }
 
     FILE *typeFile = fopen("./typeNames2.txt", "rb");
     uint8_t buffer[256];
-    for (uint16_t i = 0; i < UINT16_MAX; ++i)
+    for (uint16_t i = 1; i < UINT16_MAX; ++i)
     {
         for (int j = 0; j < 256; ++j)
         {
@@ -139,4 +139,31 @@ void writeDatabase()
     }
     fclose(database);
     fclose(typeFile);
+}
+
+void binWalk(FILE *stream)
+{
+    printf("Looking for patterns\n");
+    uint64_t stringCount = 0;
+
+    uint64_t buffer;
+    fread(&buffer, sizeof(buffer) - 1, 1, stream);
+
+    for (int i = fgetc(stream); i != EOF; i = fgetc(stream))
+    {
+        buffer = buffer >> 8;
+        buffer = buffer | (((uint64_t)i) << 56);
+
+        if (((uint32_t)buffer) + 8 == (uint32_t)(buffer >> 32))
+        {
+            ++stringCount;
+        }
+
+        uint32_t type = (uint32_t)searchDatabase("protonDatabase.db", buffer);
+        if (type && type != 3922)
+        {
+            printf("Type = %d at 0x%lx\n", type, ftell(stream));
+        }
+    }
+    printf("String count = %ld\n", stringCount);
 }
