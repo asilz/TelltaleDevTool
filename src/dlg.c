@@ -47,6 +47,7 @@ int ScriptEnumRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     fseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[0]->typeSymbol = 0xcd9c6e605f5af4b4; // crc64 of "String"
     StringRead(stream, node->children[0], flags);
+
     return 0;
 }
 
@@ -70,6 +71,44 @@ int DependencyLoaderRead(FILE *stream, struct TreeNode *node, uint32_t flags)
         node->children[1]->parent = node;
         readMetaClass(stream, node->children[1], flags);
     }
+    return 0;
+}
+
+uint64_t DlgGetNextID(struct TreeNode *node)
+{
+    if (node->childCount == 0 || node->children == NULL || node->children[0] == NULL)
+    {
+        printf("Error: Node has no children");
+        return 0;
+    }
+    if (node->children[0]->typeSymbol == 0x8940087148bf4c61) // DlgNode
+    {
+        return *(uint64_t *)(node->children[0]->children[4]->children[0]->children[0]->data.staticBuffer);
+    }
+    if (node->children[0]->typeSymbol == 0x915709e72a07b3ed) // DlgChild
+    {
+        return *(uint64_t *)(node->children[0]->children[0]->children[1]->children[0]->children[0]->data.staticBuffer);
+    }
+    printf("Error: TreeNode is not a DlgNode/DlgChild");
+    return 0;
+}
+
+uint64_t DlgGetPrevID(struct TreeNode *node)
+{
+    if (node->childCount == 0 || node->children == NULL || node->children[0] == NULL)
+    {
+        printf("Error: Node has no children");
+        return 0;
+    }
+    if (node->children[0]->typeSymbol == 0x8940087148bf4c61) // DlgNode
+    {
+        return *(uint64_t *)(node->children[0]->children[3]->children[0]->children[0]->data.staticBuffer);
+    }
+    if (node->children[0]->typeSymbol == 0x915709e72a07b3ed) // DlgChild
+    {
+        return *(uint64_t *)(node->children[0]->children[3]->children[0]->children[0]->data.staticBuffer);
+    }
+    printf("Error: TreeNode is not a DlgNode/DlgChild");
     return 0;
 }
 
@@ -170,6 +209,11 @@ void DlgRead(FILE *stream, struct Dlg *dlg, uint32_t flags)
 
     printf("nodes read\n");
 
+    for (uint32_t i = 0; i < dlg->nodeCount; ++i)
+    {
+        treeFree(dlg->nodes[i]);
+    }
+
     if (flags & 4)
     {
     }
@@ -248,6 +292,7 @@ int LogicGroupRead(FILE *stream, struct TreeNode *logicGroup, uint32_t flags) //
     logicGroup->children[5]->isBlocked = 1;
     logicGroup->children[5]->typeSymbol = 0xcd9c6e605f5af4b4; // crc64 of "string"
     StringRead(stream, logicGroup->children[5], flags);
+
     return 0;
 }
 
@@ -307,6 +352,7 @@ int DlgDownStreamVisibilityConditionsRead(FILE *stream, struct TreeNode *visCond
     {
         printf("DlgDownStreamVisibilityConditionsRead:\nflags = %d\nmaxNumNodeEvals = %d", *((uint32_t *)(visCond->data.staticBuffer)), *((uint32_t *)(visCond->data.staticBuffer) + 1));
     }
+
     return 0;
 }
 
@@ -387,6 +433,7 @@ int DlgObjectPropsRead(FILE *stream, struct TreeNode *objectProps, uint32_t flag
         PropRead(stream, objectProps->children[i], flags);
         objectProps->children[i]->parent = objectProps;
     }
+
     return 0;
 }
 int DlgObjectPropsOwnerRead(FILE *stream, struct TreeNode *objectProps, uint32_t flags)
@@ -484,6 +531,30 @@ int DlgNodeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->dataSize = sizeof(uint64_t) + 2 * sizeof(uint32_t); // nameSymbol, flags and chainContextTypeID
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+    return 0;
+}
+
+int DlgNodeTextRead(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    printf("DlgNodeTextRead\n");
+
+    node->childCount = 2;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->typeSymbol = 0x8940087148bf4c61; // crc64 of "DlgNode"
+    fseek(stream, sizeof(uint32_t), SEEK_CUR);          // skip block
+    node->children[0]->isBlocked = 1;
+    DlgNodeRead(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->children[1] = calloc(1, sizeof(struct TreeNode));
+    node->children[1]->typeSymbol = 0xd5c86012bf6b91ca; // crc64 of "LanguageResProxy"
+    fseek(stream, sizeof(uint32_t), SEEK_CUR);          // skip block
+    node->children[1]->isBlocked = 1;
+    intrinsic4Read(stream, node->children[1], flags);
+    node->children[1]->parent = node;
+
     return 0;
 }
 
@@ -708,6 +779,8 @@ int DlgNodeMarkerRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children[0]->isBlocked = 1;
     DlgNodeRead(stream, node->children[0], flags);
     node->children[0]->parent = node;
+
+    return 0;
 }
 
 int DlgNodeExitRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -738,6 +811,8 @@ int DlgLineRead(FILE *stream, struct TreeNode *line, uint32_t flags)
     line->children[2]->typeSymbol = 0xd5c86012bf6b91ca; // crc64 of "LanguageResProxy"
     fseek(stream, sizeof(uint32_t), SEEK_CUR);          // skip block
     intrinsic4Read(stream, line->children[2], flags);
+
+    return 0;
 }
 
 int DlgLineCollectionRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -761,6 +836,8 @@ int DlgLineCollectionRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children[1]->typeSymbol = 0xaba164d5aab73489; // crc64 of "Map<int,DlgLine,less<int>>"
     fseek(stream, sizeof(uint32_t), SEEK_CUR);          // skip block
     genericMapRead(stream, node->children[1], flags, intrinsic4Read, DlgLineRead, 0x99d7c52ea7f0f97d, 0xa7fe20e35345ac33);
+
+    return 0;
 }
 
 int DlgNodeExchangeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -848,6 +925,28 @@ int DlgConditionRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->typeSymbol = 0x8d53d2745d07232b; // crc64 of "DlgObjIDOwner"
     node->children[0]->parent = node;
     DlgObjectIDOwnerRead(stream, node->children[0], flags);
+
+    return 0;
+}
+
+int DlgConditionRuleRead(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    node->childCount = 2;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    fseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[0]->isBlocked = 1;
+    node->typeSymbol = 0x26591af0c98ad8f6; // crc64 of "DlgCondition"
+    node->children[0]->parent = node;
+    DlgConditionRead(stream, node->children[0], flags);
+
+    node->children[1] = calloc(1, sizeof(struct TreeNode));
+    fseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[1]->isBlocked = 1;
+    node->typeSymbol = 0x5549d9efe67060e1; // crc64 of "rule"
+    node->children[1]->parent = node;
+    RuleRead(stream, node->children[1], flags);
 
     return 0;
 }
@@ -976,6 +1075,8 @@ int DlgChildSetChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     fseek(stream, sizeof(uint32_t), SEEK_CUR);          // Skip block
     node->children[0]->typeSymbol = 0x915709e72a07b3ed; // crc64 of "DlgChildSet"
     DlgChildSetRead(stream, node->children[0], flags);
+
+    return 0;
 }
 
 int DlgChildSetChoicesChildPre(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -1032,6 +1133,8 @@ int DlgFolderChildRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children[0]->isBlocked = 1;
     node->children[0]->typeSymbol = 0xbfb0ce2bd1f38792; // crc64 of "DlgChild"
     DlgChildRead(stream, node->children[0], flags);
+
+    return 0;
 }
 
 int DlgChoicesChildPreRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -1070,9 +1173,8 @@ int DlgChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgConditionalCaseRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgConditionalCaseRead\n");
 
-    DlgFolderChildRead(stream, node, flags);
+    return DlgFolderChildRead(stream, node, flags);
 }
 
 int DlgNodeCriteriaRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -1196,7 +1298,7 @@ int DlgNodeSequenceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgChildSetConditionalCaseRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    DlgChildSetElementRead(stream, node, flags);
+    return DlgChildSetElementRead(stream, node, flags);
 }
 
 int DlgNodeConditionalRead(FILE *stream, struct TreeNode *node, uint32_t flags)
