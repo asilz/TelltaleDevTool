@@ -123,16 +123,15 @@ int streamDecrypt(FILE **compressedStreamPtr)
     struct CompressedHeader header;
     fread((uint8_t *)(&header), sizeof(struct CompressedHeader), 1, *compressedStreamPtr);
 
-    printf("version = 0x%x\n", header.version);
-    printf("chunk size = 0x%x\n", header.chunkDecompressedSize);
-    printf("found %d compressed chunks\n", header.chunkCount);
+    printf("version = 0x%" PRIx32 "\n", header.version);
+    printf("chunk size = 0x%" PRIx32 "\n", header.chunkDecompressedSize);
+    printf("found %" PRIu32 " compressed chunks\n", header.chunkCount);
 
     uint8_t *compressedChunk = malloc(header.chunkDecompressedSize); // This compressedChunk buffer will probably have more space than the space required for the chunk
     uint8_t *decompressedChunk = malloc(header.chunkDecompressedSize);
 
     uint64_t *chunkOffsets = malloc(sizeof(uint64_t) * header.chunkCount);
     fread(chunkOffsets, sizeof(uint64_t), header.chunkCount, *compressedStreamPtr);
-
     fseek(*compressedStreamPtr, chunkOffsets[0] + initialPosition, SEEK_SET);
     for (uint32_t i = 1; i < header.chunkCount; ++i)
     {
@@ -177,7 +176,7 @@ int archiveSplit(FILE *stream, uint8_t *folderPath)
 
     struct ArchiveHeader header;
     fread((uint8_t *)(&header), sizeof(struct ArchiveHeader), 1, stream);
-    printf("fileCount = %d \n", header.fileCount);
+    printf("fileCount = %" PRIu32 " \n", header.fileCount);
 
     uint64_t nameTableOffset = 28 * header.fileCount + sizeof(struct ArchiveHeader); // 28 is the size of all the FileHeader members. Using sizeof(struct FileHeader) will return the size including the 4 byte trailing padding.
 
