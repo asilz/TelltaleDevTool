@@ -7,13 +7,6 @@
 #include <stddef.h>
 #include <container.h>
 
-struct DependencyLoader
-{
-    uint8_t hasData;
-    uint64_t typeSymbol;
-    void *symbolTypeData;
-};
-
 int AnimOrChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Move this function to a different file
 {
     node->childCount = 2;
@@ -596,7 +589,7 @@ int DlgNodeScriptRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children[0]->parent = node;
 
     node->children[1] = calloc(1, sizeof(struct TreeNode));
-    node->children[1]->typeSymbol = 0xcd9c6e605f5af4b4; // crc64 of "DlgNode"
+    node->children[1]->typeSymbol = 0xcd9c6e605f5af4b4; // crc64 of "String"
     fseek(stream, sizeof(uint32_t), SEEK_CUR);          // skip block
     node->children[1]->isBlocked = 1;
     StringRead(stream, node->children[1], flags);
@@ -623,7 +616,7 @@ int DlgNodeNotesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children[0]->parent = node;
 
     node->children[1] = calloc(1, sizeof(struct TreeNode));
-    node->children[1]->typeSymbol = 0xcd9c6e605f5af4b4; // crc64 of "DlgNode"
+    node->children[1]->typeSymbol = 0xcd9c6e605f5af4b4; // crc64 of "String"
     fseek(stream, sizeof(uint32_t), SEEK_CUR);          // skip block
     node->children[1]->isBlocked = 1;
     StringRead(stream, node->children[1], flags);
@@ -1161,12 +1154,12 @@ int DlgChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children[0]->typeSymbol = 0xbfb0ce2bd1f38792; // crc64 of "DlgChild"
     DlgChildRead(stream, node->children[0], flags);
 
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->parent = node;
+    node->children[1] = calloc(1, sizeof(struct TreeNode));
+    node->children[1]->parent = node;
     fseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->typeSymbol = 0xe6130df4edcec9c8; // crc64 of "DlgConditionSet"
-    DlgConditionSetRead(stream, node->children[0], flags);
+    node->children[1]->isBlocked = 1;
+    node->children[1]->typeSymbol = 0xe6130df4edcec9c8; // crc64 of "DlgConditionSet"
+    DlgConditionSetRead(stream, node->children[1], flags);
 
     return 0;
 }
