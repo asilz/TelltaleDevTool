@@ -145,7 +145,7 @@ struct DlgCondition
     struct DlgObjectIDOwner objectIDOwner;
 };
 
-struct DlgConditionTime
+struct DlgConditionTime // 0xfd444bb730c2d4f6
 {
     uint32_t block;
     struct DlgCondition condition;
@@ -184,7 +184,7 @@ struct DlgChoice // 0x98d5fd53a80e7c13
     struct DlgConditionSet conditionSet;
 };
 
-struct DlgConditionRule // 0xfd444bb730c2d4f6
+struct DlgConditionRule
 {
 };
 

@@ -12,7 +12,7 @@ int genericArrayRead(FILE *stream, struct TreeNode *node, uint32_t flags, serial
     node->children[0]->parent = node;
 
     node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
 
     for (uint32_t i = 1; i < node->childCount; ++i)
     {

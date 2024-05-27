@@ -50,7 +50,7 @@ struct Dlg
     uint32_t idBlock;
     struct DlgObjectID id;
     uint32_t langBlock;
-    struct LanguageDB *db;
+    void *db;
     uint32_t projectID;
     uint64_t resourceLocationID;
     uint32_t chronolgy;
@@ -67,8 +67,10 @@ struct Dlg
     struct TreeNode **nodes;
 };
 
-void DlgRead(FILE *stream, struct Dlg *dlg, uint32_t flags);
+// void DlgWrite(FILE *stream, struct Dlg *dlg, uint32_t flags);
+int DlgRead(FILE *stream, struct TreeNode *dlg, uint32_t flags);
 int DlgNodeLogicRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DlgNodeTextRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgNodeExchangeRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgNodeChoicesRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags);
@@ -89,6 +91,7 @@ int DlgChoicesChildPreRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgChoicesChildPostRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgConditionInputRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgConditionTimeRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DlgConditionRuleRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 
 int DependencyLoaderRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int LogicItemRead(FILE *stream, struct TreeNode *logicItem, uint32_t flags);

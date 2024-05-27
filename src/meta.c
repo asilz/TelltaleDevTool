@@ -79,6 +79,20 @@ void readMetaStream(FILE *stream, struct MetaStreamHeader *header)
     fseek(stream, (-((int64_t)header->defaultSize + (int64_t)header->debugSize + (int64_t)header->asyncSize)), SEEK_CUR); // Seeks back to the end of header
 }
 
+void writeMetaStreamHeader(FILE *stream, struct MetaStreamHeader *header)
+{
+    fwrite(&(header->version), sizeof(header->version), 1, stream);
+    fwrite(&(header->defaultSize), sizeof(header->defaultSize), 1, stream);
+    fwrite(&(header->debugSize), sizeof(header->debugSize), 1, stream);
+    fwrite(&(header->asyncSize), sizeof(header->asyncSize), 1, stream);
+    fwrite(&(header->numVersion), sizeof(header->numVersion), 1, stream);
+
+    for (uint32_t i = 0; i < header->numVersion; ++i)
+    {
+        fwrite(header->crc + i, sizeof(header->crc->typeSymbolCrc) + sizeof(header->crc->versionCrc), 1, stream);
+    }
+}
+
 int readMetaClass(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     enum Type type = searchDatabase("protonDatabase.db", node->typeSymbol);
@@ -1091,16 +1105,22 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[unsignedchar_type].name = "unsignedchar";
     metaClassDescriptions[char_type].name = "char";
 
+    /* Functions */
+
     metaClassDescriptions[bool_type].read = BoolRead;
     metaClassDescriptions[int32_type].read = intrinsic4Read;
     metaClassDescriptions[LanguageResProxy].read = intrinsic4Read;
+    metaClassDescriptions[float_type].read = intrinsic4Read;
     metaClassDescriptions[ScriptEnumDialogMode].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumReticleActions].read = ScriptEnumRead;
     metaClassDescriptions[String].read = StringRead;
     metaClassDescriptions[AnimOrChore].read = AnimOrChoreRead;
+    metaClassDescriptions[HandleTempD3DMeshLate].read = intrinsic8Read;
 
     /* Dlg Functions */
 
     metaClassDescriptions[DlgNodeLogic].read = DlgNodeLogicRead;
+    metaClassDescriptions[DlgNodeText].read = DlgNodeTextRead;
     metaClassDescriptions[DlgNodeExchange].read = DlgNodeExchangeRead;
     metaClassDescriptions[DlgNodeChoices].read = DlgNodeChoicesRead;
     metaClassDescriptions[DlgChoice].read = DlgChoiceRead;
@@ -1120,6 +1140,7 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[DlgChoicesChildPost].read = DlgChoicesChildPostRead;
     metaClassDescriptions[DlgConditionInput].read = DlgConditionInputRead;
     metaClassDescriptions[DlgConditionTime].read = DlgConditionTimeRead;
+    metaClassDescriptions[DlgConditionRule].read = DlgConditionRuleRead;
     metaClassDescriptions[DlgNodeSequenceElement].read = DlgNodeSequenceElementRead;
 
     printf("init metaClassDescriptions\n");

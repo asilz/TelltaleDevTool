@@ -1,5 +1,6 @@
 #include <tree.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 void treeFree(struct TreeNode *root)
 {
@@ -9,15 +10,51 @@ void treeFree(struct TreeNode *root)
         root->data.dynamicBuffer = NULL;
     }
 
-        for (uint32_t i = 0; i < root->childCount; ++i)
+    for (uint32_t i = 0; i < root->childCount; ++i)
     {
-        if (root->children[i] != NULL)
+        if (root->children != NULL && root->children[i] != NULL)
         {
             treeFree(root->children[i]);
             free(root->children[i]);
             root->children[i] = NULL;
         }
+        free(root->children);
+        root->children = NULL;
     }
+}
 
-    sizeof(struct TreeNode);
+uint32_t writeTree(FILE *stream, struct TreeNode *root)
+{
+    printf("ftell = %lx\n", ftell(stream));
+    uint32_t ret = 0;
+    if (root->serializeType)
+    {
+        ret += fwrite(&root->typeSymbol, 1, sizeof(root->typeSymbol), stream);
+    }
+    for (uint16_t i = 0; i < root->childCount; ++i)
+    {
+        if (root->children[i]->isBlocked)
+        {
+            uint32_t childSize = 0;
+            childSize += fwrite(&childSize, 1, sizeof(uint32_t), stream);
+            childSize += writeTree(stream, root->children[i]);
+            fseek(stream, -(int32_t)childSize, SEEK_CUR);
+            fwrite(&childSize, 1, sizeof(uint32_t), stream);
+            fseek(stream, childSize - sizeof(uint32_t), SEEK_CUR);
+            ret += childSize;
+        }
+        else
+        {
+            ret += writeTree(stream, root->children[i]);
+        }
+    }
+    if (root->dataSize <= 8)
+    {
+        ret += fwrite(root->data.staticBuffer, 1, root->dataSize, stream);
+    }
+    else
+    {
+        ret += fwrite(root->data.dynamicBuffer, 1, root->dataSize, stream);
+    }
+    return ret;
 }

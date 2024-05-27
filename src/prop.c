@@ -38,7 +38,7 @@ int TypeGroupRead(FILE *stream, struct TreeNode *group, uint32_t flags)
 
     group->children[1] = calloc(1, sizeof(struct TreeNode));
     group->children[1]->parent = group;
-    group->children[1]->typeSymbol = 0; // TODO: Set symbol
+    group->children[1]->typeSymbol = 0xc810fa560d267d67; // TODO: Set symbol
 
     group->children[1]->childCount = 1;
     group->children[1]->children = malloc(group->children[1]->childCount * sizeof(struct TreeNode *));
@@ -49,7 +49,7 @@ int TypeGroupRead(FILE *stream, struct TreeNode *group, uint32_t flags)
     group->children[1]->children[0]->parent = group->children[1];
 
     group->children[1]->childCount += *(uint32_t *)(group->children[1]->children[0]->data.staticBuffer) * 2;
-    group->children[1]->children = realloc(group->children[1]->children, group->children[1]->childCount);
+    group->children[1]->children = realloc(group->children[1]->children, group->children[1]->childCount * sizeof(struct TreeNode *));
 
     for (uint16_t i = 1; i < group->children[1]->childCount; ++i)
     {
@@ -77,13 +77,13 @@ static int PropCoreRead(FILE *stream, struct TreeNode *prop, uint32_t flags) // 
 
     prop->children[0] = calloc(1, sizeof(struct TreeNode));
     prop->children[0]->parent = prop;
-    prop->children[0]->typeSymbol = 0;                                                      // TODO: Set symbol
+    prop->children[0]->typeSymbol = 0x1d0bcff71e6bc2e1;                                     // crc64 of "DCArray<Handle<PropertySet>>"
     genericArrayRead(stream, prop->children[0], flags, intrinsic8Read, 0x387e6b9ca558ac8d); // List of Handle<PropertySet>
 
     prop->children[1] = calloc(1, sizeof(struct TreeNode));
     prop->children[1]->parent = prop;
-    prop->children[1]->typeSymbol = 0;                                    // TODO: Set symbol
-    genericArrayRead(stream, prop->children[1], flags, TypeGroupRead, 0); // TODO: Set symbol
+    prop->children[1]->typeSymbol = 0xd48d0c3b810c1975; // TODO: Set symbol
+    genericArrayRead(stream, prop->children[1], flags, TypeGroupRead, prop->children[1]->typeSymbol);
 
     return 0;
 }
@@ -107,7 +107,7 @@ int PropRead(FILE *stream, struct TreeNode *prop, uint32_t flags)
 
     prop->children[2]->isBlocked = 1;
     fseek(stream, sizeof(uint32_t), SEEK_CUR);
-    prop->children[2]->typeSymbol = 0; // TODO: Set value
+    prop->children[2]->typeSymbol = 0xe908072c98443ada; // TODO: Set value
     PropCoreRead(stream, prop->children[2], flags);
 
     return 0;

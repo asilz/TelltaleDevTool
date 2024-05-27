@@ -5,7 +5,7 @@
 int BoolRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     node->dataSize = sizeof(uint8_t);
-    node->data.staticBuffer[0] = fgetc(stream);
+    node->data.staticBuffer[0] = (uint8_t)fgetc(stream);
 
     if (flags & 0x00000001)
     {
