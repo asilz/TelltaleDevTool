@@ -151,6 +151,100 @@ static int DlgFolderRead(FILE *stream, struct TreeNode *folder, uint32_t flags)
     return 0;
 }
 
+int DlgRead2(FILE *stream, struct TreeNode *dlg, uint32_t flags)
+{
+    dlg->childCount = 15;
+    dlg->children = malloc(dlg->childCount * sizeof(struct TreeNode *));
+
+    for (uint16_t i = 0; i < dlg->childCount; ++i)
+    {
+        dlg->children[i] = calloc(1, sizeof(struct TreeNode));
+        dlg->children[i]->parent = dlg;
+    }
+
+    dlg->children[0]->isBlocked = 1;
+    fseek(stream, sizeof(uint32_t), SEEK_CUR);
+    dlg->children[0]->typeSymbol = 0x8d53d2745d07232b; // crc64 of "DlgObjIDOwner"
+    DlgObjectIDOwnerRead(stream, dlg->children[0], flags);
+
+    dlg->children[1]->isBlocked = 1;
+    fseek(stream, sizeof(uint32_t), SEEK_CUR);
+    dlg->children[1]->typeSymbol = 0xcd9c6e605f5af4b4; // crc64 of "String"
+    StringRead(stream, dlg->children[1], flags);
+
+    dlg->children[2]->typeSymbol = 0x99d7c52ea7f0f97d; // crc64 of "int"
+    intrinsic4Read(stream, dlg->children[2], flags);
+
+    dlg->children[3]->isBlocked = 1;
+    fseek(stream, sizeof(uint32_t), SEEK_CUR);
+    dlg->children[3]->typeSymbol = 0x87e0e880d7d2dfc1; // crc64 of "DlgObjID"
+    DlgObjectIDRead(stream, dlg->children[3], flags);
+
+    // TODO: Implement landb reading
+    uint32_t block;
+    dlg->children[4]->isBlocked = 1;
+    fread(&block, 1, sizeof(uint32_t), stream);
+    dlg->children[4]->typeSymbol = 0x87e0e880d7d2dfc1; // crc64 of "DlgObjID"
+    dlg->children[4]->dataSize = block - sizeof(uint32_t);
+    dlg->children[4]->data.dynamicBuffer = malloc(dlg->children[4]->dataSize);
+    fread(dlg->children[4]->data.dynamicBuffer, dlg->children[4]->dataSize, 1, stream);
+
+    dlg->children[5]->typeSymbol = 0x99d7c52ea7f0f97d; // crc64 of "int"
+    intrinsic4Read(stream, dlg->children[5], flags);
+
+    dlg->children[6]->typeSymbol = 0x4f023463d89fb0; // crc64 of "Symbol"
+    intrinsic8Read(stream, dlg->children[6], flags);
+
+    dlg->children[7]->typeSymbol = 0x99d7c52ea7f0f97d; // crc64 of "int"
+    intrinsic4Read(stream, dlg->children[7], flags);
+
+    dlg->children[8]->typeSymbol = 0x84283cb979d71641; // crc64 of "Flags"
+    intrinsic4Read(stream, dlg->children[8], flags);
+
+    dlg->children[9]->isBlocked = 1;
+    fseek(stream, sizeof(uint32_t), SEEK_CUR);
+    dlg->children[9]->typeSymbol = 0xefc64d422df9376f; // crc64 of "DependencyLoader<1>"
+    DependencyLoaderRead(stream, dlg->children[9], flags);
+
+    dlg->children[10]->isBlocked = 1;
+    fseek(stream, sizeof(uint32_t), SEEK_CUR);
+    dlg->children[10]->typeSymbol = 0xcd75dc4f6b9f15d2; // crc64 of "PropertySet"
+    PropRead(stream, dlg->children[10], flags);
+
+    dlg->children[11]->isBlocked = 1;
+    fseek(stream, sizeof(uint32_t), SEEK_CUR);
+    dlg->children[11]->typeSymbol = 0x9d2d91124150cffb; // crc64 of "JiraRecordManager"
+
+    dlg->children[12]->typeSymbol = 0x9004c5587575d6c0; // crc64 of "bool"
+    BoolRead(stream, dlg->children[12], flags);
+
+    dlg->children[13]->typeSymbol = 0; // TODO: Set symbol
+    genericArrayRead(stream, dlg->children[13], flags, DlgFolderRead, 0xa7152ced90755212);
+
+    dlg->children[14]->typeSymbol = 0; // TODO: Set Symbol
+    dlg->children[14]->childCount = 1;
+    dlg->children[14]->children = malloc(dlg->children[14]->childCount * sizeof(struct TreeNode *));
+    dlg->children[14]->children[0] = calloc(1, sizeof(struct TreeNode));
+    dlg->children[14]->children[0]->typeSymbol = 0x99d7c52ea7f0f97d; // crc64 of "int"
+    intrinsic4Read(stream, dlg->children[14]->children[0], flags);
+    dlg->children[14]->children[0]->parent = dlg->children[14];
+
+    dlg->children[14]->childCount += *(uint32_t *)(dlg->children[14]->children[0]->data.staticBuffer);
+    dlg->children[14]->children = realloc(dlg->children[14]->children, dlg->children[14]->childCount * sizeof(struct TreeNode *));
+
+    printf("ftell = %lx\n", ftell(stream));
+    for (uint16_t i = 1; i < dlg->children[14]->childCount; ++i)
+    {
+        dlg->children[14]->children[i] = calloc(1, sizeof(struct TreeNode));
+        dlg->children[14]->children[i]->serializeType = 1;
+        fread(&(dlg->children[14]->children[i]->typeSymbol), sizeof(dlg->children[14]->children[i]->typeSymbol), 1, stream);
+        dlg->children[14]->children[i]->parent = dlg->children[14];
+        readMetaClass(stream, dlg->children[14]->children[i], flags);
+    }
+
+    printf("Dlg Read\n");
+}
+
 void DlgRead(FILE *stream, struct Dlg *dlg, uint32_t flags)
 {
     fread(&dlg->idOwnerBlock, sizeof(dlg->idOwnerBlock), 1, stream);
@@ -480,8 +574,7 @@ int DlgNodeLinkRead(FILE *stream, struct TreeNode *link, uint32_t flags)
 
 int DlgNodeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-
-    printf("DlgNodeRead\n");
+    // printf("DlgNodeRead\n");
 
     node->childCount = 5;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -529,7 +622,7 @@ int DlgNodeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeTextRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgNodeTextRead\n");
+    // printf("DlgNodeTextRead\n");
 
     node->childCount = 2;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -553,7 +646,7 @@ int DlgNodeTextRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeLogicRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgNodeLogic\n");
+    // printf("DlgNodeLogic\n");
 
     node->childCount = 2;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -577,7 +670,8 @@ int DlgNodeLogicRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeScriptRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgNodeScriptRead\n");
+    // printf("DlgNodeScriptRead\n");
+
     node->childCount = 2;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
 
@@ -603,7 +697,7 @@ int DlgNodeScriptRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeNotesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgNodeNotesRead\n");
+    // printf("DlgNodeNotesRead\n");
 
     node->childCount = 2;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -627,7 +721,7 @@ int DlgNodeNotesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeStartRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgNodeStartRead\n");
+    // printf("DlgNodeStartRead\n");
 
     node->childCount = 2;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -651,7 +745,7 @@ int DlgNodeStartRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeJumpRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgNodeJumpRead\n");
+    // printf("DlgNodeJumpRead\n");
 
     node->childCount = 2;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -734,6 +828,8 @@ int DlgChildRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     fseek(stream, sizeof(uint32_t), SEEK_CUR);          // skip block
     node->children[4]->isBlocked = 1;
     DlgNodeLinkRead(stream, node->children[4], flags);
+
+    // printf("child = %d\n", node->childCount);
 
     return 0;
 }
@@ -877,7 +973,7 @@ int DlgNodeExchangeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children[3]->children[0]->parent = node->children[3];
 
     node->children[3]->childCount += *(uint32_t *)(node->children[3]->children[0]->data.staticBuffer);
-    node->children[3]->children = realloc(node->children[3]->children, node->children[3]->childCount);
+    node->children[3]->children = realloc(node->children[3]->children, node->children[3]->childCount * sizeof(struct TreeNode *));
 
     for (uint32_t i = 1; i < node->children[3]->childCount; ++i)
     {
@@ -982,7 +1078,7 @@ int DlgConditionSetRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
 
     node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->typeSymbol = 0; // TODO: Set appropriate type
+    node->children[0]->typeSymbol = 0xe6130df4edcec9c8; // TODO: Set appropriate type
     node->children[0]->parent = node;
 
     node->children[0]->childCount = 1;
@@ -1043,11 +1139,14 @@ int DlgChildSetRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
     node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
     // printf("ftell = %lx\n", ftell(stream));
-    node->children = realloc(node->children, node->childCount);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
     // printf("childCount = %d\n", node->childCount);
+
     for (uint16_t i = 1; i < node->childCount; ++i)
     {
+        printf("before child%d = %d\n", i, node->children[0]->childCount);
         node->children[i] = calloc(1, sizeof(struct TreeNode));
+        printf("after child%d = %d\n", i, node->children[0]->childCount);
         node->children[i]->serializeType = 1;
         fread(&(node->children[i]->typeSymbol), sizeof(node->children[i]->typeSymbol), 1, stream);
         node->children[i]->parent = node;
