@@ -167,3 +167,21 @@ void binWalk(FILE *stream)
     }
     printf("String count = %ld\n", stringCount);
 }
+
+int streamsAreEqual(FILE *stream1, FILE *stream2)
+{
+    int a = 0;
+    int b = 0;
+    while (a != EOF && b != EOF)
+    {
+        a = fgetc(stream1);
+        b = fgetc(stream2);
+        if (a != b)
+        {
+
+            printf("ftell = %lx\n", ftell(stream1));
+            return 0;
+        }
+    }
+    return 1;
+}
