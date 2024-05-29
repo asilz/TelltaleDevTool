@@ -153,7 +153,7 @@ static int DlgFolderRead(FILE *stream, struct TreeNode *folder, uint32_t flags)
 
 int DlgRead(FILE *stream, struct TreeNode *dlg, uint32_t flags)
 {
-    dlg->childCount = 15;
+    dlg->childCount = 16;
     dlg->children = malloc(dlg->childCount * sizeof(struct TreeNode *));
 
     for (uint16_t i = 0; i < dlg->childCount; ++i)
@@ -240,6 +240,9 @@ int DlgRead(FILE *stream, struct TreeNode *dlg, uint32_t flags)
         dlg->children[14]->children[i]->parent = dlg->children[14];
         readMetaClass(stream, dlg->children[14]->children[i], flags);
     }
+
+    dlg->children[15]->typeSymbol = 0x9004c5587575d6c0; // crc64 of "bool"
+    BoolRead(stream, dlg->children[15], flags);
 
     printf("Dlg Read\n");
 }
