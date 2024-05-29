@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 project(TelltaleDevTool)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 find_package(ZLIB REQUIRED)
+#find_package(PkgConfig REQUIRED)
+#pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
 
 set(SOURCES
+    src/main.c
     src/blowfish.c
     src/lua.c
     src/crc64.c
@@ -20,6 +25,7 @@ set(SOURCES
 # Create the executable
 add_executable(devtool ${SOURCES})
 target_link_libraries(devtool PRIVATE ZLIB::ZLIB)
+#target_link_libraries(devtool PRIVATE PkgConfig::GTK4)
 
 # Add includes
 target_include_directories(devtool PRIVATE include)
