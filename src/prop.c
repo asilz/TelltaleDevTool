@@ -3,6 +3,7 @@
 #include <intrinsic.h>
 #include <prop.h>
 #include <container.h>
+#include <stream.h>
 
 struct TypeGroup
 {
@@ -106,7 +107,7 @@ int PropRead(FILE *stream, struct TreeNode *prop, uint32_t flags)
     intrinsic4Read(stream, prop->children[1], flags);
 
     prop->children[2]->isBlocked = 1;
-    fseek(stream, sizeof(uint32_t), SEEK_CUR);
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     prop->children[2]->typeSymbol = 0xe908072c98443ada; // TODO: Set value
     PropCoreRead(stream, prop->children[2], flags);
 

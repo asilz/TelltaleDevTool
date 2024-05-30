@@ -1,5 +1,6 @@
 #include <blowfish_tab.h>
 #include <blowfish.h>
+#include <stream.h>
 
 static uint32_t F(uint32_t leftHalf)
 {
@@ -298,9 +299,9 @@ void initBlowfish7(uint8_t *key, size_t keyLength)
 
 void versDB()
 {
-    FILE *dataBase = fopen("../dataBase/WDC.VersDB", "rb");
-    FILE *text = fopen("./typeNames3.txt", "wb");
-    fseek(dataBase, 0x27950, SEEK_SET);
+    FILE *dataBase = cfopen("../dataBase/WDC.VersDB", "rb");
+    FILE *text = cfopen("./typeNames3.txt", "wb");
+    cfseek(dataBase, 0x27950, SEEK_SET);
     while (1)
     {
         uint8_t byte;

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <crc64.h>
 #include <types.h>
+#include <stream.h>
 
 const uint64_t crc64_table[] = {
     0x0000000000000000, 0x42F0E1EBA9EA3693, 0x85E1C3D753D46D26, 0xC711223CFA3E5BB5,
@@ -97,9 +98,9 @@ uint64_t CRC64(uint64_t crc, const char *const buf)
 
 enum Type searchDatabase(char *databasePath, uint64_t crc)
 {
-    FILE *database = fopen(databasePath, "rb");
+    FILE *database = cfopen(databasePath, "rb");
     uint16_t value;
-    fseek(database, crc % 0xFFFFFFFF, SEEK_SET);
+    cfseek(database, crc % 0xFFFFFFFF, SEEK_SET);
     fread(&value, 2, 1, database);
     fclose(database);
     return (enum Type)value;
@@ -107,14 +108,14 @@ enum Type searchDatabase(char *databasePath, uint64_t crc)
 
 void writeDatabase()
 {
-    FILE *database = fopen("./protonDatabase.db", "wb");
+    FILE *database = cfopen("./protonDatabase.db", "wb");
     for (int i = 0; i < UINT32_MAX / sizeof(uint64_t); ++i)
     {
         uint64_t zero = 0;
         fwrite(&zero, sizeof(zero), 1, database);
     }
 
-    FILE *typeFile = fopen("./typeNames2.txt", "rb");
+    FILE *typeFile = cfopen("./typeNames2.txt", "rb");
     uint8_t buffer[256];
     for (uint16_t i = 1; i < UINT16_MAX; ++i)
     {
@@ -134,7 +135,7 @@ void writeDatabase()
             }
             buffer[j] = byte;
         }
-        fseek(database, CRC64_CaseInsensitive(0, buffer) % 0xFFFFFFFF, SEEK_SET);
+        cfseek(database, CRC64_CaseInsensitive(0, buffer) % 0xFFFFFFFF, SEEK_SET);
         fwrite(&i, sizeof(i), 1, database);
     }
     fclose(database);
@@ -162,7 +163,7 @@ void binWalk(FILE *stream)
         uint32_t type = (uint32_t)searchDatabase("protonDatabase.db", buffer);
         if (type && type != 3922)
         {
-            printf("Type = %d at 0x%lx\n", type, ftell(stream));
+            printf("Type = %d at 0x%lx\n", type, cftell(stream));
         }
     }
     printf("String count = %ld\n", stringCount);
@@ -179,7 +180,7 @@ int streamsAreEqual(FILE *stream1, FILE *stream2)
         if (a != b)
         {
 
-            printf("ftell = %lx\n", ftell(stream1));
+            printf("ftell = %lx\n", cftell(stream1));
             return 0;
         }
     }

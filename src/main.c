@@ -7,6 +7,7 @@
 #include <prop.h>
 #include <dlg.h>
 #include <blowfish.h>
+#include <stream.h>
 
 int main(void)
 {
@@ -29,9 +30,9 @@ int main(void)
 
     /*
     FILE *file = fopen("../cipherTexts/ttarch/WDC_pc_WalkingDead301_data.ttarch2", "rb");
-    size_t pos = ftell(file);
+    size_t pos = cftell(file);
     streamDecrypt(&file);
-    fseek(file, pos, SEEK_SET);
+    cfseek(file, pos, SEEK_SET);
     archiveSplit(file, "../plainTexts/ttarchDump/");
     */
 
@@ -79,20 +80,20 @@ int main(void)
     // FILE *file = fopen("../cipherTexts/dlog/env_hardwareStore.dlog", "rb");
     // binWalk(file);
 
-    FILE *stream = fopen("../cipherTexts/dlog/edited/env_hardwareStore.dlog", "rb");
+    FILE *stream = cfopen("../cipherTexts/dlog/edited/env_hardwareStore.dlog", "rb");
     struct MetaStreamHeader header;
     readMetaStream(stream, &header);
     struct TreeNode dlg;
     printf("debug\n");
     DlgRead(stream, &dlg, 0);
     fclose(stream);
-    stream = fopen("../cipherTexts/dlog/edited/env_hardwareStore_copy.dlog", "wb");
+    stream = cfopen("../cipherTexts/dlog/edited/env_hardwareStore_copy.dlog", "wb");
     writeMetaStreamHeader(stream, &header);
     writeTree(stream, &dlg);
     fclose(stream);
 
-    FILE *stream1 = fopen("../cipherTexts/dlog/edited/env_hardwareStore.dlog", "rb");
-    FILE *stream2 = fopen("../cipherTexts/dlog/edited/env_hardwareStore_copy.dlog", "rb");
+    FILE *stream1 = cfopen("../cipherTexts/dlog/edited/env_hardwareStore.dlog", "rb");
+    FILE *stream2 = cfopen("../cipherTexts/dlog/edited/env_hardwareStore_copy.dlog", "rb");
     int ret = streamsAreEqual(stream1, stream2);
     printf("%d\n", ret);
     fclose(stream1);

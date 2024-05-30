@@ -9,6 +9,7 @@
 #include <intrinsic.h>
 #include <tree.h>
 #include <dlg.h>
+#include <stream.h>
 
 #define META_CLASS_DESCRIPTIONS_COUNT 978
 
@@ -45,38 +46,38 @@ void readMetaStream(FILE *stream, struct MetaStreamHeader *header)
 
     if ((int32_t)header->defaultSize < 0)
     {
-        uint32_t defaultStart = ftell(stream);
+        uint32_t defaultStart = cftell(stream);
         streamDecrypt(&stream);
-        header->defaultSize = ftell(stream) - defaultStart;
+        header->defaultSize = cftell(stream) - defaultStart;
     }
     else
     {
-        fseek(stream, header->defaultSize, SEEK_CUR);
+        cfseek(stream, header->defaultSize, SEEK_CUR);
     }
 
     if ((int32_t)header->debugSize < 0)
     {
-        uint32_t debugStart = ftell(stream);
+        uint32_t debugStart = cftell(stream);
         streamDecrypt(&stream);
-        header->debugSize = ftell(stream) - debugStart;
+        header->debugSize = cftell(stream) - debugStart;
     }
     else
     {
-        fseek(stream, header->debugSize, SEEK_CUR);
+        cfseek(stream, header->debugSize, SEEK_CUR);
     }
 
     if ((int32_t)header->asyncSize < 0)
     {
-        uint32_t asyncStart = ftell(stream);
+        uint32_t asyncStart = cftell(stream);
         streamDecrypt(&stream);
-        header->asyncSize = ftell(stream) - asyncStart;
+        header->asyncSize = cftell(stream) - asyncStart;
     }
     else
     {
-        fseek(stream, header->asyncSize, SEEK_CUR);
+        cfseek(stream, header->asyncSize, SEEK_CUR);
     }
 
-    fseek(stream, (-((int64_t)header->defaultSize + (int64_t)header->debugSize + (int64_t)header->asyncSize)), SEEK_CUR); // Seeks back to the end of header
+    cfseek(stream, (-((int64_t)header->defaultSize + (int64_t)header->debugSize + (int64_t)header->asyncSize)), SEEK_CUR); // Seeks back to the end of header
 }
 
 void writeMetaStreamHeader(FILE *stream, struct MetaStreamHeader *header)

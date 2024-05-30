@@ -559,6 +559,7 @@ struct Dlg
     struct DlgFolder *folders;
     uint32_t nodeCount;
     struct DlgNodeSymbol *nodes;
+    uint8_t
 };
 
 struct Child

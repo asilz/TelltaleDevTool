@@ -1,6 +1,7 @@
 #include <tree.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stream.h>
 
 void treeFree(struct TreeNode *root)
 {
@@ -25,7 +26,7 @@ void treeFree(struct TreeNode *root)
 
 uint32_t writeTree(FILE *stream, struct TreeNode *root)
 {
-    printf("ftell = %lx\n", ftell(stream));
+    // printf("ftell = %lx\n", cftell(stream));
     uint32_t ret = 0;
     if (root->serializeType)
     {
@@ -38,9 +39,9 @@ uint32_t writeTree(FILE *stream, struct TreeNode *root)
             uint32_t childSize = 0;
             childSize += fwrite(&childSize, 1, sizeof(uint32_t), stream);
             childSize += writeTree(stream, root->children[i]);
-            fseek(stream, -(int32_t)childSize, SEEK_CUR);
+            cfseek(stream, -(int32_t)childSize, SEEK_CUR);
             fwrite(&childSize, 1, sizeof(uint32_t), stream);
-            fseek(stream, childSize - sizeof(uint32_t), SEEK_CUR);
+            cfseek(stream, childSize - sizeof(uint32_t), SEEK_CUR);
             ret += childSize;
         }
         else

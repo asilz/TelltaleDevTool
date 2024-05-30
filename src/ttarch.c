@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <blowfish.h>
 #include <crc64.h>
+#include <stream.h>
 
 struct FileHeader
 {
@@ -110,7 +111,7 @@ int streamDecrypt(FILE **compressedStreamPtr)
 {
     int err;
 
-    uint64_t initialPosition = ftell(*compressedStreamPtr);
+    uint64_t initialPosition = cftell(*compressedStreamPtr);
     rewind(*compressedStreamPtr);
 
     FILE *outputStream = tmpfile();
@@ -132,7 +133,7 @@ int streamDecrypt(FILE **compressedStreamPtr)
 
     uint64_t *chunkOffsets = malloc(sizeof(uint64_t) * header.chunkCount);
     fread(chunkOffsets, sizeof(uint64_t), header.chunkCount, *compressedStreamPtr);
-    fseek(*compressedStreamPtr, chunkOffsets[0] + initialPosition, SEEK_SET);
+    cfseek(*compressedStreamPtr, chunkOffsets[0] + initialPosition, SEEK_SET);
     for (uint32_t i = 1; i < header.chunkCount; ++i)
     {
         fread(compressedChunk, chunkOffsets[i] - chunkOffsets[i - 1], 1, *compressedStreamPtr);
@@ -148,14 +149,14 @@ int streamDecrypt(FILE **compressedStreamPtr)
         fwrite(decompressedChunk, header.chunkDecompressedSize, 1, outputStream);
     }
 
-    uint64_t compressedEnd = ftell(outputStream);
+    uint64_t compressedEnd = cftell(outputStream);
 
     for (int i = fgetc(*compressedStreamPtr); i != EOF; i = fgetc(*compressedStreamPtr))
     {
         fputc(i, outputStream);
     }
 
-    fseek(outputStream, compressedEnd, SEEK_SET);
+    cfseek(outputStream, compressedEnd, SEEK_SET);
 
     err = fclose(*compressedStreamPtr);
     if (err)
@@ -187,10 +188,10 @@ int archiveSplit(FILE *stream, uint8_t *folderPath)
     for (uint32_t i = 0; i < header.fileCount; ++i)
     {
         struct FileHeader entry;
-        fseek(stream, sizeof(struct ArchiveHeader) + 28 * i, SEEK_SET);
+        cfseek(stream, sizeof(struct ArchiveHeader) + 28 * i, SEEK_SET);
         fread((uint8_t *)(&entry), 28, 1, stream);
 
-        fseek(stream, nameTableOffset + entry.nameTableChunkIndex * 0x10000 + entry.nameTableOffset, SEEK_SET);
+        cfseek(stream, nameTableOffset + entry.nameTableChunkIndex * 0x10000 + entry.nameTableOffset, SEEK_SET);
 
         for (int j = 0; j < 512 - outPathLength; ++j)
         {
@@ -205,12 +206,12 @@ int archiveSplit(FILE *stream, uint8_t *folderPath)
         {
             printf("Warning: Name does not match crc Name = %s\n", filePath + outPathLength);
         }
-        fseek(stream, nameTableOffset + header.nameSize + entry.offset, SEEK_SET);
+        cfseek(stream, nameTableOffset + header.nameSize + entry.offset, SEEK_SET);
 
         uint8_t *fileData = malloc(entry.size);
         fread(fileData, entry.size, 1, stream);
 
-        FILE *file = fopen(filePath, "wb");
+        FILE *file = cfopen(filePath, "wb");
         if (file == NULL)
         {
             printf("Error: Failed to open file at %s\n", filePath);
@@ -229,7 +230,7 @@ int streamToFile(FILE *stream, uint8_t *outputPath)
 {
     int err;
 
-    FILE *outputStream = fopen(outputPath, "wb");
+    FILE *outputStream = cfopen(outputPath, "wb");
     if (outputStream == NULL)
     {
         printf("fopen error\n");
