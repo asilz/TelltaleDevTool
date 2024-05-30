@@ -36,8 +36,7 @@ uint32_t writeTree(FILE *stream, struct TreeNode *root)
     {
         if (root->children[i]->isBlocked)
         {
-            uint32_t childSize = 0;
-            childSize += fwrite(&childSize, 1, sizeof(uint32_t), stream);
+            size_t childSize = fwrite(&childSize, 1, sizeof(uint32_t), stream);
             childSize += writeTree(stream, root->children[i]);
             cfseek(stream, -(int32_t)childSize, SEEK_CUR);
             fwrite(&childSize, 1, sizeof(uint32_t), stream);

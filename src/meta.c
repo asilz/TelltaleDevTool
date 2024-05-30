@@ -46,9 +46,9 @@ void readMetaStream(FILE *stream, struct MetaStreamHeader *header)
 
     if ((int32_t)header->defaultSize < 0)
     {
-        uint32_t defaultStart = cftell(stream);
+        uint32_t defaultStart = (uint32_t)cftell(stream);
         streamDecrypt(&stream);
-        header->defaultSize = cftell(stream) - defaultStart;
+        header->defaultSize = (uint32_t)(cftell(stream) - defaultStart);
     }
     else
     {
@@ -57,9 +57,9 @@ void readMetaStream(FILE *stream, struct MetaStreamHeader *header)
 
     if ((int32_t)header->debugSize < 0)
     {
-        uint32_t debugStart = cftell(stream);
+        uint32_t debugStart = (uint32_t)cftell(stream);
         streamDecrypt(&stream);
-        header->debugSize = cftell(stream) - debugStart;
+        header->debugSize = (uint32_t)(cftell(stream) - debugStart);
     }
     else
     {
@@ -68,9 +68,9 @@ void readMetaStream(FILE *stream, struct MetaStreamHeader *header)
 
     if ((int32_t)header->asyncSize < 0)
     {
-        uint32_t asyncStart = cftell(stream);
+        uint32_t asyncStart = (uint32_t)cftell(stream);
         streamDecrypt(&stream);
-        header->asyncSize = cftell(stream) - asyncStart;
+        header->asyncSize = (uint32_t)(cftell(stream) - asyncStart);
     }
     else
     {
@@ -101,7 +101,7 @@ int readMetaClass(FILE *stream, struct TreeNode *node, uint32_t flags)
     serializeFunction readFunction = metaClassDescriptions[type].read;
     if (readFunction == NULL)
     {
-        printf("Error: Read function not implemented for %s type = %lx\n", metaClassDescriptions[type].name, node->typeSymbol);
+        printf("Error: Read function not implemented for %s type = %" PRIx64 "\n", metaClassDescriptions[type].name, node->typeSymbol);
         return -1;
     }
     return metaClassDescriptions[type].read(stream, node, flags);
@@ -113,7 +113,7 @@ int writeMetaClass(FILE *stream, struct TreeNode *node, uint32_t flags)
     serializeFunction writeFunction = metaClassDescriptions[type].write;
     if (writeFunction == NULL)
     {
-        printf("Error: Write function not implemented for %s, type = %lx\n", metaClassDescriptions[type].name, node->typeSymbol);
+        printf("Error: Write function not implemented for %s, type = %" PRIx64 "\n", metaClassDescriptions[type].name, node->typeSymbol);
         return -1;
     }
     return metaClassDescriptions[type].write(stream, node, flags);

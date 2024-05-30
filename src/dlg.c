@@ -266,6 +266,7 @@ int DlgRead(FILE *stream, struct TreeNode *dlg, uint32_t flags)
     BoolRead(stream, dlg->children[15], flags);
 
     printf("Dlg Read\n");
+    return 0;
 }
 
 int LogicItemRead(FILE *stream, struct TreeNode *logicItem, uint32_t flags)
@@ -396,11 +397,6 @@ int DlgDownStreamVisibilityConditionsRead(FILE *stream, struct TreeNode *visCond
 {
     visCond->dataSize = 2 * sizeof(uint32_t);
     fread(visCond->data.staticBuffer, visCond->dataSize, 1, stream);
-
-    if (flags & 0x1)
-    {
-        printf("DlgDownStreamVisibilityConditionsRead:\nflags = %d\nmaxNumNodeEvals = %d", *((uint32_t *)(visCond->data.staticBuffer)), *((uint32_t *)(visCond->data.staticBuffer) + 1));
-    }
 
     return 0;
 }
@@ -1134,12 +1130,12 @@ int DlgChildSetChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgChildSetChoicesChildPre(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    DlgChildSetChoiceRead(stream, node, flags);
+    return DlgChildSetChoiceRead(stream, node, flags);
 }
 
 int DlgChildSetChoicesChildPost(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    DlgChildSetChoiceRead(stream, node, flags);
+    return DlgChildSetChoiceRead(stream, node, flags);
 }
 
 int DlgNodeChoicesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -1192,12 +1188,12 @@ int DlgFolderChildRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgChoicesChildPreRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    DlgFolderChildRead(stream, node, flags);
+    return DlgFolderChildRead(stream, node, flags);
 }
 
 int DlgChoicesChildPostRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    DlgFolderChildRead(stream, node, flags);
+    return DlgFolderChildRead(stream, node, flags);
 }
 
 int DlgChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -1226,7 +1222,6 @@ int DlgChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgConditionalCaseRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-
     return DlgFolderChildRead(stream, node, flags);
 }
 

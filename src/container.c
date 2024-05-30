@@ -21,6 +21,7 @@ int genericArrayRead(FILE *stream, struct TreeNode *node, uint32_t flags, serial
         node->children[i]->parent = node;
         readFunction(stream, node->children[i], flags);
     }
+    return 0;
 }
 
 int genericMapRead(FILE *stream, struct TreeNode *node, uint32_t flags, serializeFunction readFunction1, serializeFunction readFunction2, uint64_t typeSymbol1, uint64_t typeSymbol2)
@@ -49,4 +50,5 @@ int genericMapRead(FILE *stream, struct TreeNode *node, uint32_t flags, serializ
             readFunction2(stream, node->children[i], flags);
         }
     }
+    return 0;
 }
