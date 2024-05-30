@@ -22,6 +22,13 @@ set(SOURCES
     src/dlg.c
 )
 
+if(UNIX)
+    list(APPEND SOURCES src/stream_unix.c)
+endif(UNIX)
+if(MSVC)
+    list(APPEND SOURCES src/stream_windows.c)
+endif(MSVC)
+
 # Create the executable
 add_executable(devtool ${SOURCES})
 target_link_libraries(devtool PRIVATE ZLIB::ZLIB)
