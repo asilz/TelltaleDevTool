@@ -1112,10 +1112,27 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[int32_type].read = intrinsic4Read;
     metaClassDescriptions[LanguageResProxy].read = intrinsic4Read;
     metaClassDescriptions[float_type].read = intrinsic4Read;
-    metaClassDescriptions[ScriptEnumDialogMode].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumReticleActions].read = ScriptEnumRead;
     metaClassDescriptions[String].read = StringRead;
     metaClassDescriptions[AnimOrChore].read = AnimOrChoreRead;
+
+    /* ScriptEnum */
+    metaClassDescriptions[ScriptEnumAIAgentState].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumAIDummyPos].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumAIPatrolType].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumBlendTypes].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumControllerButtons].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumDialogMode].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumGamepadButton].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumLightComposerCameraZone].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumLightComposerLightSourceQuadrant].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumLightComposerNodeLocation].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumMenuAlignment].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumMenuVerticalAlignment].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumQTE_Type].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumReticleActions].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumReticleDisplayMode].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumStruggleType].read = ScriptEnumRead;
+    metaClassDescriptions[ScriptEnumUseableType].read = ScriptEnumRead;
 
     /* Handles */
 
