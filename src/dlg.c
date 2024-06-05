@@ -69,7 +69,7 @@ int DependencyLoaderRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     return 0;
 }
 
-uint64_t DlgGetNextID(struct TreeNode *node)
+uint64_t *DlgGetNextID(struct TreeNode *node)
 {
     if (node->childCount == 0 || node->children == NULL || node->children[0] == NULL)
     {
@@ -78,21 +78,25 @@ uint64_t DlgGetNextID(struct TreeNode *node)
     }
     if (node->typeSymbol == 0x85d954f4c0c69e97) // DlgNodeExchange
     {
-        return *(uint64_t *)(node->children[2]->children[4]->children[0]->children[0]->data.staticBuffer);
+        return (uint64_t *)(node->children[2]->children[4]->children[0]->children[0]->data.staticBuffer);
+    }
+    if (node->typeSymbol == 0x2a5aaf50752ffed9) // DlgNodeChore
+    {
+        return (uint64_t *)(node->children[3]->children[4]->children[0]->children[0]->data.staticBuffer);
     }
     if (node->children[0]->typeSymbol == 0x8940087148bf4c61) // DlgNode
     {
-        return *(uint64_t *)(node->children[0]->children[4]->children[0]->children[0]->data.staticBuffer);
+        return (uint64_t *)(node->children[0]->children[4]->children[0]->children[0]->data.staticBuffer);
     }
     if (node->children[0]->typeSymbol == 0xbfb0ce2bd1f38792) // DlgChild
     {
-        return *(uint64_t *)(node->children[0]->children[0]->children[1]->children[0]->children[0]->data.staticBuffer);
+        return (uint64_t *)(node->children[0]->children[0]->children[1]->children[0]->children[0]->data.staticBuffer);
     }
     printf("Error: DlgGetNextID: TreeNode is not a DlgNode/DlgChild %lx\n", node->typeSymbol);
     return 0;
 }
 
-uint64_t DlgGetPrevID(struct TreeNode *node)
+uint64_t *DlgGetPrevID(struct TreeNode *node)
 {
     if (node->childCount == 0 || node->children == NULL || node->children[0] == NULL)
     {
@@ -101,21 +105,25 @@ uint64_t DlgGetPrevID(struct TreeNode *node)
     }
     if (node->typeSymbol == 0x85d954f4c0c69e97) // DlgNodeExchange
     {
-        return *(uint64_t *)(node->children[2]->children[3]->children[0]->children[0]->data.staticBuffer);
+        return (uint64_t *)(node->children[2]->children[3]->children[0]->children[0]->data.staticBuffer);
+    }
+    if (node->typeSymbol == 0x2a5aaf50752ffed9) // DlgNodeChore
+    {
+        return (uint64_t *)(node->children[2]->children[3]->children[0]->children[0]->data.staticBuffer);
     }
     if (node->children[0]->typeSymbol == 0x8940087148bf4c61) // DlgNode
     {
-        return *(uint64_t *)(node->children[0]->children[3]->children[0]->children[0]->data.staticBuffer);
+        return (uint64_t *)(node->children[0]->children[3]->children[0]->children[0]->data.staticBuffer);
     }
     if (node->children[0]->typeSymbol == 0xbfb0ce2bd1f38792) // DlgChild
     {
-        return *(uint64_t *)(node->children[0]->children[3]->children[0]->children[0]->data.staticBuffer);
+        return (uint64_t *)(node->children[0]->children[3]->children[0]->children[0]->data.staticBuffer);
     }
     printf("Error: DlgGetPrevID: TreeNode is not a DlgNode/DlgChild %lx\n", node->typeSymbol);
     return 0;
 }
 
-uint64_t DlgGetID(struct TreeNode *node)
+uint64_t *DlgGetID(struct TreeNode *node)
 {
     // printf("%lx\n", node->typeSymbol);
     if (node->childCount == 0 || node->children == NULL || node->children[0] == NULL)
@@ -125,16 +133,21 @@ uint64_t DlgGetID(struct TreeNode *node)
     }
     if (node->typeSymbol == 0x85d954f4c0c69e97) // DlgNodeExchange
     {
-        return *(uint64_t *)(node->children[2]->children[0]->children[0]->data.staticBuffer);
+        return (uint64_t *)(node->children[2]->children[0]->children[0]->data.staticBuffer);
+    }
+
+    if (node->typeSymbol == 0x2a5aaf50752ffed9) // DlgNodeChore
+    {
+        return (uint64_t *)(node->children[3]->children[0]->children[0]->data.staticBuffer);
     }
 
     if (node->children[0]->typeSymbol == 0x8940087148bf4c61) // DlgNode
     {
-        return *(uint64_t *)(node->children[0]->children[0]->children[0]->data.staticBuffer);
+        return (uint64_t *)(node->children[0]->children[0]->children[0]->data.staticBuffer);
     }
     if (node->children[0]->typeSymbol == 0xbfb0ce2bd1f38792) // DlgChild
     {
-        return *(uint64_t *)(node->children[0]->children[0]->children[0]->children[0]->data.staticBuffer);
+        return (uint64_t *)(node->children[0]->children[0]->children[0]->children[0]->data.staticBuffer);
     }
     printf("Error: DlgGetID: TreeNode is not a DlgNode/DlgChild %lx\n", node->typeSymbol);
     return 0;
@@ -438,19 +451,19 @@ int DlgNodeChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip name block
     node->children[0]->isBlocked = 1;
-    node->children[0]->typeSymbol = 0x8940087148bf4c61; // crc64 of "DlgNode"
-    DlgNodeRead(stream, node->children[0], flags);
+    node->children[0]->typeSymbol = 0x6643af6dcccc81a9; // crc64 of "Handle<Chore>"
+    intrinsic8Read(stream, node->children[0], flags);
+
+    node->children[1]->typeSymbol = 0x99d7c52ea7f0f97d; // crc64 of "int"
+    intrinsic4Read(stream, node->children[1], flags);
+
+    node->children[2]->typeSymbol = 0x9004c5587575d6c0; // crc64 of "bool"
+    BoolRead(stream, node->children[2], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip name block
-    node->children[1]->isBlocked = 1;
-    node->children[1]->typeSymbol = 0x6643af6dcccc81a9; // crc64 of "Handle<Chore>"
-    intrinsic8Read(stream, node->children[1], flags);
-
-    node->children[2]->typeSymbol = 0x99d7c52ea7f0f97d; // crc64 of "int"
-    intrinsic4Read(stream, node->children[2], flags);
-
-    node->children[3]->typeSymbol = 0x9004c5587575d6c0; // crc64 of "bool"
-    BoolRead(stream, node->children[3], flags);
+    node->children[3]->isBlocked = 1;
+    node->children[3]->typeSymbol = 0x8940087148bf4c61; // crc64 of "DlgNode"
+    DlgNodeRead(stream, node->children[3], flags);
 
     return 0;
 }
