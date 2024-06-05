@@ -1116,7 +1116,60 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[ScriptEnumReticleActions].read = ScriptEnumRead;
     metaClassDescriptions[String].read = StringRead;
     metaClassDescriptions[AnimOrChore].read = AnimOrChoreRead;
+
+    /* Handles */
+
     metaClassDescriptions[HandleTempD3DMeshLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempActorAgentMapperLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempAgentMapLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempAnimationLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempAnimOrChoreLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempAudioDataLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempBlendGraphLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempBlendGraphManagerLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempBlendModeLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempChoreLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempD3DMeshLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempDialogResourceLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempDlgLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempEventStorageLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempFontLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempInputMapperLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempLanguageDatabaseLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempLanguageResourceLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempLightProbeDataLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempLocomotionDBLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempParticlePropertiesLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempParticleSpriteLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempPhonemeTableLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempPhysicsDataLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempPhysicsObjectLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempPreloadPackageRuntimeDataDialogLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempPreloadPackageRuntimeDataSceneLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempPropertySetLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempResourceBundleLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempResourceGroupInfoLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempRuleLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempRulesLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempSaveGameLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempSceneLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempSkeletonLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempSoundAmbienceAmbienceDefinitionLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempSoundBusSnapshotSnapshotLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempSoundBusSnapshotSnapshotSuiteLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempSoundDataLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempSoundEventBankDummyLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempSoundEventDataLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempSoundEventSnapshotDataLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempSoundReverbDefinitionLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempStyleGuideLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempStyleGuideRefLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempStyleIdleTransitionsResLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempT3OverlayDataLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempT3TextureLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempTransitionMapLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempVoiceDataLate].read = intrinsic8Read;
+    metaClassDescriptions[HandleTempWalkBoxesLate].read = intrinsic8Read;
 
     /* Dlg Functions */
 
