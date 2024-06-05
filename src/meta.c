@@ -1178,6 +1178,7 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[DlgNodeExchange].read = DlgNodeExchangeRead;
     metaClassDescriptions[DlgNodeChoices].read = DlgNodeChoicesRead;
     metaClassDescriptions[DlgChoice].read = DlgChoiceRead;
+    metaClassDescriptions[DlgNodeChore].read = DlgNodeChoreRead;
     metaClassDescriptions[DlgNodeWait].read = DlgNodeWaitRead;
     metaClassDescriptions[DlgNodeMarker].read = DlgNodeMarkerRead;
     metaClassDescriptions[DlgNodeIdle].read = DlgNodeIdleRead;

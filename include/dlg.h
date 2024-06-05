@@ -1,5 +1,4 @@
 #include <inttypes.h>
-#include <ttstring.h>
 
 #ifndef DLG_H
 #define DLG_H
@@ -10,6 +9,7 @@ int DlgNodeTextRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgNodeExchangeRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgNodeChoicesRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DlgNodeChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgNodeWaitRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgNodeMarkerRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgNodeIdleRead(FILE *stream, struct TreeNode *node, uint32_t flags);
