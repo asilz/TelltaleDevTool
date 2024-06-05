@@ -9,18 +9,23 @@ void treeFree(struct TreeNode *root)
     {
         free(root->data.dynamicBuffer);
         root->data.dynamicBuffer = NULL;
+        root->dataSize = 0;
     }
 
-    for (uint32_t i = 0; i < root->childCount; ++i)
+    if (root->children != NULL)
     {
-        if (root->children != NULL && root->children[i] != NULL)
+        for (uint32_t i = 0; i < root->childCount; ++i)
         {
-            treeFree(root->children[i]);
-            free(root->children[i]);
-            root->children[i] = NULL;
+            if (root->children[i] != NULL)
+            {
+                treeFree(root->children[i]);
+                free(root->children[i]);
+                root->children[i] = NULL;
+            }
         }
         free(root->children);
         root->children = NULL;
+        root->childCount = 0;
     }
 }
 
