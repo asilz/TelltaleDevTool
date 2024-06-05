@@ -100,7 +100,7 @@ enum Type searchDatabase(char *databasePath, uint64_t crc)
 {
     FILE *database = cfopen(databasePath, "rb");
     uint16_t value;
-    cfseek(database, crc % 0xFFFFFFFF, SEEK_SET);
+    cfseek(database, (uint32_t)(crc % (uint32_t)(0xFFFFFF)), SEEK_SET);
     fread(&value, 2, 1, database);
     fclose(database);
     return (enum Type)value;
@@ -109,11 +109,6 @@ enum Type searchDatabase(char *databasePath, uint64_t crc)
 void writeDatabase()
 {
     FILE *database = cfopen("./protonDatabase.db", "wb");
-    for (int i = 0; i < UINT32_MAX / sizeof(uint64_t); ++i)
-    {
-        uint64_t zero = 0;
-        fwrite(&zero, sizeof(zero), 1, database);
-    }
 
     FILE *typeFile = cfopen("./typeNames2.txt", "rb");
     uint8_t buffer[256];
@@ -135,7 +130,7 @@ void writeDatabase()
             }
             buffer[j] = byte;
         }
-        cfseek(database, CRC64_CaseInsensitive(0, buffer) % 0xFFFFFFFF, SEEK_SET);
+        cfseek(database, (uint32_t)(CRC64_CaseInsensitive(0, buffer) % (uint32_t)(0xFFFFFF)), SEEK_SET);
         fwrite(&i, sizeof(i), 1, database);
     }
     fclose(database);
