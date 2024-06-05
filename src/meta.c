@@ -1114,6 +1114,7 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[float_type].read = intrinsic4Read;
     metaClassDescriptions[String].read = StringRead;
     metaClassDescriptions[AnimOrChore].read = AnimOrChoreRead;
+    metaClassDescriptions[Vector3].read = Vector3Read;
 
     /* ScriptEnum */
     metaClassDescriptions[ScriptEnumAIAgentState].read = ScriptEnumRead;

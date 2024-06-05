@@ -9,6 +9,13 @@
 #include <ttstring.h>
 #include <stream.h>
 
+int Vector3Read(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Move this function to a different file
+{
+    node->dataSize = sizeof(float) * 3;
+    node->data.dynamicBuffer = malloc(node->dataSize);
+    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+}
+
 int AnimOrChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Move this function to a different file
 {
     node->childCount = 2;

@@ -46,4 +46,5 @@ int DlgChildSetRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int LogicItemRead(FILE *stream, struct TreeNode *logicItem, uint32_t flags);
 int ScriptEnumRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int AnimOrChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int Vector3Read(FILE *stream, struct TreeNode *node, uint32_t flags);
 #endif
