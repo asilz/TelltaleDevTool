@@ -5,6 +5,8 @@
 #include <container.h>
 #include <stream.h>
 
+#define EMBEDDED_PROP_FLAG 0x0400
+
 struct TypeGroup
 {
     uint64_t typeSymbol;
@@ -85,6 +87,15 @@ static int PropCoreRead(FILE *stream, struct TreeNode *prop, uint32_t flags) // 
     prop->children[1]->parent = prop;
     prop->children[1]->typeSymbol = 0xd48d0c3b810c1975; // TODO: Set symbol
     genericArrayRead(stream, prop->children[1], flags, TypeGroupRead, prop->children[1]->typeSymbol);
+
+    if ((*(uint32_t *)prop->parent->children[1]->data.staticBuffer & EMBEDDED_PROP_FLAG) != 0)
+    {
+        prop->children = realloc(prop->children, ++prop->childCount * sizeof(struct TreeNode *));
+        prop->children[2] = calloc(1, sizeof(struct TreeNode));
+        prop->children[2]->parent = prop;
+        prop->children[2]->typeSymbol = 0xcd75dc4f6b9f15d2; // crc64 of "PropertySet"
+        PropRead(stream, prop->children[2], flags);
+    }
 
     return 0;
 }
