@@ -1198,11 +1198,14 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[DlgChoice].read = DlgChoiceRead;
     metaClassDescriptions[DlgNodeChore].read = DlgNodeChoreRead;
     metaClassDescriptions[DlgNodeWait].read = DlgNodeWaitRead;
+    metaClassDescriptions[DlgNodeCancelChoices].read = DlgNodeCancelChoicesRead;
     metaClassDescriptions[DlgNodeMarker].read = DlgNodeMarkerRead;
     metaClassDescriptions[DlgNodeIdle].read = DlgNodeIdleRead;
     metaClassDescriptions[DlgConditionalCase].read = DlgConditionalCaseRead;
     metaClassDescriptions[DlgNodeScript].read = DlgNodeScriptRead;
     metaClassDescriptions[DlgNodeSequence].read = DlgNodeSequenceRead;
+    metaClassDescriptions[DlgNodeParallel].read = DlgNodeParallelRead;
+    metaClassDescriptions[DlgNodeParallelPElement].read = DlgNodeParallelPElementRead;
     metaClassDescriptions[DlgNodeJump].read = DlgNodeJumpRead;
     metaClassDescriptions[DlgNodeStart].read = DlgNodeStartRead;
     metaClassDescriptions[DlgNodeNotes].read = DlgNodeNotesRead;
