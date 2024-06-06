@@ -40,6 +40,15 @@ int AnimOrChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO
     return 0;
 }
 
+int ColorRead(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Move to different file
+{
+    node->dataSize = sizeof(float) * 4;
+    node->data.dynamicBuffer = malloc(node->dataSize);
+    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+
+    return 0;
+}
+
 int ScriptEnumRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     node->childCount = 1;

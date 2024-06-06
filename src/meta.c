@@ -1115,6 +1115,7 @@ int initializeMetaClassDescriptions()
     metaClassDescriptions[String].read = StringRead;
     metaClassDescriptions[AnimOrChore].read = AnimOrChoreRead;
     metaClassDescriptions[Vector3].read = Vector3Read;
+    metaClassDescriptions[Color].read = ColorRead;
 
     /* ScriptEnum */
     metaClassDescriptions[ScriptEnumAIAgentState].read = ScriptEnumRead;
