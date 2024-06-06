@@ -4,9 +4,9 @@ project(TelltaleDevTool)
 set(CMAKE_BUILD_TYPE Debug)
 
 find_package(ZLIB REQUIRED)
-#find_package(PkgConfig REQUIRED)
-#pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
 
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
 set(SOURCES
     src/main.c
     src/blowfish.c
@@ -20,11 +20,13 @@ set(SOURCES
     src/prop.c
     src/container.c
     src/dlg.c
+    src/landb.c
 )
 
 if(UNIX)
     list(APPEND SOURCES src/stream_unix.c)
 endif(UNIX)
+
 if(MSVC)
     list(APPEND SOURCES src/stream_windows.c)
 endif(MSVC)
@@ -32,7 +34,8 @@ endif(MSVC)
 # Create the executable
 add_executable(devtool ${SOURCES})
 target_link_libraries(devtool PRIVATE ZLIB::ZLIB)
-#target_link_libraries(devtool PRIVATE PkgConfig::GTK4)
+
+# target_link_libraries(devtool PRIVATE PkgConfig::GTK4)
 
 # Add includes
 target_include_directories(devtool PRIVATE include)
