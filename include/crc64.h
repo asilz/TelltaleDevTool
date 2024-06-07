@@ -3,6 +3,9 @@
 
 uint64_t CRC64_CaseInsensitive(uint64_t crc, uint8_t *buf);
 uint64_t CRC64(uint64_t crc, const char *const buf);
-enum Type searchDatabase(char *databasePath, uint64_t crc);
+uint16_t searchDatabase(char *databasePath, uint64_t crc);
 void writeDatabase();
+void writefileNameDatabase();
+void writeConstStruct();
 void binWalk(FILE *stream);
+int streamsAreEqual(FILE *stream1, FILE *stream2);

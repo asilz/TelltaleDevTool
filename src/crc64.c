@@ -1,8 +1,9 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <crc64.h>
-#include <types.h>
 #include <stream.h>
+#include <string.h>
+#include <stdlib.h>
 
 const uint64_t crc64_table[] = {
     0x0000000000000000, 0x42F0E1EBA9EA3693, 0x85E1C3D753D46D26, 0xC711223CFA3E5BB5,
@@ -96,14 +97,14 @@ uint64_t CRC64(uint64_t crc, const char *const buf)
     return crc;
 }
 
-enum Type searchDatabase(char *databasePath, uint64_t crc)
+uint16_t searchDatabase(char *databasePath, uint64_t crc)
 {
     FILE *database = cfopen(databasePath, "rb");
     uint16_t value;
-    cfseek(database, (uint32_t)(crc % (uint32_t)(0xFFFFFF)), SEEK_SET);
+    cfseek(database, (uint32_t)(crc % (uint32_t)(0xFFFFFFF)), SEEK_SET);
     fread(&value, 2, 1, database);
     fclose(database);
-    return (enum Type)value;
+    return value;
 }
 
 void writeDatabase()
@@ -130,11 +131,160 @@ void writeDatabase()
             }
             buffer[j] = byte;
         }
-        cfseek(database, (uint32_t)(CRC64_CaseInsensitive(0, buffer) % (uint32_t)(0xFFFFFF)), SEEK_SET);
+        cfseek(database, (uint32_t)(CRC64_CaseInsensitive(0, buffer) % (uint32_t)(0xFFFFFFF)), SEEK_SET);
         fwrite(&i, sizeof(i), 1, database);
     }
     fclose(database);
     fclose(typeFile);
+}
+
+void writefileNameDatabase()
+{
+    FILE *database = cfopen("./fileNameDatabase.db", "w+");
+
+    FILE *typeFile = cfopen("./fileNames.txt", "rb");
+
+    for (uint64_t i = 0; i < 0xFFFFFFFF; ++i)
+    {
+        fputc('\0', database);
+    }
+    rewind(database);
+
+    uint8_t buffer[256];
+    for (uint32_t i = 0; i < UINT32_MAX; ++i)
+    {
+        for (int j = 0; j < 256; ++j)
+        {
+            uint8_t byte;
+            if (fread(&byte, 1, 1, typeFile) == 0)
+            {
+                fclose(database);
+                fclose(typeFile);
+                return;
+            }
+            if (byte == '\n')
+            {
+                buffer[j] = '\0';
+                break;
+            }
+            buffer[j] = byte;
+        }
+        cfseek(database, (uint32_t)(CRC64_CaseInsensitive(0, buffer) % (uint32_t)(0xFFFFFFFF)), SEEK_SET);
+        // printf("ftell = %lx\n", cftell(database));
+        char stringStart;
+        size_t bytesRead = fread(&stringStart, sizeof(stringStart), 1, database);
+        if (bytesRead == 0)
+        {
+            printf("no bytes read\n");
+        }
+        // printf("stringStart = %d\n", stringStart);
+        if (stringStart != '\0' && stringStart != EOF)
+        {
+            fseek(database, -1, SEEK_CUR);
+            printf("collision detected %d %s\n", stringStart, buffer);
+        }
+        else if (stringStart != EOF)
+        {
+            fseek(database, -1, SEEK_CUR);
+            printf("no collision %s\n", buffer);
+        }
+        fwrite(&i, sizeof(i), 1, database);
+    }
+    fclose(database);
+    fclose(typeFile);
+}
+
+struct HashName
+{
+    uint64_t hash;
+    char *name;
+};
+
+#define FILE_NAME_COUNT 410430
+
+void writeConstStruct()
+{
+    struct HashName *hashNames = malloc(sizeof(struct HashName) * FILE_NAME_COUNT);
+
+    FILE *typeFile = fopen("./fileNames.txt", "rb");
+
+    for (uint32_t i = 0; i < FILE_NAME_COUNT; ++i)
+    {
+        uint8_t buffer[256];
+        for (int j = 0; j < 256; ++j)
+        {
+            uint8_t byte;
+            if (fread(&byte, 1, 1, typeFile) == 0)
+            {
+                fclose(typeFile);
+                break;
+            }
+            if (byte == '\n')
+            {
+                buffer[j] = '\0';
+                hashNames[i].name = malloc(j + 1);
+                memcpy(hashNames[i].name, buffer, j + 1);
+                hashNames[i].hash = CRC64_CaseInsensitive(0, buffer);
+                // printf("%s\n", hashNames[i].name);
+                break;
+            }
+            buffer[j] = byte;
+        }
+    }
+
+    while (1)
+    {
+        uint8_t complete = 1;
+        for (uint32_t i = 1; i < FILE_NAME_COUNT; ++i)
+        {
+            if (hashNames[i - 1].hash > hashNames[i].hash)
+            {
+                struct HashName temp = hashNames[i];
+                hashNames[i] = hashNames[i - 1];
+                hashNames[i - 1] = temp;
+                complete = 0;
+            }
+        }
+        if (complete)
+        {
+            break;
+        }
+    }
+    printf("sorted\n");
+    FILE *database = fopen("./result_sorted.txt", "wb");
+
+    for (uint32_t i = 0; i < FILE_NAME_COUNT; ++i)
+    {
+        printf("%d\n", i);
+        char textBuffer[19];
+        sprintf(textBuffer, "0x%016lX", hashNames[i].hash);
+        fputc('{', database);
+        fwrite(textBuffer, 18, 1, database);
+        fputc(',', database);
+        fputc('"', database);
+        fwrite(hashNames[i].name, strlen(hashNames[i].name), 1, database);
+        fputc('"', database);
+        fputc('}', database);
+        fputc(',', database);
+        free(hashNames[i].name);
+    }
+
+    free(hashNames);
+    fclose(database);
+
+    /*
+    char textBuffer[19];
+    uint64_t crc = CRC64_CaseInsensitive(0, buffer);
+    sprintf(textBuffer, "0x%016lX", crc);
+    fputc('{', database);
+    fwrite(textBuffer, 18, 1, database);
+    fputc(',', database);
+    fputc('"', database);
+    fwrite(buffer, strlen(buffer), 1, database);
+    fputc('"', database);
+    fputc('}', database);
+    fputc(',', database);
+    */
 }
 
 void binWalk(FILE *stream)
