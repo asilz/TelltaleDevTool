@@ -17,4 +17,6 @@ int streamDecrypt(FILE **compressedStreamPtr);
  */
 int archiveSplit(FILE *stream, uint8_t *folderPath);
 
-int streamToFile(FILE *stream, uint8_t outputPath);
+int streamToFile(FILE *stream, uint8_t *outputPath);
+
+int writeFileNames(FILE *stream, FILE *fileNames);
