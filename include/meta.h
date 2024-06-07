@@ -23,3 +23,4 @@ int writeMetaClass(FILE *stream, struct TreeNode *node, uint32_t flags);
 void writeMetaStreamHeader(FILE *stream, struct MetaStreamHeader *header);
 int initializeMetaClassDescriptions();
 char *getMetaClassName(uint64_t typeSymbol);
+char *getFileName(uint64_t symbol);
