@@ -10,6 +10,7 @@
 #include <tree.h>
 #include <dlg.h>
 #include <stream.h>
+#include <meta_tab.h>
 
 #define META_CLASS_DESCRIPTIONS_COUNT 978
 
