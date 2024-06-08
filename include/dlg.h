@@ -4,6 +4,7 @@
 #define DLG_H
 
 int DlgRead(FILE *stream, struct TreeNode *dlg, uint32_t flags);
+int DlgFolderRead(FILE *stream, struct TreeNode *folder, uint32_t flags);
 int DlgNodeLogicRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgNodeTextRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgNodeExchangeRead(FILE *stream, struct TreeNode *node, uint32_t flags);
@@ -31,6 +32,7 @@ int DlgChoicesChildPostRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 int DlgConditionInputRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgConditionTimeRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgConditionRuleRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DlgLineRead(FILE *stream, struct TreeNode *line, uint32_t flags);
 
 int DependencyLoaderRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int LogicItemRead(FILE *stream, struct TreeNode *logicItem, uint32_t flags);

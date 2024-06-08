@@ -204,11 +204,11 @@ struct HashName
 
 void writeConstStruct()
 {
-    struct HashName *hashNames = malloc(sizeof(struct HashName) * FILE_NAME_COUNT);
+    struct HashName *hashNames = malloc(sizeof(struct HashName) * 977);
 
-    FILE *typeFile = fopen("./fileNames.txt", "rb");
+    FILE *typeFile = fopen("./typeNames2.txt", "rb");
 
-    for (uint32_t i = 0; i < FILE_NAME_COUNT; ++i)
+    for (uint32_t i = 0; i < 977; ++i)
     {
         uint8_t buffer[256];
         for (int j = 0; j < 256; ++j)
@@ -235,7 +235,7 @@ void writeConstStruct()
     while (1)
     {
         uint8_t complete = 1;
-        for (uint32_t i = 1; i < FILE_NAME_COUNT; ++i)
+        for (uint32_t i = 1; i < 977; ++i)
         {
             if (hashNames[i - 1].hash > hashNames[i].hash)
             {
@@ -251,10 +251,11 @@ void writeConstStruct()
         }
     }
     printf("sorted\n");
-    FILE *database = fopen("./result_sorted.txt", "wb");
+    FILE *database = fopen("./typeNames_sorted2.txt", "wb");
 
-    for (uint32_t i = 0; i < FILE_NAME_COUNT; ++i)
+    for (uint32_t i = 0; i < 977; ++i)
     {
+        /*
         printf("%d\n", i);
         char textBuffer[19];
         sprintf(textBuffer, "0x%016lX", hashNames[i].hash);
@@ -264,9 +265,29 @@ void writeConstStruct()
         fputc('"', database);
         fwrite(hashNames[i].name, strlen(hashNames[i].name), 1, database);
         fputc('"', database);
+        fputc(',', database);
+        fwrite("NULL", 4, 1, database);
+        fputc(',', database);
+        fwrite("NULL", 4, 1, database);
         fputc('}', database);
         fputc(',', database);
         free(hashNames[i].name);
+        */
+        for (size_t j = 0; j < strlen(hashNames[i].name); ++j)
+        {
+            if (hashNames[i].name[j] == ',')
+            {
+                continue;
+            }
+            if (hashNames[i].name[j] == '<' || hashNames[i].name[j] == '>' || hashNames[i].name[j] == ':' || hashNames[i].name[j] == '*')
+            {
+                hashNames[i].name[j] = '_';
+            }
+            fputc(hashNames[i].name[j], database);
+        }
+
+        fputc(',', database);
+        fputc('\n', database);
     }
 
     free(hashNames);

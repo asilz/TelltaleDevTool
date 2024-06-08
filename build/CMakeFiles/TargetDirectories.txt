@@ -1,3 +1,0 @@
-/home/asil/Documents/decryption/Blowfish/build/CMakeFiles/blowfish.dir
-/home/asil/Documents/decryption/Blowfish/build/CMakeFiles/edit_cache.dir
-/home/asil/Documents/decryption/Blowfish/build/CMakeFiles/rebuild_cache.dir

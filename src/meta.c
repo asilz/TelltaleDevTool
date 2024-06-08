@@ -11,20 +11,994 @@
 #include <dlg.h>
 #include <stream.h>
 #include <meta_tab.h>
+#include <ttstring.h>
+#include <prop.h>
+#include <landb.h>
 
 #define META_CLASS_DESCRIPTIONS_COUNT 978
 
-typedef int (*serializeFunction)(FILE *stream, struct TreeNode *node, uint32_t flags);
-
-struct MetaClassDescription
-{
-    uint8_t *name;
-
-    serializeFunction read;
-    serializeFunction write;
+const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_COUNT] = {
+    {0x004F023463D89FB0, "Symbol", intrinsic8Read, NULL},
+    {0x00A87B9875C485DB, "DCArray<LanguageResLocal>", NULL, NULL},
+    {0x00ACFF947A409DDB, "Mover", NULL, NULL},
+    {0x011F7E31FB297D7D, "DCArray<DlgNodeExchange::Entry>", NULL, NULL},
+    {0x01C9A459992D55F3, "DlgLineCollection", NULL, NULL},
+    {0x02167D60A7BF23E6, "SingleValue<LocationInfo>", NULL, NULL},
+    {0x026495DD43D2BE66, "KeyframedValue<Handle<Chore>>", NULL, NULL},
+    {0x02A9ACE31B9DB46D, "DCArray<KeyframedValue<Color>::Sample>", NULL, NULL},
+    {0x02C723D77F0C4B32, "Handle<AudioData>", intrinsic8Read, NULL},
+    {0x0371D30CA437BCDC, "CompressedKeys<CompressedPathBlockingValue::CompressedPathInfoKey>", NULL, NULL},
+    {0x037E2FEE893983C9, "ZTestFunction", NULL, NULL},
+    {0x03FBA4982FDC6B40, "KeyframedValue<CompressedPathBlockingValue::CompressedPathInfoKey>", NULL, NULL},
+    {0x042F3CD4FE3D6D0D, "Map<Symbol,bool,less<Symbol>>", NULL, NULL},
+    {0x043F7B983EEE556E, "SingleValue<SoundEventName<2>>", NULL, NULL},
+    {0x046D4F1EB16A8ABF, "AnimatedValueInterface<Handle<T3Texture>>", NULL, NULL},
+    {0x04C03CA073E34563, "HingeJointKey", NULL, NULL},
+    {0x04D13C680B64ADC3, "DCArray<unsignedshort>", NULL, NULL},
+    {0x04EE8AB98C0E7346, "SingleValue<PhonemeKey>", NULL, NULL},
+    {0x0589F045B23AB6B4, "EnumEmitterTriggerEnable", NULL, NULL},
+    {0x05DB112DDD243EBE, "MeshSceneLightmapData", NULL, NULL},
+    {0x05F2FC89653F5C5C, "SoundBusSystem::BusDescription", NULL, NULL},
+    {0x062CC3BE86D4A0DB, "SingleValue<Handle<WalkBoxes>>", NULL, NULL},
+    {0x0633339B0EBD064B, "T3LightSceneInternalData", NULL, NULL},
+    {0x0684B3A160B2AED9, "SingleQuaternionValue", NULL, NULL},
+    {0x06B7A28E6C2D93DD, "EnumHBAOBlurQuality", NULL, NULL},
+    {0x06D503EAE2AF659D, "List<ActingPaletteGroup::ActingPaletteTransition>", NULL, NULL},
+    {0x07053D1D5732E4D5, "ScriptEnum:QTE_Type", ScriptEnumRead, NULL},
+    {0x0760518169BE7C9C, "FootSteps::FootstepBank", NULL, NULL},
+    {0x07A995E0FEEEDA3E, "Handle<ResourceBundle>", intrinsic8Read, NULL},
+    {0x08222B402EF42B3E, "Footsteps2::FootstepBank", NULL, NULL},
+    {0x089A910EC95E5128, "AnimatedValueInterface<Handle<Font>>", NULL, NULL},
+    {0x096F88556B81A6AF, "DlgObjectPropsOwner", NULL, NULL},
+    {0x09C26EAAD53BEC47, "List<Handle<PropertySet>>", NULL, NULL},
+    {0x0A034C9344F17FCE, "KeyframedValue<ScriptEnum>", NULL, NULL},
+    {0x0A09E83894C80579, "Map<String,Handle<PropertySet>,less<String>>", NULL, NULL},
+    {0x0AD7EF65B5C2FB8B, "Handle<StyleIdleTransitionsRes>", intrinsic8Read, NULL},
+    {0x0B350ED3E60A3A82, "Handle<LightProbeData>", intrinsic8Read, NULL},
+    {0x0B47B28F9B66367C, "CompressedKeys<Handle<Dlg>>", NULL, NULL},
+    {0x0B8BD6449DCB3262, "Map<int,Ptr<DialogText>,less<int>>", NULL, NULL},
+    {0x0BA8280CE6EE5023, "Handle<BlendMode>", intrinsic8Read, NULL},
+    {0x0C1E84D6FF72CE80, "SingleValue<Transform>", NULL, NULL},
+    {0x0C2208A6B83FF0D0, "EnumParticleGeometryType", NULL, NULL},
+    {0x0C6B16504DB34467, "DCArray<Ptr<AnimationValueInterfaceBase>>", NULL, NULL},
+    {0x0CA5396FBDF99B4D, "save", NULL, NULL},
+    {0x0CBCC5585D066C26, "DCArray<KeyframedValue<Handle<Font>>::Sample>", NULL, NULL},
+    {0x0D4BF6E9059B7ABD, "DlgChildSetChoice", NULL, NULL},
+    {0x0D5642485492311F, "ChoreAgent::Attachment", NULL, NULL},
+    {0x0DC7D8AA2CCF1332, "T3OverlayObjectData_Sprite", NULL, NULL},
+    {0x0E030A302425D453, "EnlightenModule::EnlightenCubemapSettings", NULL, NULL},
+    {0x0E0D50B11C5F3071, "EnvironmentLight", NULL, NULL},
+    {0x0E6BD8C1195FF49F, "Map<String,Map<String,String,less<String>>,less<String>>", NULL, NULL},
+    {0x0EE94831CBA42B32, "DCArray<KeyframedValue<Vector2>::Sample>", NULL, NULL},
+    {0x0F43F2EB7185E296, "DCArray<Ptr<ActingPaletteClass>>", NULL, NULL},
+    {0x0FA0200E101BA5B8, "Map<Symbol,PreloadPackage::ResourceSeenTimes,less<Symbol>>", NULL, NULL},
+    {0x0FDC0365EABBD69E, "NavCam::EnumMode", NULL, NULL},
+    {0x1019453EB19C1ABD, "KeyframedValue<Quaternion>", NULL, NULL},
+    {0x101E4BF52A9999AC, "long", intrinsic4Read, NULL},
+    {0x106930CCC0A67F81, "DCArray<Guide>", NULL, NULL},
+    {0x108A4BDBA5C4323C, "CompressedKeys<Vector3>", NULL, NULL},
+    {0x11044749232970C0, "uint64", NULL, NULL},
+    {0x112AFB1D97DE426F, "EnumParticlePropModifier", NULL, NULL},
+    {0x113E7D20ABCD8F82, "List<Vector3>", NULL, NULL},
+    {0x114113B10EEE5F5C, "T3MeshPropertyEntry", NULL, NULL},
+    {0x114636E822613A22, "LogicGroup", LogicGroupRead, NULL},
+    {0x11C0B2FA0E373C72, "T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>", NULL, NULL},
+    {0x12CD3F0920AE1380, "Handle<LanguageDatabase>", intrinsic8Read, NULL},
+    {0x13058734F0A0B42F, "DCArray<Handle<Chore>>", NULL, NULL},
+    {0x135C8F048CAB3B1A, "DCArray<T3MeshMaterialOverride>", NULL, NULL},
+    {0x13701CC75D2E8F76, "KeyframedValue<Handle<SoundData>>", NULL, NULL},
+    {0x1373B90F4631D050, "GFXPlatformAttributeParams", NULL, NULL},
+    {0x137C0EA853FDD598, "DlgChoice", DlgChoiceRead, NULL},
+    {0x13998D6F0BDE3491, "DlgNodeChoices", DlgNodeChoicesRead, NULL},
+    {0x13AEBBF796CAED1B, "estore", NULL, NULL},
+    {0x13C9CDF379EF28E0, "Map<int,PropertySet,less<int>>", NULL, NULL},
+    {0x14405BB0FDAEF3F3, "EnumT3LightEnvShadowType", NULL, NULL},
+    {0x14AD5AB2AA65AA14, "T3MaterialSwizzleParams", NULL, NULL},
+    {0x14B01C37623D58CB, "DCArray<Handle<T3Texture>>", NULL, NULL},
+    {0x14E382987D757E47, "KeyframedValue<Symbol>", NULL, NULL},
+    {0x15623933D3FDB46F, "EnlightenModule::EnumeBackfaceType", NULL, NULL},
+    {0x169DBBF7BC9DAE98, "preloadpackagerts", NULL, NULL},
+    {0x16F70EA63ACE4D1F, "SoundData", NULL, NULL},
+    {0x177AAECBE81EC7CF, "Handle<SoundEventData>", intrinsic8Read, NULL},
+    {0x178C1A035ED26487, "IdleSlotDefaults", NULL, NULL},
+    {0x1793F7CC87414A9C, "DCArray<T3MaterialNestedMaterial>", NULL, NULL},
+    {0x17A22BCB7F71DA7C, "AnimatedValueInterface<Handle<SoundBusSnapshot::Snapshot>>", NULL, NULL},
+    {0x17C3DEFAAB9829B0, "EnlightenModule::EnlightenProbeVolumeSettings", NULL, NULL},
+    {0x18525353197DDC4E, "EnumRenderTAAJitterType", NULL, NULL},
+    {0x18A8A7AE07018B8D, "DlgNodeIdle", DlgNodeIdleRead, NULL},
+    {0x18B7A88B80875CBE, "PhonemeTable", NULL, NULL},
+    {0x18F3EC40E3993F23, "DCArray<KeyframedValue<Handle<Chore>>::Sample>", NULL, NULL},
+    {0x193947C951B51053, "CompressedVertexPositionKeys", NULL, NULL},
+    {0x1966C52FAEA296B5, "AnimatedValueInterface<Handle<SoundAmbience::AmbienceDefinition>>", NULL, NULL},
+    {0x196A1BF777E8C2F8, "ActingPaletteGroup::EnumIdleTransition", NULL, NULL},
+    {0x19F654ED32A2C708, "EnumT3MaterialLODFullyRough", NULL, NULL},
+    {0x1AFF8E5E688E0117, "EnlightenModule::EnumeSimplifyMode", NULL, NULL},
+    {0x1B3355ECACF8ED7C, "Handle<Dlg>", intrinsic8Read, NULL},
+    {0x1B3A715D9339AF5F, "CompressedKeys<Handle<T3Texture>>", NULL, NULL},
+    {0x1BBD9C16A1D7261C, "unsignedshort", NULL, NULL},
+    {0x1BE31F84BB675B71, "DCArray<RenderObject_Mesh::MeshInstance>", NULL, NULL},
+    {0x1C0688FD6A78C6D1, "ScriptEnum:ReticleActions", ScriptEnumRead, NULL},
+    {0x1C085FBA0B240337, "DCArray<T3MeshEffectPreload>", NULL, NULL},
+    {0x1C7C457A2166B727, "EnumRenderMaskTest", NULL, NULL},
+    {0x1CA3A30A80E58244, "Handle<ParticleSprite>", intrinsic8Read, NULL},
+    {0x1CCDC5D367F7A6B7, "Handle<T3OverlayData>", intrinsic8Read, NULL},
+    {0x1CF4C103D0290F37, "unsignedchar", NULL, NULL},
+    {0x1D0BCFF71E6BC2E1, "DCArray<Handle<PropertySet>>", NULL, NULL},
+    {0x1D6B01580F1491E6, "HandleLock<Animation>", NULL, NULL},
+    {0x1DDC6104AA9DFDC0, "DCArray<T3MaterialPreShader>", NULL, NULL},
+    {0x1DF7C31EA25EAE57, "KeyframedValue<Handle<SoundBusSnapshot::SnapshotSuite>>", NULL, NULL},
+    {0x1E0A2AD219F12B54, "DCArray<KeyframedValue<SoundEventName<0>>::Sample>", NULL, NULL},
+    {0x1E66E396A35F93F9, "ScriptEnum:MenuVerticalAlignment", ScriptEnumRead, NULL},
+    {0x1E7032DDDA683211, "DCArray<T3MeshEffectPreloadDynamicFeatures>", NULL, NULL},
+    {0x1E89F50D0F33E645, "FileNameBase", NULL, NULL},
+    {0x1EEF71B2306B5B6C, "uint16", NULL, NULL},
+    {0x1EF9BD7B68F3F685, "DCArray<KeyframedValue<Handle<SoundBusSnapshot::Snapshot>>::Sample>", NULL, NULL},
+    {0x1FA626CC4ACF634E, "DArray<InputMapper*__ptr64>", NULL, NULL},
+    {0x1FC8525B23714149, "DlgNodeLink", DlgNodeLinkRead, NULL},
+    {0x200159CE1F32968E, "T3MaterialRequirements", NULL, NULL},
+    {0x20D348E9BF150EC0, "ParticleInverseKinematics", NULL, NULL},
+    {0x2118E867B2A12F9B, "t3bullet", NULL, NULL},
+    {0x21436B2755503C3B, "DlgNodeCriteria", NULL, NULL},
+    {0x222F4DE92A59200C, "Map<String,Set<Symbol,less<Symbol>>,StringCompareCaseInsensitive>", NULL, NULL},
+    {0x2247C0C4758DF684, "AnimationConstraintParameters", NULL, NULL},
+    {0x227F68CE26A32BDE, "landb", NULL, NULL},
+    {0x228199A2E37BD10E, "Map<String,ClipResourceFilter,StringCompareCaseInsensitive>", NULL, NULL},
+    {0x22889D9245104640, "DCArray<KeyframedValue<Handle<SoundReverbDefinition>>::Sample>", NULL, NULL},
+    {0x229EF3B04212AEDC, "HandleLock<Scene>", NULL, NULL},
+    {0x230136B8537EB13B, "CompressedKeys<Handle<D3DMesh>>", NULL, NULL},
+    {0x2309FB51D434529C, "BitSetBase<8>", NULL, NULL},
+    {0x238A520C4A924AA6, "EventLoggerEvent", NULL, NULL},
+    {0x2396FCD59456C981, "Map<String,PhonemeTable::PhonemeEntry,less<String>>", NULL, NULL},
+    {0x239A652F3374B09C, "EnumTonemapType", NULL, NULL},
+    {0x23A058ACA47378FE, "TransitionMap", NULL, NULL},
+    {0x24032A7AD8BB721D, "EventStoragePage", NULL, NULL},
+    {0x24642A39023F0F34, "DCArray<String>", NULL, NULL},
+    {0x2491B84DAED1E76B, "DCArray<T3MaterialPassData>", NULL, NULL},
+    {0x24A03076F08204F4, "FlagsT3LightEnvGroupSet", NULL, NULL},
+    {0x24A2B5D932321226, "PhysicsObject", NULL, NULL},
+    {0x24C2C71A33271C9A, "bank", NULL, NULL},
+    {0x24EEF50A57B5AF8C, "SingleValue<Handle<Font>>", NULL, NULL},
+    {0x252A0706975C73F3, "CompressedKeys<Handle<SoundEventSnapshotData>>", NULL, NULL},
+    {0x2531E6EFFDD55834, "T3MeshEffectPreloadEntry", NULL, NULL},
+    {0x253CC17FE053535F, "KeyframedValue<SoundEventName<2>>", NULL, NULL},
+    {0x254EDC517B59BB47, "BlendMode", NULL, NULL},
+    {0x255105CE38A142D8, "SingleValue<AnimOrChore>", NULL, NULL},
+    {0x25D9654A81DC862E, "DCArray<SaveGame::AgentInfo>", NULL, NULL},
+    {0x26591AF0C98AD8F6, "DlgCondition", NULL, NULL},
+    {0x267B345697B6BB64, "BGM_HeadTurn_Value", NULL, NULL},
+    {0x268E0B3FC19A48AE, "int64", intrinsic8Read, NULL},
+    {0x26D936F7FF759D39, "Skeleton", NULL, NULL},
+    {0x272F79595869A6EA, "KeyframedValue<Handle<WalkBoxes>>", NULL, NULL},
+    {0x27A5B3261A805C7E, "T3MeshBatch", NULL, NULL},
+    {0x2800315188BB867A, "Map<Symbol,WalkPath,less<Symbol>>", NULL, NULL},
+    {0x2874DABB8036B62A, "DCArray<T3OverlayObjectData_Text>", NULL, NULL},
+    {0x2889E11388057333, "DialogResource", NULL, NULL},
+    {0x28B6294866D5C910, "Handle<TransitionMap>", intrinsic8Read, NULL},
+    {0x2913E82ADFBF4CAD, "List<int>", NULL, NULL},
+    {0x29653DC4D2D86302, "int16", NULL, NULL},
+    {0x2A2E93F6AF788919, "bussnapshot", NULL, NULL},
+    {0x2A5AAF50752FFED9, "DlgNodeChore", DlgNodeChoreRead, NULL},
+    {0x2ABB7B45E2D0C5FE, "ParticleSprite", NULL, NULL},
+    {0x2B1181164B35FCD3, "PreloadPackage::ResourceSeenTimes", NULL, NULL},
+    {0x2B1A694F2F80DEEC, "AnimatedValueInterface<Handle<D3DMesh>>", NULL, NULL},
+    {0x2B764A50099A3FEF, "Map<String,Set<Symbol,less<Symbol>>,less<String>>", NULL, NULL},
+    {0x2B7B462F08600B16, "DialogItem::EnumPlaybackMode", NULL, NULL},
+    {0x2BDB4B5DC519BBFA, "List<Map<String,String,less<String>>>", NULL, NULL},
+    {0x2BF8E79FDA2D294E, "ParticleSprite::Animation", NULL, NULL},
+    {0x2C85F7D8B8F8342F, "DCArray<bool>", NULL, NULL},
+    {0x2CC6C64673C9E079, "PlaybackController", NULL, NULL},
+    {0x2D0EC64E3F776C29, "LanguageDatabase", NULL, NULL},
+    {0x2D407BA0D7989A79, "StyleGuideRef", NULL, NULL},
+    {0x2E6219643954DD42, "AnimatedValueInterface<LocationInfo>", NULL, NULL},
+    {0x2E6C72D65DBFCA59, "acol", NULL, NULL},
+    {0x2E6FE36F92E0E957, "ChoreResource::Block", NULL, NULL},
+    {0x2E8076F05492665C, "DCArray<float>", NULL, NULL},
+    {0x2EE70BCF1B707D98, "DlgNodeJump", DlgNodeJumpRead, NULL},
+    {0x2EFDDB0CE55AB6A6, "DCArray<KeyframedValue<bool>::Sample>", NULL, NULL},
+    {0x2F038E9A0FA4C428, "DlgNodeStats::DlgChildSetCohort", NULL, NULL},
+    {0x2F35F13012C086E4, "AnimatedValueInterface<CompressedPathBlockingValue::CompressedPathInfoKey>", NULL, NULL},
+    {0x2F887206C5AEF2E0, "BlendCameraResource", NULL, NULL},
+    {0x2F887206C5AEF2E0, "blendcameraresource", NULL, NULL},
+    {0x2F99EAAB8A379140, "ScriptEnum:UseableType", ScriptEnumRead, NULL},
+    {0x2FD428E74998C3F7, "Set<String,less<String>>", NULL, NULL},
+    {0x2FE13A670E3B9412, "AnimatedValueInterface<Handle<SoundEventSnapshotData>>", NULL, NULL},
+    {0x3007758840388E30, "DlgNodeExit", DlgNodeExitRead, NULL},
+    {0x3057C880E751D8C5, "Handle<Animation>", intrinsic8Read, NULL},
+    {0x30694ADB68E78E3D, "DCArray<ProjectDatabaseIDPair>", NULL, NULL},
+    {0x30732A2C440A6C8A, "DlgChildSetChoicesChildPre", NULL, NULL},
+    {0x3091E66640DF1B17, "DlgChoicesChildPost", DlgChoicesChildPostRead, NULL},
+    {0x31D14C7B4F174A77, "SoundBusSystem::BusHolder", NULL, NULL},
+    {0x321F5964C733F819, "LightInstance", NULL, NULL},
+    {0x3273A62083938947, "SingleValue<Handle<SoundData>>", NULL, NULL},
+    {0x32E8B2BE4942CDFA, "List<String>", NULL, NULL},
+    {0x32EA71CFB4CA38E9, "WalkBoxes", NULL, NULL},
+    {0x32FFF7F8AAED5859, "DCArray<Handle<Rules>>", NULL, NULL},
+    {0x330C2B0399D56A72, "ScriptEnum:AIAgentState", ScriptEnumRead, NULL},
+    {0x336AA0370832E993, "DCArray<KeyframedValue<AnimOrChore>::Sample>", NULL, NULL},
+    {0x336ADB075A965645, "Rect", NULL, NULL},
+    {0x338E4BAD4D941F67, "VoiceData", NULL, NULL},
+    {0x33A1F0CB9E5BBC70, "CameraSelect", NULL, NULL},
+    {0x33AF1F0B2F1338FE, "EnlightenModule::EnumeDisplayQuality", NULL, NULL},
+    {0x33C56D9E4438FCD9, "Map<Symbol,int,less<Symbol>>", NULL, NULL},
+    {0x3421FA8D08F00332, "DCArray<ParticlePropConnect>", NULL, NULL},
+    {0x3428AF89D69602D2, "DCArray<Ptr<ActingPalette>>", NULL, NULL},
+    {0x3437131536412935, "ChorecorderParameters", NULL, NULL},
+    {0x3481D0ADE22D8993, "DCArray<T3OverlayObjectData_Sprite>", NULL, NULL},
+    {0x34ACE6F6E8E7EEB0, "DCArray<T3LightSceneInternalData::LightmapPage>", NULL, NULL},
+    {0x352F2D7C4C36636E, "InverseKinematics", NULL, NULL},
+    {0x354F33392303495F, "trans", NULL, NULL},
+    {0x35640331B161F506, "DlgObjectPropsMap", NULL, NULL},
+    {0x3593E489074C37F6, "Map<String,ChorecorderParameters,less<String>>", NULL, NULL},
+    {0x35C40A55D80F186B, "DCArray<KeyframedValue<unsigned__int64>::Sample>", NULL, NULL},
+    {0x36050B3A56AE750F, "HandleLock<Skeleton>", NULL, NULL},
+    {0x365952B07C0CE60D, "DlgNodeCriteria::EnumTestT", NULL, NULL},
+    {0x36D2E9352E9EED3E, "DCArray<LogicGroup>", NULL, NULL},
+    {0x36E367B48AD63274, "DlgNodeSequence", DlgNodeSequenceRead, NULL},
+    {0x36FC875F02FC9118, "DCArray<SoundAmbience::EventContext>", NULL, NULL},
+    {0x36FFAE9C29F1BC0E, "DCArray<KeyframedValue<Handle<PhonemeTable>>::Sample>", NULL, NULL},
+    {0x374927061B784594, "DCArray<Vector3>", NULL, NULL},
+    {0x37B8C02CC0B488BE, "Handle<EventStorage>", intrinsic8Read, NULL},
+    {0x383AEB196C60831B, "LocationInfo", NULL, NULL},
+    {0x387E6B9CA558AC8D, "Handle<PropertySet>", intrinsic8Read, NULL},
+    {0x394C43AF4FF52C94, "Vector3", Vector3Read, NULL},
+    {0x396E225045FA7F39, "Map<String,AgentMap::AgentMapEntry,less<String>>", NULL, NULL},
+    {0x3A0F993D2100A5C3, "DlgNodeStats", NULL, NULL},
+    {0x3A195525E24AFC93, "uint8", BoolRead, NULL},
+    {0x3A63217C2BB535F3, "SoundEventNameBase", NULL, NULL},
+    {0x3A7B60443850419E, "CompressedKeys<String>", NULL, NULL},
+    {0x3AAEB61240D3CFBA, "EventStorage", NULL, NULL},
+    {0x3AE7EAFC7629AF12, "Map<String,LocomotionDB::AnimationInfo,less<String>>", NULL, NULL},
+    {0x3AFD7D3DAFBD6437, "EnumEmittersEnableType", NULL, NULL},
+    {0x3B160BC2AD5CB101, "T3MeshLOD", NULL, NULL},
+    {0x3B19CEFBA080E62C, "EnumEmitterSpriteAnimationSelection", NULL, NULL},
+    {0x3B220A6965863962, "DlgNodeMarker", DlgNodeMarkerRead, NULL},
+    {0x3B965660D71DE2A7, "DCArray<T3OcclusionMeshBatch>", NULL, NULL},
+    {0x3BC3CB16F9AA0F31, "List<Handle<T3Texture>>", NULL, NULL},
+    {0x3BE17704E64CEBDA, "LanguageRes", LanguageResRead, NULL},
+    {0x3C17F9BB2C4EE061, "DCArray<KeyframedValue<Handle<WalkBoxes>>::Sample>", NULL, NULL},
+    {0x3C64522734434AF4, "TetrahedralMeshData", NULL, NULL},
+    {0x3C7DD6F435A58C09, "AnimatedValueInterface<Handle<SoundBusSnapshot::SnapshotSuite>>", NULL, NULL},
+    {0x3D2DBF388BFDE0A4, "CompressedPhonemeKeys", NULL, NULL},
+    {0x3D7530F2FB48C1D4, "T3MaterialStaticParameter", NULL, NULL},
+    {0x3DB436EBD6D0A77F, "KeyframedValue<unsigned__int64>", NULL, NULL},
+    {0x3DCB405F9B7183E6, "DCArray<KeyframedValue<T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>>::Sample>", NULL, NULL},
+    {0x3DCF1CF6F50A83A1, "ScriptEnum:ReticleDisplayMode", ScriptEnumRead, NULL},
+    {0x3DE8FE133A5A0DB7, "DCArray<T3MaterialParameter>", NULL, NULL},
+    {0x3E249E7E6F38CCE2, "T3Texture", NULL, NULL},
+    {0x3E597A1F6499DBFD, "T3MeshTextureIndices", NULL, NULL},
+    {0x3E9F3EC23C34F712, "DCArray<T3MeshPropertyEntry>", NULL, NULL},
+    {0x3EE075753B1F4572, "ChoreResource", NULL, NULL},
+    {0x3EF0D736FB3D9B51, "T3LightCinematicRigLOD", NULL, NULL},
+    {0x3F0A750283637C54, "Map<Symbol,Handle<SoundBusSnapshot::Snapshot>,less<Symbol>>", NULL, NULL},
+    {0x3F17824B51361CB2, "List<DCArray<String>>", NULL, NULL},
+    {0x3F299CC72969591F, "SingleValue<Handle<Scene>>", NULL, NULL},
+    {0x3F9231D57F64F520, "Handle<Font>", intrinsic8Read, NULL},
+    {0x3FD6C82DBDBCA912, "RenderObjectInterface", NULL, NULL},
+    {0x40E50DFBE6B6A8A7, "DlgSystemSettings", NULL, NULL},
+    {0x410FD9DEAF2A7A16, "KeyframedValue<SoundEventName<1>>", NULL, NULL},
+    {0x411D4FB22E6FB323, "AnimatedValueInterface<Vector4>", NULL, NULL},
+    {0x4169719CDC054982, "LanguageLookupMap", NULL, NULL},
+    {0x4170C88101407B66, "EnumHBAODeinterleaving", NULL, NULL},
+    {0x4175FE7ABFC543AA, "EnlightenModule::EnlightenAdaptiveProbeVolumeSettings", NULL, NULL},
+    {0x4252D2F4AC275D24, "DCArray<Symbol>", NULL, NULL},
+    {0x42722660D93932DF, "d3dtx", NULL, NULL},
+    {0x4309CCAC7CF5071B, "epage", NULL, NULL},
+    {0x43896B984C95FFF2, "List<List<PropertySet>>", NULL, NULL},
+    {0x43E294A64B4064E0, "SingleValue<SoundEventName<0>>", NULL, NULL},
+    {0x4402A3529CE6846F, "CompressedKeys<unsigned__int64>", NULL, NULL},
+    {0x44236D53DBFE4C7D, "SingleValue<float>", NULL, NULL},
+    {0x4492C4CEA3C7D14D, "KeyframedValue<int>", NULL, NULL},
+    {0x44DF88DF0BB2C808, "SoundEventName<2>", NULL, NULL},
+    {0x45420F3D44ED112D, "ScriptEnum:GamepadButton", ScriptEnumRead, NULL},
+    {0x45780D6E44155DCF, "KeyframedValue<Handle<SoundEventData>>", NULL, NULL},
+    {0x45D149740D9B1DF0, "ActingPaletteGroup", NULL, NULL},
+    {0x46DE57E6E6C4DF4A, "Handle<SaveGame>", intrinsic8Read, NULL},
+    {0x471A8A4511F0CCA6, "Handle<WalkBoxes>", intrinsic8Read, NULL},
+    {0x47957E5358BA925A, "EnlightenModule::EnumeUpdateMethod", NULL, NULL},
+    {0x47DF64BF502BB7DA, "Map<Symbol,FootSteps::FootstepBank,less<Symbol>>", NULL, NULL},
+    {0x4835DE9C54850524, "Map<String,StyleGuideRef,less<String>>", NULL, NULL},
+    {0x48588668F74FED9F, "UID::Owner", intrinsic4Read, NULL},
+    {0x487D0696C99D7761, "EnumEmitterBoneSelection", NULL, NULL},
+    {0x48F9824E42292AB6, "CompressedKeys<Polar>", NULL, NULL},
+    {0x494C82BF598CAA78, "CompressedKeys<Handle<PhonemeTable>>", NULL, NULL},
+    {0x495617D7C61A60FD, "DCArray<WalkBoxes::Tri>", NULL, NULL},
+    {0x4971BB8B0C356B27, "Rules", NULL, NULL},
+    {0x4971BB8B0C356B27, "rules", NULL, NULL},
+    {0x49FCF5BDD5993666, "DCArray<PreloadPackage::RuntimeDataDialog::DialogResourceInfo>", NULL, NULL},
+    {0x4A36C85D3C0FEF77, "AnimatedValueInterface<Handle<Dlg>>", NULL, NULL},
+    {0x4AFBD4652719A0E1, "ik", NULL, NULL},
+    {0x4B26A2CA30DE3F32, "uint32", intrinsic4Read, NULL},
+    {0x4B5C5357547E165F, "Map<int,Ptr<DialogLine>,less<int>>", NULL, NULL},
+    {0x4B81E6ACDEA8500A, "CompressedVertexNormalKeys", NULL, NULL},
+    {0x4BAAC446D7EBBE7C, "SingleValue<CompressedPathBlockingValue::CompressedPathInfoKey>", NULL, NULL},
+    {0x4BBFF0D25B0EE9B2, "T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>", NULL, NULL},
+    {0x4BD04E27E6716EA0, "UID::Generator", intrinsic4Read, NULL},
+    {0x4C199A98E11DF819, "BitSetBase<2>", NULL, NULL},
+    {0x4C19FCA5E018EBB8, "AnimatedValueInterface<unsigned__int64>", NULL, NULL},
+    {0x4CC03BEF63487679, "Map<int,Symbol,less<int>>", NULL, NULL},
+    {0x4D797D8C9D925179, "PhysicsData", NULL, NULL},
+    {0x4DC6F34A18FB8B3E, "TextAlignmentType", NULL, NULL},
+    {0x4DD3BB0BF90864B7, "DlgNodeStats::Cohort", NULL, NULL},
+    {0x4E0FD348B672CF78, "DCArray<KeyframedValue<Handle<SoundAmbience::AmbienceDefinition>>::Sample>", NULL, NULL},
+    {0x4E118F54149F62A6, "Selectable", NULL, NULL},
+    {0x4E5257DAB0661351, "ScriptEnum:ControllerButtons", ScriptEnumRead, NULL},
+    {0x4E64C42552E25C53, "PreloadPackage::RuntimeDataScene", NULL, NULL},
+    {0x4E7FBFE5553E38EB, "locreg", NULL, NULL},
+    {0x4F122FBDBA526BBF, "PathBase", NULL, NULL},
+    {0x4F1B64D81FC60325, "Map<String,String,less<String>>", NULL, NULL},
+    {0x4F370A28A5E8152B, "SArray<unsignedint,3>", NULL, NULL},
+    {0x4F5348AAD96B21B6, "Chore::EnumExtentsMode", NULL, NULL},
+    {0x4F6D302E7708C977, "ContainerInterface", NULL, NULL},
+    {0x4FC0A74CE6DAD33E, "Handle<LocomotionDB>", intrinsic8Read, NULL},
+    {0x5000C70516FF6369, "amap", NULL, NULL},
+    {0x5016B7228F97D967, "BlendGraph", NULL, NULL},
+    {0x5035C3ACDCC297D3, "DCArray<T3MaterialRuntimeProperty>", NULL, NULL},
+    {0x508B8F3DE7AADAD2, "EnumParticlePropDriver", NULL, NULL},
+    {0x50B02BA98CAEB2F0, "CompressedKeys<PhonemeKey>", NULL, NULL},
+    {0x51011D3DBFA81072, "T3OverlaySpriteParams", NULL, NULL},
+    {0x5139E7E487766AF8, "T3LightProbeInternalData::QualityEntry", NULL, NULL},
+    {0x5183CFAAB69784D5, "Meta::DependentResource", NULL, NULL},
+    {0x524D5D17BCDD3CE2, "ScriptEnum:LightComposerLightSourceQuadrant", ScriptEnumRead, NULL},
+    {0x52A09151F1C3F2C7, "Handle<T3Texture>", intrinsic8Read, NULL},
+    {0x533E28DB4F24152B, "EnlightenModule::EnumeQuality", NULL, NULL},
+    {0x53423D0EDF9278D3, "ScriptEnum:AIDummyPos", ScriptEnumRead, NULL},
+    {0x5353B1FC8FC624C7, "MovieCaptureInfo", NULL, NULL},
+    {0x53A0B3AA86983895, "TRect<float>", NULL, NULL},
+    {0x53B1524DA203616E, "ActorAgentMapper", NULL, NULL},
+    {0x540181F155761548, "DCArray<Handle<D3DMesh>>", NULL, NULL},
+    {0x54268116A226A267, "List<Handle<Scene>>", NULL, NULL},
+    {0x5472BFB3E281088F, "EnlightenModule::EnumeProbeSampleMethod", NULL, NULL},
+    {0x552D6026F0D9CDD8, "AnimatedValueInterface<Transform>", NULL, NULL},
+    {0x5531D898F735D354, "EnumHBAOResolution", NULL, NULL},
+    {0x5549D9EFE67060E1, "Rule", NULL, NULL},
+    {0x559AE24458E0D573, "EnumT3LightEnvShadowQuality", NULL, NULL},
+    {0x55A38D1B5562A6F3, "SkeletonInstance", NULL, NULL},
+    {0x55AD5FD7B7CF097A, "DCArray<KeyframedValue<Polar>::Sample>", NULL, NULL},
+    {0x55D6BA6E0B33DB18, "DCArray<KeyframedValue<PhonemeKey>::Sample>", NULL, NULL},
+    {0x56DB012C6E040C77, "DArray<int>", NULL, NULL},
+    {0x570C0DE6C831EC23, "StringFilter", NULL, NULL},
+    {0x575309577CA53FD3, "DCArray<DlgNodeInstanceParallel::ElemInstanceData>", NULL, NULL},
+    {0x580897C10167B2E0, "KeyframedValueSteppedString", NULL, NULL},
+    {0x58253DE205454089, "SoundEventName<0>", NULL, NULL},
+    {0x584619F1AE300EEA, "T3Texture::RegionStreamHeader", NULL, NULL},
+    {0x585829C336CB2FA5, "CompressedSkeletonPoseKeys", NULL, NULL},
+    {0x586DF4E458014768, "AnimatedValueInterface<int>", NULL, NULL},
+    {0x5896A6FD1866FD93, "Handle<Rules>", intrinsic8Read, NULL},
+    {0x58FFE612BE51E727, "ptable", NULL, NULL},
+    {0x593F9647E67E405D, "EnlightenModule::EnlightenSystemSettings", NULL, NULL},
+    {0x599C62C7A01A35E3, "Procedural_LookAt::Constraint", NULL, NULL},
+    {0x59A72EC50742FCD0, "Map<String,PropertySet,less<String>>", NULL, NULL},
+    {0x59D13F814FD13B69, "CompressedSkeletonPoseKeys2", NULL, NULL},
+    {0x59F6BEC43DCEDCA4, "KeyframedValue<Vector2>", NULL, NULL},
+    {0x59FA44B05D07FB9A, "DlgConditionalCase", DlgConditionalCaseRead, NULL},
+    {0x5A21B47B07AE5F3A, "CompressedPathBlockingValue::CompressedPathInfoKey", NULL, NULL},
+    {0x5A28394291AC4B54, "skl", NULL, NULL},
+    {0x5A4EA6259BAD5C4B, "StyleGuide", NULL, NULL},
+    {0x5A52F0EF7B012233, "KeyframedValue<Polar>", NULL, NULL},
+    {0x5A907691E82FECD5, "DCArray<HandleLock<Scene>>", NULL, NULL},
+    {0x5AA107762678E76C, "DCArray<KeyframedValue<Vector4>::Sample>", NULL, NULL},
+    {0x5AB7A3011948922B, "KeyframedValue<Handle<D3DMesh>>", NULL, NULL},
+    {0x5B2B9A5E74916816, "SingleValue<Handle<SoundBusSnapshot::SnapshotSuite>>", NULL, NULL},
+    {0x5B50C09B7CD0CCF3, "BinaryBuffer", NULL, NULL},
+    {0x5BA42D3DE8EF60AB, "AnimatedValueInterface<PhonemeKey>", NULL, NULL},
+    {0x5C4D98899648138E, "CompressedKeys<Symbol>", NULL, NULL},
+    {0x5C62C369F193C3A0, "AnimatedValueInterface<Handle<Scene>>", NULL, NULL},
+    {0x5D043364452053FE, "SoundReverbPreset", NULL, NULL},
+    {0x5D199F8AC4F57196, "Map<Symbol,float,less<Symbol>>", NULL, NULL},
+    {0x5D39DE4AC5468B6E, "KeyframedValue<LocationInfo>", NULL, NULL},
+    {0x5D3E9FC6FA9369BF, "KeyframedValue<Transform>", NULL, NULL},
+    {0x5D4EFA69722CE03A, "AnimatedValueInterface<Polar>", NULL, NULL},
+    {0x5DAEEE1F30D32952, "DCArray<T3ToonGradientRegion>", NULL, NULL},
+    {0x5DBB10F7184DA54B, "EnumT3LightEnvType", NULL, NULL},
+    {0x5DC78F79FC4B8DF7, "double", NULL, NULL},
+    {0x5E61265E357AFC4C, "sprite", NULL, NULL},
+    {0x5E68A39907A4BE48, "CinematicLightRig", NULL, NULL},
+    {0x5E94AE2504A2DA08, "EnumeTangentModes", NULL, NULL},
+    {0x5EEA36B36DB856E9, "AnimatedValueInterface<Handle<SoundReverbDefinition>>", NULL, NULL},
+    {0x5F247AEF6E83EF25, "AgentMap", NULL, NULL},
+    {0x5F637A07408DBC60, "LanguageResLocal", NULL, NULL},
+    {0x5F76C68DB5A05134, "BlendGraphManager", NULL, NULL},
+    {0x5F92F79D3FDCAC13, "SingleVector3Value", NULL, NULL},
+    {0x5FA519AB4F3689E7, "DCArray<T3MaterialTransform2D>", NULL, NULL},
+    {0x5FF1D56859B6478E, "DlgConditionInput", DlgConditionInputRead, NULL},
+    {0x600C633971977C27, "SingleValue<SoundEventName<1>>", NULL, NULL},
+    {0x606C515AC74B48C2, "EnlightenModule::EnumeAgentUsage", NULL, NULL},
+    {0x60D71CA7E7F3D272, "RenderObject_PostMaterial", NULL, NULL},
+    {0x60D8FA0B4245E96B, "EnumEmitterParticleCountType", NULL, NULL},
+    {0x6113F397D5F03347, "SkeletonPoseValue::Sample", NULL, NULL},
+    {0x61C5765C788DC9F4, "Map<int,Ptr<DialogItem>,less<int>>", NULL, NULL},
+    {0x61D00957E63D7435, "Handle<VoiceData>", intrinsic8Read, NULL},
+    {0x620211ED1DF8D233, "CompressedKeys<Transform>", NULL, NULL},
+    {0x62045DC19ADEF8FB, "Handle<ParticleProperties>", intrinsic8Read, NULL},
+    {0x62C9E560C8DCEC67, "Quaternion", NULL, NULL},
+    {0x62E12E4195FD62D1, "KeyframedValue<SoundEventName<0>>", NULL, NULL},
+    {0x631987AF82113CFC, "ScriptEnum:LightComposerCameraZone", ScriptEnumRead, NULL},
+    {0x632FB17165B867C2, "T3OcclusionMeshData", NULL, NULL},
+    {0x634167EE598932B9, "Transform", NULL, NULL},
+    {0x63EA9D46465510F6, "Map<unsignedlong,Font::GlyphInfo,less<unsignedlong>>", NULL, NULL},
+    {0x641290F53D772AA0, "AnimatedValueInterface<Vector2>", NULL, NULL},
+    {0x6424EE88F6D2ACEC, "T3MaterialPassData", NULL, NULL},
+    {0x644ECB516BD073C4, "look", NULL, NULL},
+    {0x645625BA2CB6235F, "EnumParticleAffectorType", NULL, NULL},
+    {0x65739F9F4ED9BCD6, "List<Color>", NULL, NULL},
+    {0x65BE4D3CABB2822B, "BlendEntry", NULL, NULL},
+    {0x65C0587D94DC7E70, "EnumEmitterConstraintType", NULL, NULL},
+    {0x65C63A60CC086F5A, "PathTo", NULL, NULL},
+    {0x65FCA07EBA43311B, "Map<unsignedint,Font::GlyphInfo,less<unsignedint>>", NULL, NULL},
+    {0x6643AF6DCCCC81A9, "Handle<Chore>", intrinsic8Read, NULL},
+    {0x668DE2C55BFAB966, "Map<Symbol,DCArray<LanguageResLocal>,less<Symbol>>", NULL, NULL},
+    {0x66FAE2CA87A8B228, "EnumT3DetailShadingType", NULL, NULL},
+    {0x6708DDFD39E39EB8, "DCArray<T3MeshLocalTransformEntry>", NULL, NULL},
+    {0x67104C20C9691329, "KeyframedValue<Handle<Dlg>>", NULL, NULL},
+    {0x673D28039395A91A, "SArray<TRange<float>,3>", NULL, NULL},
+    {0x673D6BC4E630EA46, "Handle<PhonemeTable>", intrinsic8Read, NULL},
+    {0x67600F19A2762290, "EnumMeshDebugRenderType", NULL, NULL},
+    {0x681AF06EDA9AF05D, "DlgChildSetChoicesChildPost", NULL, NULL},
+    {0x68CD2023740B9FB6, "Handle<SoundEventSnapshotData>", intrinsic8Read, NULL},
+    {0x68FCF5B6A0D4663A, "CompressedKeys<Handle<PropertySet>>", NULL, NULL},
+    {0x691645DFF205619A, "BitSetBase<4>", NULL, NULL},
+    {0x6917635899F0EF5B, "DCArray<KeyframedValue<Handle<Scene>>::Sample>", NULL, NULL},
+    {0x69CC70C207E837F3, "EnumT3LightEnvLODBehavior", NULL, NULL},
+    {0x69DEAEC62B811B75, "DCArray<PreloadPackage::RuntimeDataDialog::DlgObjIdAndStartNodeOffset>", NULL, NULL},
+    {0x6A096DD746A73FF0, "DebugString", NULL, NULL},
+    {0x6B070125830EF084, "KeyframedValue<float>", NULL, NULL},
+    {0x6B41C56C3F991BF7, "cameraselectresource", NULL, NULL},
+    {0x6B62F90BD5F79321, "SArray<unsignedchar,32>", NULL, NULL},
+    {0x6B77C806C0E23EA1, "SingleValue<Vector3>", NULL, NULL},
+    {0x6BB83C914E70CF53, "FileName<SoundEventBankDummy>", NULL, NULL},
+    {0x6C1B0BA38A23328D, "AnimatedValueInterface<float>", NULL, NULL},
+    {0x6C8D05D6EB869AD0, "DCArray<EventStorage::PageEntry>", NULL, NULL},
+    {0x6D4051136C21FB5B, "T3MeshData", NULL, NULL},
+    {0x6DCC6CB4CF833225, "HandleObjectInfo", NULL, NULL},
+    {0x6DCCD180EF5DB842, "T3RenderStateBlock", NULL, NULL},
+    {0x6E67F91CAE37F2F0, "ProjectDatabaseIDPair", ProjectDatabaseIDPairRead, NULL},
+    {0x6F17E5736E879C8C, "DCArray<unsignedint>", NULL, NULL},
+    {0x6F2E039E6740E40E, "ScriptEnum:LightComposerNodeLocation", ScriptEnumRead, NULL},
+    {0x6F727FA52828A910, "Handle<SoundReverbDefinition>", intrinsic8Read, NULL},
+    {0x6FD491DEF336185E, "DlgNodeCancelChoices", DlgNodeCancelChoicesRead, NULL},
+    {0x6FEB39335B7CC2BA, "List<PropertySet>", NULL, NULL},
+    {0x707D175FE1B5F859, "DlgNodeSequence::Element", DlgNodeSequenceElementRead, NULL},
+    {0x70A82513EF128B90, "WalkPath", NULL, NULL},
+    {0x70CAD06EDCFEBCB4, "Map<MetaClassDescriptionconst*__ptr64,int,less<MetaClassDescriptionconst*__ptr64>>", NULL, NULL},
+    {0x72B05EE52AB65857, "Chore", NULL, NULL},
+    {0x72B05EE52AB65857, "chore", NULL, NULL},
+    {0x72CD1B7B793305EA, "SkeletonPose", NULL, NULL},
+    {0x72D57A55D36D2C57, "KeyframedValue<String>", NULL, NULL},
+    {0x72FBCDA2FD2C6314, "anm", NULL, NULL},
+    {0x73AC7A77C69A13A9, "DCArray<T3MeshEffectPreloadEntry>", NULL, NULL},
+    {0x73CD313F2A6634FF, "Set<String,StringCompareCaseInsensitive>", NULL, NULL},
+    {0x73E09E0F84717F0A, "Handle<D3DMesh>", intrinsic8Read, NULL},
+    {0x73E6A067ABDBD2D9, "ScriptEnum:BlendTypes", ScriptEnumRead, NULL},
+    {0x746B85A804E2AE3A, "Handle<ResourceGroupInfo>", intrinsic8Read, NULL},
+    {0x746B9BB09CE91202, "HermiteCurvePathSegment", NULL, NULL},
+    {0x74959B5BA49B660E, "DCArray<T3MeshMaterial>", NULL, NULL},
+    {0x74A5F683AFAC29ED, "EnlightenModule::EnlightenMeshSettings::AutoUVSettings", NULL, NULL},
+    {0x7533FAA271BCAF4B, "AgentState", NULL, NULL},
+    {0x75361C1381F026A1, "DCArray<KeyframedValue<SoundEventName<2>>::Sample>", NULL, NULL},
+    {0x75769C9923F19ECA, "SingleValue<Polar>", NULL, NULL},
+    {0x75D673493AED55BC, "poiblocking", NULL, NULL},
+    {0x75D9082D642E1791, "BoundingBox", NULL, NULL},
+    {0x75E3A1B073B8BB2F, "List<HandleLock<Scene>>", NULL, NULL},
+    {0x75ECF0E2FCF2E91B, "BitSetBase<6>", NULL, NULL},
+    {0x762110F462C81422, "DCArray<KeyframedValue<ScriptEnum>::Sample>", NULL, NULL},
+    {0x764A963C6BAC44EA, "T3MeshEffectPreloadDynamicFeatures", NULL, NULL},
+    {0x76592B0CF8E8A12F, "DCArray<T3MeshBoneEntry>", NULL, NULL},
+    {0x766BB06D64BF383B, "MeshSceneEnlightenData", NULL, NULL},
+    {0x773ECCCE0DD2EDAD, "EnumRenderLightmapUVGenerationType", NULL, NULL},
+    {0x774CFA08CA715D06, "Animation", NULL, NULL},
+    {0x77752EC5B9F72F50, "Localization::Language", NULL, NULL},
+    {0x7864EA122E854260, "HandleBase", NULL, NULL},
+    {0x789758CB1A8D6628, "DlgNodeConditional", DlgNodeConditionalRead, NULL},
+    {0x78C24585666591D2, "Map<unsignedlong,LanguageRes,less<unsignedlong>>", NULL, NULL},
+    {0x794CE6477AD312C6, "Matrix4", NULL, NULL},
+    {0x79AC7384BA26F801, "CompressedKeys<float>", NULL, NULL},
+    {0x79E85A8EA53E63DE, "dlog", NULL, NULL},
+    {0x7A3099E94F6D0010, "SingleValue<Handle<SoundAmbience::AmbienceDefinition>>", NULL, NULL},
+    {0x7A54490338F7688B, "EnlightenModule::EnumeInstanceType", NULL, NULL},
+    {0x7A8562DB047D102C, "KeyframedValueInterface", NULL, NULL},
+    {0x7A90614607315516, "AnimatedValueInterface<Handle<PropertySet>>", NULL, NULL},
+    {0x7AA1E420099D0EB9, "particle", NULL, NULL},
+    {0x7B6B9766211625BF, "EnlightenModule::EnumeUpdateMethodWithDefault", NULL, NULL},
+    {0x7BBCA244E61F1A07, "Vector2", NULL, NULL},
+    {0x7BC15620354C0704, "KeyframedValue<Handle<Font>>", NULL, NULL},
+    {0x7BD8BBB0C473B1B8, "DlgNodeWait", DlgNodeWaitRead, NULL},
+    {0x7C3B4835AC024C7E, "PhonemeKey", NULL, NULL},
+    {0x7CACEEBCD26D075C, "int32", intrinsic4Read, NULL},
+    {0x7CBA2F7647F0AE16, "Handle<Rule>", intrinsic8Read, NULL},
+    {0x7CF961832ED64527, "KeyframedValue<Vector4>", NULL, NULL},
+    {0x7D0AE6CA0E07BD29, "DArray<bool>", NULL, NULL},
+    {0x7D5B490DEF40D9C2, "Handle<AnimOrChore>", intrinsic8Read, NULL},
+    {0x7DFFEEAAEC61CE08, "EnumEmitterColorType", NULL, NULL},
+    {0x7E3D4347720BF477, "ResourceGroups", NULL, NULL},
+    {0x7E69BFAB6FFA19EC, "T3MeshEffectPreload", NULL, NULL},
+    {0x7ED5149ED891D304, "LipSync2", NULL, NULL},
+    {0x7EDCD6DB33A5DC53, "RecordingUtils::EnumRecordingStatus", NULL, NULL},
+    {0x7F7A0E1D5BB715F4, "CompressedKeys<int>", NULL, NULL},
+    {0x7FC56832C53FD39C, "DCArray<KeyframedValue<T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>>::Sample>", NULL, NULL},
+    {0x807F39F9A39D8998, "Map<PreloadPackage::ResourceKey,PreloadPackage::ResourceSeenTimes,less<PreloadPackage::ResourceKey>>", NULL, NULL},
+    {0x808E66877691132B, "CompressedKeys<ScriptEnum>", NULL, NULL},
+    {0x8090795CD87B5B38, "DCArray<T3MaterialStaticParameter>", NULL, NULL},
+    {0x809DA55341AB9E70, "SoundEventData", NULL, NULL},
+    {0x80B6CC288DA51483, "SoundBusSnapshot::SnapshotSuite", NULL, NULL},
+    {0x80F1EBB9FABAC892, "SingleValue<int>", NULL, NULL},
+    {0x813ECC5708C35999, "DCArray<SkeletonPoseValue::Sample>", NULL, NULL},
+    {0x81C39B4E937FC726, "Map<Symbol,TransitionMap::TransitionMapInfo,less<Symbol>>", NULL, NULL},
+    {0x81FA12B1E2409F18, "T3MaterialCompiledData", NULL, NULL},
+    {0x823DB9F90B846250, "Handle<Skeleton>", intrinsic8Read, NULL},
+    {0x826B8E99FDBE2397, "EnumEmitterSpawnShape", NULL, NULL},
+    {0x828001AD1111D929, "SingleValue<T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>>", NULL, NULL},
+    {0x82D163B740475ACD, "EnumHBAOQualityLevel", NULL, NULL},
+    {0x82E3C1E7C757BBB5, "EnumT3MaterialSwizzleType", NULL, NULL},
+    {0x83AFDE994EFEA3D9, "Handle<ActorAgentMapper>", intrinsic8Read, NULL},
+    {0x83F92DB3ED618AC1, "DCArray<PreloadPackage::ResourceKey>", NULL, NULL},
+    {0x84283CB979D71641, "Flags", intrinsic4Read, NULL},
+    {0x849BD029B8FB3C04, "ActorAgentBinding", NULL, NULL},
+    {0x852A87571E57CCF8, "Sphere", NULL, NULL},
+    {0x853C6A11208F77EF, "DCArray<MeshSceneLightmapData::Entry>", NULL, NULL},
+    {0x858C44125C5F73D9, "DCArray<KeyframedValue<Handle<SoundData>>::Sample>", NULL, NULL},
+    {0x85CB35E50E5A49CA, "PreloadPackage::RuntimeDataDialog", NULL, NULL},
+    {0x85D954F4C0C69E97, "DlgNodeExchange", DlgNodeExchangeRead, NULL},
+    {0x85FF27A5CB393B95, "lang", NULL, NULL},
+    {0x862D2C86A17B7074, "SceneInstData", NULL, NULL},
+    {0x864794AA58A0278B, "Map<String,AnimOrChore,less<String>>", NULL, NULL},
+    {0x86877501EAEBB05D, "SingleValue<String>", NULL, NULL},
+    {0x86BB9E63D621E93A, "AssetCollection", NULL, NULL},
+    {0x86C465FE6C9DBC7A, "DCArray<KeyframedValue<Handle<SoundEventSnapshotData>>::Sample>", NULL, NULL},
+    {0x86CB40E8A4CBC02D, "AnimatedValueInterface<Symbol>", NULL, NULL},
+    {0x86DD6FDD80394AB3, "BoneContraints", NULL, NULL},
+    {0x8758F70880295F9B, "Handle<SoundAmbience::AmbienceDefinition>", intrinsic8Read, NULL},
+    {0x878A3470E047E140, "Map<int,Ptr<DialogDialog>,less<int>>", NULL, NULL},
+    {0x87B6B95067DB12F9, "DlgChildSetConditionalCase", NULL, NULL},
+    {0x87E0E880D7D2DFC1, "DlgObjID", NULL, NULL},
+    {0x880F40C15BF127CC, "InputMapper::RawEvent", NULL, NULL},
+    {0x881C335AC79F7149, "DCArray<Color>", NULL, NULL},
+    {0x885A35D99A8D1A4D, "Set<Symbol,less<Symbol>>", NULL, NULL},
+    {0x88E2A4048B7CAC53, "AnimationValueInterfaceBase", NULL, NULL},
+    {0x890FBC61216787A2, "ScriptEnum:StruggleType", ScriptEnumRead, NULL},
+    {0x890FE2DA04AADE49, "Map<String,float,less<String>>", NULL, NULL},
+    {0x8911CDF45ADA55C7, "CompressedKeys<SoundEventName<0>>", NULL, NULL},
+    {0x89161F76F17740BA, "T3LightSceneInternalData::QualityEntry", NULL, NULL},
+    {0x8940087148BF4C61, "DlgNode", DlgNodeRead, NULL},
+    {0x897A64EEBA89CB81, "EnumParticleSortMode", NULL, NULL},
+    {0x89B98A5E91B73118, "List<Handle<D3DMesh>>", NULL, NULL},
+    {0x89DB7A1D44D121E0, "Map<String,Ptr<JiraRecord>,less<String>>", NULL, NULL},
+    {0x8A5F6779E068540B, "CinematicLight", NULL, NULL},
+    {0x8A62816F311682F5, "Map<int,Ptr<DialogExchange>,less<int>>", NULL, NULL},
+    {0x8A6F9FEE5DA74241, "Map<int,LanguageResource,less<int>>", NULL, NULL},
+    {0x8ACE27FDA34B2606, "Handle<SoundBusSnapshot::SnapshotSuite>", intrinsic8Read, NULL},
+    {0x8AD17AD4CB809956, "Map<String,bool,less<String>>", NULL, NULL},
+    {0x8AEB6B64F5F95861, "Map<Symbol,Footsteps2::FootstepBank,less<Symbol>>", NULL, NULL},
+    {0x8AEC41470104B6E7, "DCArray<KeyframedValue<SoundEventName<1>>::Sample>", NULL, NULL},
+    {0x8B1BEC7A8664079A, "aam", NULL, NULL},
+    {0x8B5F43130CAB9935, "CompressedKeys<Handle<SoundBusSnapshot::SnapshotSuite>>", NULL, NULL},
+    {0x8B9A601312D0C170, "AnimatedValueInterface<ScriptEnum>", NULL, NULL},
+    {0x8BE6399AE3073DD3, "Procedural_LookAt::EnumLookAtComputeStage", NULL, NULL},
+    {0x8C0CD13A87BA8D95, "BitSetBase<9>", NULL, NULL},
+    {0x8D1A8F0E83A1E29D, "LanguageDB", NULL, NULL},
+    {0x8D25F96848DE1765, "SkeletonPoseValue", NULL, NULL},
+    {0x8D53D2745D07232B, "DlgObjIDOwner", NULL, NULL},
+    {0x8D76811F807928A2, "SoundBankWaveMap", NULL, NULL},
+    {0x8D953B4CE053F7AC, "DCArray<int>", NULL, NULL},
+    {0x8E0C950E1D3BF60C, "Map<String,int,less<String>>", NULL, NULL},
+    {0x8E4726F9B542D02F, "bundle", NULL, NULL},
+    {0x8E88FBB78405598C, "EnumPlatformType", NULL, NULL},
+    {0x8EEA3302024628B7, "EnlightenModule::EnlightenMeshSettings", NULL, NULL},
+    {0x8EFB0961ECAFBCC7, "CompressedKeys<AnimOrChore>", NULL, NULL},
+    {0x8F11614B53249632, "Map<DlgObjID,int,DlgObjIDLess>", NULL, NULL},
+    {0x8F2D7CA196304667, "EnumEmitterSpriteAnimationType", NULL, NULL},
+    {0x8F40C634A937DD2A, "AnimatedValueInterface<Handle<SoundEventData>>", NULL, NULL},
+    {0x9004C5587575D6C0, "bool", BoolRead, NULL},
+    {0x900DB52347B506E5, "Agent", NULL, NULL},
+    {0x90AECEC9208A96B6, "Map<String,DCArray<String>,less<String>>", NULL, NULL},
+    {0x91220203C6648B2A, "DlgNodeStart", DlgNodeStartRead, NULL},
+    {0x915709E72A07B3ED, "DlgChildSet", NULL, NULL},
+    {0x918069BEE7BDA403, "AnimatedValueInterface<Quaternion>", NULL, NULL},
+    {0x91E8421A820D689C, "Meta::AgentResourceContext", NULL, NULL},
+    {0x93008E1D006FB6E0, "ScriptEnum:AIPatrolType", ScriptEnumRead, NULL},
+    {0x9352BA2255605A10, "Map<Symbol,Symbol,less<Symbol>>", NULL, NULL},
+    {0x937F5D487A0988E3, "T3SamplerStateBlock", NULL, NULL},
+    {0x9395A07A617964C9, "Handle<StyleGuide>", intrinsic8Read, NULL},
+    {0x9397970E4D4168B9, "ParticleProperties", NULL, NULL},
+    {0x93FD7A72DFF5E058, "DCArray<LanguageLookupMap::DlgIDSet>", NULL, NULL},
+    {0x94991C29CD442F79, "EnumDOFQualityLevel", NULL, NULL},
+    {0x94C4526CF9F79AC5, "DateStamp", NULL, NULL},
+    {0x94D45772A1FF48C0, "AnimatedValueInterface<T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>>", NULL, NULL},
+    {0x95112BCCF1AFDB66, "CompressedKeys<Handle<SoundAmbience::AmbienceDefinition>>", NULL, NULL},
+    {0x954B47E44A5FFA6E, "AnimatedValueInterface<bool>", NULL, NULL},
+    {0x954F8FF8B3F40B36, "reverb", NULL, NULL},
+    {0x95A97D3178992D3C, "Map<Symbol,Localization::Language,less<Symbol>>", NULL, NULL},
+    {0x96214C23CC241657, "Handle<StyleGuideRef>", intrinsic8Read, NULL},
+    {0x9646F3B778897027, "AnimatedValueInterface<SoundEventName<0>>", NULL, NULL},
+    {0x96C27FFE888A31BA, "DlgNodeParallel::PElement", DlgNodeParallelPElementRead, NULL},
+    {0x96EA4DA540CA16F4, "RenderObject_Text2", NULL, NULL},
+    {0x9746954D9C0478DD, "KeyframedValue<T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>>", NULL, NULL},
+    {0x977F2FCE90AA72BB, "LinkedList<Scene::AgentInfo,0>", NULL, NULL},
+    {0x97BA9139CCC1CF26, "DlgNodeParallel", DlgNodeParallelRead, NULL},
+    {0x984AF9732DDDDA16, "LinkedBallTwistJointKey", NULL, NULL},
+    {0x984C0D6D48F69A9D, "DCArray<Vector2>", NULL, NULL},
+    {0x98A19836CF4CCB7D, "D3DMesh", NULL, NULL},
+    {0x98A19836CF4CCB7D, "d3dmesh", NULL, NULL},
+    {0x98A7496918F17715, "bankwavemap", NULL, NULL},
+    {0x995FC5C3CB87E5F8, "PhysicsObject::EnumePhysicsBoundingVolumeType", NULL, NULL},
+    {0x998E73C393F6A122, "PhonemeTable::PhonemeEntry", NULL, NULL},
+    {0x99B7E7B82012690C, "EnlightenModule::EnumeProbeResolution", NULL, NULL},
+    {0x99D7C52EA7F0F97D, "int", intrinsic4Read, NULL},
+    {0x9A3A4A9E63375381, "Font", NULL, NULL},
+    {0x9A3A4A9E63375381, "font", NULL, NULL},
+    {0x9A80BEF7E55274B6, "CompressedKeys<Vector4>", NULL, NULL},
+    {0x9A946F2A83FC7658, "CompressedKeys<Quaternion>", NULL, NULL},
+    {0x9B20C35CA1E12BD5, "EnumRenderAntialiasType", NULL, NULL},
+    {0x9B3EE0F7AEE83B13, "Map<SoundFootsteps::EnumMaterial,SoundEventName<0>,less<SoundFootsteps::EnumMaterial>>", NULL, NULL},
+    {0x9B52B73BB2BFE113, "DCArray<T3MeshLOD>", NULL, NULL},
+    {0x9BAEBE80F400BAA8, "LocomotionDB", NULL, NULL},
+    {0x9C7EB5CBCB3A7C7E, "Ptr<PtrBase>", NULL, NULL},
+    {0x9CEAD8A38E5C4258, "T3MeshLocalTransformEntry", NULL, NULL},
+    {0x9CFA106A1AD61711, "DCArray<T3MaterialTexture>", NULL, NULL},
+    {0x9D25F5E686CCDF56, "SingleValue<Handle<D3DMesh>>", NULL, NULL},
+    {0x9D2D91124150CFFB, "JiraRecordManager", NULL, NULL},
+    {0x9D52A3E9C5186D6F, "EnumBokehQualityLevel", NULL, NULL},
+    {0x9DEC4BBA95CEDB28, "DCArray<ChoreResource::Block>", NULL, NULL},
+    {0x9E2BF42C54C646B1, "DCArray<KeyframedValue<LocationInfo>::Sample>", NULL, NULL},
+    {0x9EB1467F36B078EB, "Map<Symbol,Map<Symbol,Set<Symbol,less<Symbol>>,less<Symbol>>,less<Symbol>>", NULL, NULL},
+    {0x9EE5E31EF2F71F0E, "Handle<Scene>", intrinsic8Read, NULL},
+    {0x9F60B383C5B65967, "ScriptEnum:DialogMode", ScriptEnumRead, NULL},
+    {0x9FAB8543532BE4A7, "DlgNodeSequence::DlgChildSetElement", NULL, NULL},
+    {0x9FC197BAD88CCF6D, "DlgObjectPropsMap::GroupDefinition", NULL, NULL},
+    {0x9FD30C6E5D0260E5, "llm", NULL, NULL},
+    {0xA000ECC5490A2A94, "EnumT3LightEnvMobility", NULL, NULL},
+    {0xA062BDC063405146, "PointOfInterestBlocking", NULL, NULL},
+    {0xA06BF34A7666964F, "LipSync", NULL, NULL},
+    {0xA084DFBDCD7D1FE7, "CompressedKeys<T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>>", NULL, NULL},
+    {0xA0C46F5EEAF99112, "audiobus", NULL, NULL},
+    {0xA0E41C8DB5CA9B1C, "SkeletonPoseValue::BoneEntry", NULL, NULL},
+    {0xA0EDBE204F68C863, "SingleValue<Handle<Dlg>>", NULL, NULL},
+    {0xA10F60E34D2DA3B0, "LightProbeData", NULL, NULL},
+    {0xA14B12F2880C71F0, "Handle<PreloadPackage::RuntimeDataDialog>", intrinsic8Read, NULL},
+    {0xA1975655F1C71142, "DCArray<Handle<Scene>>", NULL, NULL},
+    {0xA1B5E14F4AF83C27, "T3GFXBuffer", NULL, NULL},
+    {0xA2048C57716AD85F, "DCArray<T3Texture>", NULL, NULL},
+    {0xA2435650D27ACF90, "EnlightenModule::EnumeSceneOptimisationMode", NULL, NULL},
+    {0xA33B55750C7BF243, "Map<int,int,less<int>>", NULL, NULL},
+    {0xA34E655ED1345F8B, "WalkAnimator", NULL, NULL},
+    {0xA35C247B710DFF99, "DCArray<KeyframedValue<Handle<PropertySet>>::Sample>", NULL, NULL},
+    {0xA36BC2EB0A5B26AF, "ProceduralEyes", NULL, NULL},
+    {0xA3A998B26DBC4FBB, "DCArray<ResourceBundle::ResourceInfo>", NULL, NULL},
+    {0xA406267E2A2F22D9, "T3MeshBoneEntry", NULL, NULL},
+    {0xA47918A7D3C3A67A, "Handle<PhysicsObject>", intrinsic8Read, NULL},
+    {0xA4811058F13AB197, "SoundEventBankDummy", NULL, NULL},
+    {0xA4ECFBE186FB1452, "T3OverlayData", NULL, NULL},
+    {0xA5190A70F8F74C4C, "DCArray<KeyframedValue<Transform>::Sample>", NULL, NULL},
+    {0xA56C05706DC70A8B, "SingleValue<Handle<SoundBusSnapshot::Snapshot>>", NULL, NULL},
+    {0xA5B4E0529A022754, "AnimOrChore", AnimOrChoreRead, NULL},
+    {0xA5D09E10B6CE1CC4, "DCArray<unsignedchar>", NULL, NULL},
+    {0xA62FE74CCFA3467C, "EnlightenModule::EnumeDistributedBuildSystem", NULL, NULL},
+    {0xA6E64DD3378991B4, "SoundAmbience::AmbienceDefinition", NULL, NULL},
+    {0xA7152CED90755212, "DlgFolder", DlgFolderRead, NULL},
+    {0xA7353268AC8AAD1F, "DCArray<T3MaterialCompiledData>", NULL, NULL},
+    {0xA7A8C91070E4C52E, "DCArray<ParticleSprite::Animation>", NULL, NULL},
+    {0xA7DAAA296D1491CC, "DCArray<T3MeshTexture>", NULL, NULL},
+    {0xA7FE20E35345AC33, "DlgLine", DlgLineRead, NULL},
+    {0xA877237AFCDAAA59, "KeyframedValue<Handle<PropertySet>>", NULL, NULL},
+    {0xA8C7AA1469C78EA2, "List<List<Symbol>>", NULL, NULL},
+    {0xA8E93E14BF58645C, "DCArray<Ptr<ActingAccentPalette>>", NULL, NULL},
+    {0xA8F90B07ADEFAB41, "short", NULL, NULL},
+    {0xA96424E7FCCBF8EB, "EnumT3LightEnvBakeOnStatic", NULL, NULL},
+    {0xA98EAE8F6CFF1125, "Map<String,LogicGroup::LogicItem,less<String>>", NULL, NULL},
+    {0xA98F0652295DE685, "EnumT3MaterialLightModelType", NULL, NULL},
+    {0xAA9E970095A20B0E, "StyleIdleTransitionsRes", NULL, NULL},
+    {0xAAFF3A6B600D4D00, "CompressedKeys<SoundEventName<1>>", NULL, NULL},
+    {0xAB04CC2F75BCF6C0, "DCArray<Ptr<ActingPaletteGroup>>", NULL, NULL},
+    {0xAB4BFA2304C2292C, "Font::GlyphInfo", NULL, NULL},
+    {0xAB929FC5155636EF, "RootKey", NULL, NULL},
+    {0xABA164D5AAB73489, "Map<int,DlgLine,less<int>>", NULL, NULL},
+    {0xABB6151861AA76C7, "Scene::AgentInfo", NULL, NULL},
+    {0xABD836B706872262, "Handle<DialogResource>", intrinsic8Read, NULL},
+    {0xAC389286CDE5A182, "Map<Symbol,SoundBankWaveMapEntry,less<Symbol>>", NULL, NULL},
+    {0xAD15A7FE0904AE6A, "EnumT3LightEnvGroup", NULL, NULL},
+    {0xAD550479D1324785, "DlgDownstreamVisibilityConditions", NULL, NULL},
+    {0xADABE93EAA87F7DB, "Camera", NULL, NULL},
+    {0xAF292B29059F879B, "LocalizationRegistry", NULL, NULL},
+    {0xAFB5DB7305E23480, "int8", BoolRead, NULL},
+    {0xB02BC4AD45C96F0E, "FootSteps", NULL, NULL},
+    {0xB038C6742811D7FA, "DCArray<CorrespondencePoint>", NULL, NULL},
+    {0xB03A4E300519F2C1, "__int64", intrinsic8Read, NULL},
+    {0xB056BCD869E07B38, "DCArray<KeyframedValue<Handle<SoundEventData>>::Sample>", NULL, NULL},
+    {0xB060A66E8CD67299, "DCArray<SklNodeData>", NULL, NULL},
+    {0xB0F644BC42B51B0B, "KeyframedValue<Handle<Scene>>", NULL, NULL},
+    {0xB1F4EDB8750E7BFA, "Procedural_LookAt_Value", NULL, NULL},
+    {0xB32B46B47690925E, "DlgNodeCriteria::EnumDefaultResultT", NULL, NULL},
+    {0xB36577F91D1BF28C, "CompressedQuaternionKeys2", NULL, NULL},
+    {0xB3740F5DEE93334A, "PivotJointKey", NULL, NULL},
+    {0xB4292F0DA0DEA9EB, "Map<unsignedint,Set<Symbol,less<Symbol>>,less<unsignedint>>", NULL, NULL},
+    {0xB45FAE180770628C, "EnlightenModule", NULL, NULL},
+    {0xB4C683CEFE185EA1, "DlgNodeStoryBoard", NULL, NULL},
+    {0xB54642189B1237CA, "DlgVisibilityConditions", NULL, NULL},
+    {0xB5A80428425E68E0, "AnimatedValueInterface<SoundEventName<1>>", NULL, NULL},
+    {0xB5D28DB9AA796F18, "DCArray<Procedural_LookAt::Constraint>", NULL, NULL},
+    {0xB64F1AE3E7BBC58F, "EnlightenModule::EnumeQualityWithDefault", NULL, NULL},
+    {0xB68C72191F215606, "langres", NULL, NULL},
+    {0xB6DDB3CC25BAB0A1, "AgentMap::AgentMapEntry", NULL, NULL},
+    {0xB705C1A4E971420E, "LogicGroup::LogicItem", LogicItemRead, NULL},
+    {0xB72556399FBC3C04, "AnimatedValueInterface<T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>>", NULL, NULL},
+    {0xB76962276766EA0A, "PathSegment", NULL, NULL},
+    {0xB76E07D6BB899BFE, "Vector4", NULL, NULL},
+    {0xB76E52C699301BDA, "DCArray<T3MaterialTextureParam>", NULL, NULL},
+    {0xB876B4CEF80F1EDB, "DCArray<ActingPaletteClass>", NULL, NULL},
+    {0xB8AC7017234E9F78, "ResourceGroupInfo", NULL, NULL},
+    {0xB930FF00A4687C7E, "Handle<InputMapper>", intrinsic8Read, NULL},
+    {0xBA2A9CC6D78EDEA8, "SingleValue<Handle<SoundEventSnapshotData>>", NULL, NULL},
+    {0xBA4781F930BE11F7, "DCArray<KeyframedValue<Handle<SoundBusSnapshot::SnapshotSuite>>::Sample>", NULL, NULL},
+    {0xBA6CABFE529F5849, "DCArray<InputMapper::EventMapping>", NULL, NULL},
+    {0xBABC2FCF7E7B70AA, "style", NULL, NULL},
+    {0xBABC2FCF7E7B70AA, "Style", NULL, NULL},
+    {0xBAE4CBD77F139A91, "float", intrinsic4Read, NULL},
+    {0xBAF342C1FC31C370, "T3GFXVertexState", NULL, NULL},
+    {0xBB01AD6EFE5EE662, "List<T3ToonGradientRegion>", NULL, NULL},
+    {0xBB03444E2D5051F5, "KeyframedValue<Handle<SoundBusSnapshot::Snapshot>>", NULL, NULL},
+    {0xBB0D8C38D7C34967, "SingleValue<T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>>", NULL, NULL},
+    {0xBB6BAD6A055D7EDB, "EnlightenModule::EnumeAutoUVSimplificationMode", NULL, NULL},
+    {0xBB6D47AFCEF5DC7B, "DlgFolderChild", DlgFolderChildRead, NULL},
+    {0xBB7E5208092CAA9F, "BallJointKey", NULL, NULL},
+    {0xBB86B36D253B1EC8, "ColorHDR", NULL, NULL},
+    {0xBBC6633C9F6B2537, "PerAgentClipResourceFilter", NULL, NULL},
+    {0xBC2BBAEBB7DD049B, "AnimationManager", NULL, NULL},
+    {0xBC62744AC9114C72, "Set<int,less<int>>", NULL, NULL},
+    {0xBC6B9F28CC33A947, "Procedural_LookAt", NULL, NULL},
+    {0xBCA387FC2FAAEAE9, "DCArray<LightGroupInstance>", NULL, NULL},
+    {0xBD4C9F5B0EC743C2, "Map<String,Vector3,less<String>>", NULL, NULL},
+    {0xBDB2F6DC0135CA3E, "InverseKinematicsAttach", NULL, NULL},
+    {0xBDEBB69D2C134E45, "EnumT3NPRSpecularType", NULL, NULL},
+    {0xBE12CAA65204CDE4, "DCArray<KeyframedValue<Handle<Dlg>>::Sample>", NULL, NULL},
+    {0xBE2A918022753C0F, "DCArray<FileName<SoundEventBankDummy>>", NULL, NULL},
+    {0xBE89EB598EBB294D, "LanguageResource", NULL, NULL},
+    {0xBF2E8C49D2783BDC, "Map<String,Rule*__ptr64,less<String>>", NULL, NULL},
+    {0xBF34FB893AC17AAD, "Map<Symbol,PhonemeTable::PhonemeEntry,less<Symbol>>", NULL, NULL},
+    {0xBF8F61B0F64AED35, "CompressedKeys<Vector2>", NULL, NULL},
+    {0xBFB0CE2BD1F38792, "DlgChild", NULL, NULL},
+    {0xBFC99E3D3E3CBB4A, "InverseKinematicsDerived", NULL, NULL},
+    {0xBFD0071071629E03, "Map<unsignedint,LanguageRes,less<unsignedint>>", NULL, NULL},
+    {0xBFD68E6E1C629E01, "T3MaterialRuntimeProperty", NULL, NULL},
+    {0xC04ED0CBAF7D9C90, "EnumGlowQualityLevel", NULL, NULL},
+    {0xC07A4D6DA8CD0B6C, "Handle<BlendGraphManager>", intrinsic8Read, NULL},
+    {0xC09A0F1FEE902C1A, "CSPK2Context", NULL, NULL},
+    {0xC0B682D7D515ED83, "Handle<SoundEventBankDummy>", intrinsic8Read, NULL},
+    {0xC0E90B6129B2DADA, "CompressedKeys<bool>", NULL, NULL},
+    {0xC16762F7763D62AB, "Color", ColorRead, NULL},
+    {0xC1E4AC327DAD6D1C, "bgh", NULL, NULL},
+    {0xC2254DAAD52E7340, "Handle<PhysicsData>", intrinsic8Read, NULL},
+    {0xC23697BBFB06DD17, "Handle<LanguageResource>", intrinsic8Read, NULL},
+    {0xC39BEABE5AD9E70C, "DCArray<Ptr<DlgChild>>", NULL, NULL},
+    {0xC3EFDA35DDD4ABC3, "List<float>", NULL, NULL},
+    {0xC41AA69F9B838B0A, "Map<int,Ptr<DialogBranch>,less<int>>", NULL, NULL},
+    {0xC472E26D936CE1A8, "SingleValue<Vector2>", NULL, NULL},
+    {0xC475B96DE47A0DD8, "DlgNodeNotes", DlgNodeNotesRead, NULL},
+    {0xC478B1CC1D7D94B7, "SaveGame", NULL, NULL},
+    {0xC4D5427CF81B6B1F, "Set<FileName<SoundEventBankDummy>,less<FileName<SoundEventBankDummy>>>", NULL, NULL},
+    {0xC4F8BD87AEC361E6, "SingleValue<Handle<SoundReverbDefinition>>", NULL, NULL},
+    {0xC561A117A7710B6A, "T3MaterialPreShader", NULL, NULL},
+    {0xC5C3044FA9C1D61F, "CompressedKeys<Handle<SoundEventData>>", NULL, NULL},
+    {0xC604C9307F8A6EB1, "AnimatedValueInterface<Handle<PhonemeTable>>", NULL, NULL},
+    {0xC6136FB4A18BBE93, "BitSetBase<5>", NULL, NULL},
+    {0xC61768F8C7376559, "Handle<SoundBusSnapshot::Snapshot>", intrinsic8Read, NULL},
+    {0xC69D25163737A7F3, "DCArray<KeyframedValue<CompressedPathBlockingValue::CompressedPathInfoKey>::Sample>", NULL, NULL},
+    {0xC74E20BBF90CEB7C, "List<Handle<Rules>>", NULL, NULL},
+    {0xC7ED283D130BC1FE, "CompressedKeys<LocationInfo>", NULL, NULL},
+    {0xC810FA560D267D67, "Map<Symbol,PropertySet,less<Symbol>>", TypeGroupRead, NULL},
+    {0xC8564FB0D1D68883, "InverseKinematicsBase", NULL, NULL},
+    {0xC8A7A09B43C48E97, "FilterArea", NULL, NULL},
+    {0xC8D1F9C70A684B97, "ParticlePropConnect", NULL, NULL},
+    {0xC96C8DBBBEA1DEAB, "EnumTextOrientationType", NULL, NULL},
+    {0xC995828AC3B803F2, "DCArray<Skeleton::Entry>", NULL, NULL},
+    {0xC9CA51C8795945F0, "DCArray<WalkBoxes::Vert>", NULL, NULL},
+    {0xCA26CD88FAD4EF7E, "EnlightenModule::EnlightenLightSettings", NULL, NULL},
+    {0xCA272B9CDA05B750, "bgm", NULL, NULL},
+    {0xCA874E09192E2598, "AnimatedValueInterface<Color>", NULL, NULL},
+    {0xCB029403B12D08D6, "unsignedint", NULL, NULL},
+    {0xCB17BA9E6EF9F5A9, "AnimatedValueInterface<Vector3>", NULL, NULL},
+    {0xCB31FAC32D7FAD8D, "eyes", NULL, NULL},
+    {0xCB39F1559069B3BA, "wav", NULL, NULL},
+    {0xCB9B7B7C2D2A90E7, "EnumT3LightEnvEnlightenBakeBehavior", NULL, NULL},
+    {0xCBF0AB8D9CB98AEF, "DCArray<KeyframedValue<float>::Sample>", NULL, NULL},
+    {0xCBFD53673C25ECC0, "EnumHTextAlignmentType", NULL, NULL},
+    {0xCC77A061EBC3ABED, "AudioData", NULL, NULL},
+    {0xCCDF9AEC974E91FC, "CompressedKeys<Handle<WalkBoxes>>", NULL, NULL},
+    {0xCCE2FC8ABD78A775, "EnlightenModule::EnumeProbeResolutionWithDefault", NULL, NULL},
+    {0xCD75DC4F6B9F15D2, "PropertySet", PropRead, NULL},
+    {0xCD9B448F1003E791, "KeyframedValue<Color>", NULL, NULL},
+    {0xCD9C6E605F5AF4B4, "String", StringRead, NULL},
+    {0xCDA6183D330B433B, "ChoreInst", NULL, NULL},
+    {0xCDD094E2E769C2B5, "ToolProps", BoolRead, NULL},
+    {0xCDFC7236DB3B636B, "EnumRenderTextureResolution", NULL, NULL},
+    {0xCE1B42C4736DEB3A, "DlgObjectProps", NULL, NULL},
+    {0xCECACE3A835CB7EE, "SingleValue<Quaternion>", NULL, NULL},
+    {0xCECC22CA2F746449, "CompressedKeys<SoundEventName<2>>", NULL, NULL},
+    {0xCF3AE053D709090B, "DCArray<Handle<AudioData>>", NULL, NULL},
+    {0xCF7134C9149B5131, "EnumBase", NULL, NULL},
+    {0xCF8A73B34BC665CC, "AnimatedValueInterface<AnimOrChore>", NULL, NULL},
+    {0xCFAF2019AB83376A, "KeyframedValue<Handle<SoundAmbience::AmbienceDefinition>>", NULL, NULL},
+    {0xCFD0EBF69D907EED, "T3MaterialEnlightenPrecomputeParams", NULL, NULL},
+    {0xD01D47E19594B3E9, "T3OverlayParams", NULL, NULL},
+    {0xD0A931F89ED7734D, "CompressedKeys<T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>>", NULL, NULL},
+    {0xD0B8814E41A8A279, "DCArray<KeyframedValue<Symbol>::Sample>", NULL, NULL},
+    {0xD0E7D2AFB7D9C68B, "DlgNodeText", DlgNodeTextRead, NULL},
+    {0xD170386D6E88C1AF, "T3LightEnvLOD", NULL, NULL},
+    {0xD19B1C890D2741A9, "AnimatedValueInterface<SoundEventName<2>>", NULL, NULL},
+    {0xD1C9280F82A39E78, "SingleValue<Handle<T3Texture>>", NULL, NULL},
+    {0xD1EF776F1BEFCA35, "ActingPaletteClass", NULL, NULL},
+    {0xD1F049E6EAEA09DD, "SingleValue<bool>", NULL, NULL},
+    {0xD27EA1BFAC786303, "Set<Color,less<Color>>", NULL, NULL},
+    {0xD2D678B2AA9112D8, "DCArray<DlgNodeInstanceSequence::ElemInstanceData>", NULL, NULL},
+    {0xD2E7CDB2B4266AE2, "DCArray<HandleBase>", NULL, NULL},
+    {0xD388A4AFB51DB41C, "AnimatedValueInterface<Handle<WalkBoxes>>", NULL, NULL},
+    {0xD3C3AA7C4CDFF788, "KeyframedValue<T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>>", NULL, NULL},
+    {0xD471D07BB4F74743, "List<unsignedint>", NULL, NULL},
+    {0xD48D0C3B810C1975, "DCArray<PropertySet>", NULL, NULL},
+    {0xD4B5597D859A03DE, "PreloadPackage::ResourceKey", NULL, NULL},
+    {0xD4BFE847C1725627, "DCArray<RenderObject_Mesh::TextureInstance>", NULL, NULL},
+    {0xD4D0C7977631D29D, "SingleValue<ScriptEnum>", NULL, NULL},
+    {0xD513AEAF2180FC7E, "DlgNodeCriteria::EnumThresholdT", NULL, NULL},
+    {0xD521915AA8E8C0F7, "DCArray<KeyframedValue<Handle<T3Texture>>::Sample>", NULL, NULL},
+    {0xD5C86012BF6B91CA, "LanguageResProxy", intrinsic4Read, NULL},
+    {0xD5D35E216D0124D6, "Dlg", DlgRead, NULL},
+    {0xD5D35E216D0124D6, "dlg", NULL, NULL},
+    {0xD6652FB7B143EA32, "AutoActStatus", NULL, NULL},
+    {0xD6A50A09FEA7E4A6, "DCArray<KeyframedValue<Vector3>::Sample>", NULL, NULL},
+    {0xD713BF2F0EEF6FE0, "KeyframedValue<bool>", NULL, NULL},
+    {0xD78BF3D477EC3DFB, "Map<String,Set<String,less<String>>,less<String>>", NULL, NULL},
+    {0xD7CE90BB8FFA4753, "EnumT3MaterialNormalSpaceType", NULL, NULL},
+    {0xD7FF03FA339F3F62, "DlgVisibilityConditionsOwner", NULL, NULL},
+    {0xD8785AF203AA53EB, "DCArray<Map<String,String,less<String>>>", NULL, NULL},
+    {0xD8794539F89A180E, "List<Handle<SoundData>>", NULL, NULL},
+    {0xD8893CCA081E38A2, "Map<Symbol,String,less<Symbol>>", NULL, NULL},
+    {0xD93FCCB03BC94F69, "ambience", NULL, NULL},
+    {0xD940A60D3DE56488, "BallTwistJointKey", NULL, NULL},
+    {0xD941AA25E96493EB, "RenderObject_Mesh", NULL, NULL},
+    {0xD97E0C880A33ADCE, "DlgNodeLogic", DlgNodeLogicRead, NULL},
+    {0xD992E1D329469995, "DCArray<KeyframedValue<int>::Sample>", NULL, NULL},
+    {0xD9E5E39D06F0A6E3, "List<bool>", NULL, NULL},
+    {0xDA31784DA793EAA2, "KeyframedValue<Handle<SoundEventSnapshotData>>", NULL, NULL},
+    {0xDA3D01BDBECEDE15, "KeyframedValue<PhonemeKey>", NULL, NULL},
+    {0xDAC65150E4EE6266, "EnlightenModule::EnumeRadiositySampleRate", NULL, NULL},
+    {0xDAE9DA89AF7C3612, "BitSetBase<7>", NULL, NULL},
+    {0xDBD3D5D932FEA4DA, "MovieCaptureInfo::EnumCompressorType", NULL, NULL},
+    {0xDC03A83314ADFC51, "Handle<BlendGraph>", intrinsic8Read, NULL},
+    {0xDCD169E0C98FE760, "T3MaterialTransform2D", NULL, NULL},
+    {0xDDADACE79FB1DDF0, "EnumHBAOParticipationType", NULL, NULL},
+    {0xDDB5965209539B0E, "snapshotsuite", NULL, NULL},
+    {0xDDE3A9E749A30518, "unsigned__int64", NULL, NULL},
+    {0xDE877F4252845725, "probe", NULL, NULL},
+    {0xDE9FEE749B0ED110, "EnumRenderMaskWrite", NULL, NULL},
+    {0xDF2C74713A04DDA7, "Handle<SoundData>", intrinsic8Read, NULL},
+    {0xDF302FFF123E7CAB, "T3MaterialParameter", NULL, NULL},
+    {0xDF30362E292BEF14, "CompressedKeys<Color>", NULL, NULL},
+    {0xDFA5071C13D73E63, "Handle<AgentMap>", intrinsic8Read, NULL},
+    {0xE008B7EFBA7579D4, "DlgNodeExchange::Entry", NULL, NULL},
+    {0xE00CB3BD8BD8ACE7, "LightType", NULL, NULL},
+    {0xE04937724C9E5EF1, "List<Handle<AudioData>>", NULL, NULL},
+    {0xE05D92D1490181FA, "PreloadPackage::RuntimeDataDialog::DialogResourceInfo", NULL, NULL},
+    {0xE06CA3604D85DCB6, "DlgNodeScript", DlgNodeScriptRead, NULL},
+    {0xE09B099B8076C147, "ResourceBundle", NULL, NULL},
+    {0xE0B18DCC44F3E24D, "SingleValue<Symbol>", NULL, NULL},
+    {0xE0F187F2BB24DD1F, "T3MaterialTexture", NULL, NULL},
+    {0xE0FDB8250AD3923D, "AnimatedValueInterface<String>", NULL, NULL},
+    {0xE115A057E3014D94, "CompressedKeys<Handle<Font>>", NULL, NULL},
+    {0xE139ECA106BB239A, "SingleValue<Handle<SoundEventData>>", NULL, NULL},
+    {0xE17D3D2A8074782B, "SingleValue<Vector4>", NULL, NULL},
+    {0xE1C51CF067B11F25, "DCArray<PreloadPackage::RuntimeDataDialog::DlgObjIdAndResourceVector>", NULL, NULL},
+    {0xE1E6CA8E844E23EB, "T3LightProbeInternalData", NULL, NULL},
+    {0xE2602DAF0134246D, "DCArray<Transform>", NULL, NULL},
+    {0xE26BBBA29EBA3E2A, "DlgChainHead", NULL, NULL},
+    {0xE2ACF7CEBEA09992, "KeyframedValue<AnimOrChore>", NULL, NULL},
+    {0xE2AF89E495F738E2, "DCArray<DCArray<String>>", NULL, NULL},
+    {0xE2BA743E952F9338, "T3MaterialData", NULL, NULL},
+    {0xE2BF28F948F35B68, "SingleValue<Color>", NULL, NULL},
+    {0xE2D51D83712BDC5A, "Map<String,SoundBusSystem::BusDescription,less<String>>", NULL, NULL},
+    {0xE31CB0F3B2932710, "BitSetBase<3>", NULL, NULL},
+    {0xE340A108AD7DCEB1, "CompressedKeys<Handle<Scene>>", NULL, NULL},
+    {0xE366AC7546B12675, "DlgNodeInstanceParallel::ElemInstanceData", NULL, NULL},
+    {0xE37774F4D4CD6E67, "BlendGraph::EnumBlendGraphType", NULL, NULL},
+    {0xE38C3CAC5CF8DCEC, "tmap", NULL, NULL},
+    {0xE3BC39514745D2DE, "Map<SoundFootsteps::EnumMaterial,DCArray<Handle<SoundData>>,less<SoundFootsteps::EnumMaterial>>", NULL, NULL},
+    {0xE4510BD515264FE5, "langdb", NULL, NULL},
+    {0xE494D922BF9DFB44, "T3ToonGradientRegion", NULL, NULL},
+    {0xE4E5A2E3EC044937, "DCArray<KeyframedValue<String>::Sample>", NULL, NULL},
+    {0xE4E87E07690A89E6, "InputMapper", NULL, NULL},
+    {0xE4E8C8ABFF566D60, "dss", NULL, NULL},
+    {0xE6130DF4EDCEC9C8, "DlgConditionSet", NULL, NULL},
+    {0xE6293E22F651B314, "DCArray<SkeletonPoseValue::BoneEntry>", NULL, NULL},
+    {0xE67D8AC64150698E, "SingleValue<Handle<PhonemeTable>>", NULL, NULL},
+    {0xE6B45077A341070A, "List<Handle<Chore>>", NULL, NULL},
+    {0xE73848E8EAE76623, "CompressedPathBlockingValue", NULL, NULL},
+    {0xE7D7C131B05A9D80, "AnimatedValueInterface<Handle<SoundData>>", NULL, NULL},
+    {0xE7E302FBBD9C4126, "DlgNodeParallel::DlgChildSetElement", NULL, NULL},
+    {0xE84BB8D0F7E7F749, "DlgConditionRule", DlgConditionRuleRead, NULL},
+    {0xE89EBE3CD9FBD25A, "CameraFacingTypes", NULL, NULL},
+    {0xE8B65EEA1581A9DA, "DlgNodeInstanceSequence::ElemInstanceData", NULL, NULL},
+    {0xE8F586C87CB34551, "HandleLock<PropertySet>", NULL, NULL},
+    {0xE908072C98443ADA, "prop", NULL, NULL},
+    {0xE98036E69062C8F4, "ChoreAgent", NULL, NULL},
+    {0xE9EFDB064BDA7682, "DCArray<Handle<AnimOrChore>>", NULL, NULL},
+    {0xE9FA4A9E9D453359, "Skeleton::Entry", NULL, NULL},
+    {0xEA086C95C87CA185, "EnlightenModule::EnlightenPrimitiveSettings", NULL, NULL},
+    {0xEA20A667D4C75946, "EnumBokehOcclusionType", NULL, NULL},
+    {0xEAB763402F4836AF, "ScriptEnum", ScriptEnumRead, NULL},
+    {0xEAE06ABE810518EE, "T3LightEnvInternalData", NULL, NULL},
+    {0xEB48981A297A46B7, "KeyframedValue<Handle<SoundReverbDefinition>>", NULL, NULL},
+    {0xEB7FE6D415249768, "Handle<PreloadPackage::RuntimeDataScene>", intrinsic8Read, NULL},
+    {0xEB906C78C340D4A6, "SArray<Handle<T3Texture>,1>", NULL, NULL},
+    {0xECB739634B43D072, "Map<Symbol,Map<Symbol,int,less<Symbol>>,less<Symbol>>", NULL, NULL},
+    {0xEE3C7E2110139663, "DCArray<DCArray<PropertySet>>", NULL, NULL},
+    {0xEE3FD7CC7ED685E9, "DlgChoicesChildPre", DlgChoicesChildPreRead, NULL},
+    {0xEE65A936C01E9C9A, "KeyframedValue<Handle<PhonemeTable>>", NULL, NULL},
+    {0xEEF01208F0F466CD, "AnimatedValueInterface<Handle<Chore>>", NULL, NULL},
+    {0xEEF9EEDD05A42AEA, "ScriptEnum:MenuAlignment", ScriptEnumRead, NULL},
+    {0xEFA1BA20E620F40F, "T3Texture::StreamHeader", NULL, NULL},
+    {0xEFC64D422DF9376F, "DependencyLoader<1>", NULL, NULL},
+    {0xF0181C2BFD4EA8D6, "Polar", NULL, NULL},
+    {0xF0205400D4C83EBC, "TRange<float>", NULL, NULL},
+    {0xF07C552824816DD1, "char", BoolRead, NULL},
+    {0xF07D50698E252C35, "ldb", NULL, NULL},
+    {0xF0CA92E85C1E9849, "KeyframedValue<Handle<T3Texture>>", NULL, NULL},
+    {0xF17A1008ADE9BDCD, "EnumDepthOfFieldType", NULL, NULL},
+    {0xF195067C56F55DD3, "DCArray<WalkBoxes::Quad>", NULL, NULL},
+    {0xF297790770C35A97, "Map<int,String,less<int>>", NULL, NULL},
+    {0xF2C0E4B485AF6F5B, "imap", NULL, NULL},
+    {0xF31B900E385D5320, "IntrusiveSet<Symbol,PropertySet::KeyInfo,TagPropertyKeyInfoSet,Symbol::CompareCRC>", NULL, NULL},
+    {0xF343D8D117C6ED72, "CompressedKeys<Handle<SoundReverbDefinition>>", NULL, NULL},
+    {0xF3A0D2B0CA777981, "Set<Ptr<PlaybackController>,less<Ptr<PlaybackController>>>", NULL, NULL},
+    {0xF3E07C3D67895FD1, "DCArray<T3MeshBatch>", NULL, NULL},
+    {0xF47250AB93E98778, "Rollover", NULL, NULL},
+    {0xF47CD36D533ECCB5, "DCArray<KeyframedValue<Quaternion>::Sample>", NULL, NULL},
+    {0xF496A008F1E15BA5, "EnumHBAOPreset", NULL, NULL},
+    {0xF4DB84D1EC8B1578, "SoundEventBankMap", NULL, NULL},
+    {0xF4DB84D1EC8B1578, "soundeventbankmap", NULL, NULL},
+    {0xF5302008E0012D0A, "Scene", NULL, NULL},
+    {0xF5302008E0012D0A, "scene", NULL, NULL},
+    {0xF5BF2ED9B8F3B6E4, "SoundReverbDefinition", NULL, NULL},
+    {0xF5D798B82914F0F9, "PlaceableBallTwistJointKey", NULL, NULL},
+    {0xF61F7BA7EA84F63B, "Map<String,Map<String,DCArray<String>,less<String>>,less<String>>", NULL, NULL},
+    {0xF6792A98BDA977A7, "EnumLightCellBlendMode", NULL, NULL},
+    {0xF6D4C230B74B44FD, "DlgConditionTime", DlgConditionTimeRead, NULL},
+    {0xF6F394AF6E4003AD, "KeyframedValue<Vector3>", NULL, NULL},
+    {0xF70A9218630D4FF4, "DCArray<Handle<SoundData>>", NULL, NULL},
+    {0xF720178956CB9F80, "SoundEventName<1>", NULL, NULL},
+    {0xF7D8D0ECA82AA7FF, "DCArray<BlendEntry>", NULL, NULL},
+    {0xF7DF47AB15C99066, "SingleValue<Handle<PropertySet>>", NULL, NULL},
+    {0xF7FA917047267F56, "EnumVTextAlignmentType", NULL, NULL},
+    {0xF82881A26B7647A6, "EnlightenModule::EnlightenAutoProbeVolumeSettings", NULL, NULL},
+    {0xF84DFA4EC80325D8, "DCArray<ParticleProperties::Animation>", NULL, NULL},
+    {0xF880FF729209B860, "CompressedKeys<Handle<SoundData>>", NULL, NULL},
+    {0xF8E76EC13E469046, "CompressedVector3Keys2", NULL, NULL},
+    {0xF9F4A9C47B852D14, "SoundEventSnapshotData", NULL, NULL},
+    {0xFA26600C4954EA02, "SingleValue<unsigned__int64>", NULL, NULL},
+    {0xFA6C8889876EBA7A, "RenderSwizzleParams", NULL, NULL},
+    {0xFA7FC6889D2A5CFC, "ParticleLODKey", NULL, NULL},
+    {0xFAD2B7D432F6E393, "EnumHBAOPerPixelNormals", NULL, NULL},
+    {0xFB0617E6C51F821D, "Environment", NULL, NULL},
+    {0xFB30E42239EC1AF5, "T3LightEnvInternalData::QualityEntry", NULL, NULL},
+    {0xFBC46015AD30C413, "DCArray<KeyframedValue<Handle<D3DMesh>>::Sample>", NULL, NULL},
+    {0xFC21C32667FC91B4, "InputMapper::EventMapping", NULL, NULL},
+    {0xFC6597EB1FE5458E, "CompressedTransformKeys", NULL, NULL},
+    {0xFC7C5120ABAA70AA, "overlay", NULL, NULL},
+    {0xFC96DFDEDE31FB4A, "unsignedlong", intrinsic4Read, NULL},
+    {0xFCB10E2F8E89DB2B, "SoundBusSnapshot::Snapshot", NULL, NULL},
+    {0xFCE72EB881AEAFB7, "LocalizeInfo", NULL, NULL},
+    {0xFD0F32CBB13B258D, "CompressedKeys<Handle<SoundBusSnapshot::Snapshot>>", NULL, NULL},
+    {0xFD267A5B808A5824, "List<Handle<AnimOrChore>>", NULL, NULL},
+    {0xFD45D124E5FAC6CE, "T3MeshMaterial", NULL, NULL},
+    {0xFD5454BA0F088B05, "wbox", NULL, NULL},
+    {0xFE828771D8009C1D, "preloadpackagertd", NULL, NULL},
+    {0xFE96A13E293CC8EF, "Map<String,DCArray<unsignedchar>,less<String>>", NULL, NULL},
+    {0xFF15DC09F8B4F0E1, "IdleTransitionSettings", NULL, NULL},
+    {0xFF38D8541F524A49, "ActingOverridablePropOwner", NULL, NULL},
+    {0xFF5781EF90514A8C, "ClipResourceFilter", NULL, NULL},
+    {0xFFA2F0E137146530, "Scene::AgentQualitySettings", NULL, NULL},
+    {0xFFE605CEBC64AF91, "BitSetBase<1>", NULL, NULL},
+    {0xFFEA794BCAFBF983, "SoundSystem::Implementation::ChannelHolder", NULL, NULL},
+    {0xFFECC5B70AD06BE6, "PhysicsObject::EnumePhysicsCollisionType", NULL, NULL},
 };
 
-static struct MetaClassDescription metaClassDescriptions[META_CLASS_DESCRIPTIONS_COUNT] = {{0}};
+// static struct MetaClassDescription metaClassDescriptions[META_CLASS_DESCRIPTIONS_COUNT] = {{0}};
 
 void readMetaStreamHeader(FILE *stream, struct MetaStreamHeader *header)
 {
@@ -95,1132 +1069,31 @@ void writeMetaStreamHeader(FILE *stream, struct MetaStreamHeader *header)
     }
 }
 
-int readMetaClass(FILE *stream, struct TreeNode *node, uint32_t flags)
+const struct MetaClassDescription *getMetaClassDescriptionBySymbol(uint64_t symbol)
 {
-    enum Type type = searchDatabase("protonDatabase.db", node->typeSymbol);
-    // printf("Call %s\n", metaClassDescriptions[type].name);
-    serializeFunction readFunction = metaClassDescriptions[type].read;
-    if (readFunction == NULL)
+    uint64_t low = 0;
+    uint64_t high = META_CLASS_DESCRIPTIONS_COUNT;
+    uint64_t currentIndex = META_CLASS_DESCRIPTIONS_COUNT / 2;
+    while (low <= high)
     {
-        printf("Error: Read function not implemented for %s type = %" PRIx64 "\n", metaClassDescriptions[type].name, node->typeSymbol);
-        return -1;
+        if (symbol == descriptions[currentIndex].crc)
+        {
+            return descriptions + currentIndex;
+        }
+        if (symbol > descriptions[currentIndex].crc)
+        {
+            low = currentIndex + 1;
+        }
+        if (symbol < descriptions[currentIndex].crc)
+        {
+            high = currentIndex - 1;
+        }
+        currentIndex = (high + low) / 2;
     }
-    return metaClassDescriptions[type].read(stream, node, flags);
+    return NULL;
 }
 
-int writeMetaClass(FILE *stream, struct TreeNode *node, uint32_t flags)
+const struct MetaClassDescription *getMetaClassDescriptionByIndex(uint16_t index)
 {
-    enum Type type = searchDatabase("protonDatabase.db", node->typeSymbol);
-    serializeFunction writeFunction = metaClassDescriptions[type].write;
-    if (writeFunction == NULL)
-    {
-        printf("Error: Write function not implemented for %s, type = %" PRIx64 "\n", metaClassDescriptions[type].name, node->typeSymbol);
-        return -1;
-    }
-    return metaClassDescriptions[type].write(stream, node, flags);
-}
-
-char *getMetaClassName(uint64_t typeSymbol)
-{
-    return metaClassDescriptions[searchDatabase("protonDatabase.db", typeSymbol)].name;
-}
-
-int initializeMetaClassDescriptions()
-{
-    // Now you might think writing this function took ages... and you would be correct.
-
-    metaClassDescriptions[Animation].name = "Animation";
-    metaClassDescriptions[anm].name = "anm";
-    metaClassDescriptions[LogicGroup].name = "LogicGroup";
-    metaClassDescriptions[Rule].name = "Rule";
-    metaClassDescriptions[ActorAgentBinding].name = "ActorAgentBinding";
-    metaClassDescriptions[ChoreAgentAttachment].name = "ChoreAgent::Attachment";
-    metaClassDescriptions[ChoreAgent].name = "ChoreAgent";
-    metaClassDescriptions[Transform].name = "Transform";
-    metaClassDescriptions[AnimatedValueInterfaceTempTransformLate].name = "AnimatedValueInterface<Transform>";
-    metaClassDescriptions[KeyframedValueTempTransformLate].name = "KeyframedValue<Transform>";
-    metaClassDescriptions[Procedural_LookAt].name = "Procedural_LookAt";
-    metaClassDescriptions[look].name = "look";
-    metaClassDescriptions[Procedural_LookAtConstraint_type].name = "Procedural_LookAt::Constraint";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempPhonemeTableLateLate].name = "AnimatedValueInterface<Handle<PhonemeTable>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempPhonemeTableLateLate].name = "KeyframedValue<Handle<PhonemeTable>>";
-    metaClassDescriptions[AutoActStatus].name = "AutoActStatus";
-    metaClassDescriptions[ChoreResourceBlock].name = "ChoreResourceBlock";
-    metaClassDescriptions[AnimationValueInterfaceBase].name = "AnimationValueInterfaceBase";
-    metaClassDescriptions[AnimatedValueInterfaceTempfloatLate].name = "AnimatedValueInterface<float>";
-    metaClassDescriptions[KeyframedValueTempfloatLate].name = "KeyframedValue<float>";
-    metaClassDescriptions[Symbol].name = "Symbol";
-    metaClassDescriptions[ChoreResource].name = "ChoreResource";
-    metaClassDescriptions[LocalizeInfo].name = "LocalizeInfo";
-    metaClassDescriptions[PropertySet].name = "PropertySet";
-    metaClassDescriptions[prop].name = "prop";
-    metaClassDescriptions[Flags].name = "Flags";
-    metaClassDescriptions[Chore].name = "Chore";
-    metaClassDescriptions[chore].name = "chore";
-    metaClassDescriptions[CompressedSkeletonPoseKeys2].name = "CompressedSkeletonPoseKeys2";
-    metaClassDescriptions[DCArrayTempProcedural_LookAtConstraintLate].name = "DCArray<Procedural_LookAt::Constraint>";
-    metaClassDescriptions[String].name = "String";
-    metaClassDescriptions[AnimOrChore].name = "AnimOrChore";
-    metaClassDescriptions[PhonemeTablePhonemeEntry].name = "PhonemeTable::PhonemeEntry";
-    metaClassDescriptions[PhonemeTable].name = "PhonemeTable";
-    metaClassDescriptions[ptable].name = "ptable";
-    metaClassDescriptions[T3MaterialData].name = "T3MaterialData";
-    metaClassDescriptions[Color].name = "Color";
-    metaClassDescriptions[float_type].name = "float";
-    metaClassDescriptions[Skeleton].name = "Skeleton";
-    metaClassDescriptions[skl].name = "skl";
-    metaClassDescriptions[MapTempSymbolboolstdlessTempSymbolLateLate].name = "Map<Symbol,bool,less<Symbol>>";
-    metaClassDescriptions[SetTempSymbolstdlessTempSymbolLateLate].name = "Set<Symbol,less<Symbol>>";
-    metaClassDescriptions[bool_type].name = "bool";
-    metaClassDescriptions[T3MaterialPassData].name = "T3MaterialPassData";
-    metaClassDescriptions[T3MaterialPreShader].name = "T3MaterialPreShader";
-    metaClassDescriptions[T3MaterialTransform2D].name = "T3MaterialTransform2D";
-    metaClassDescriptions[T3MaterialParameter].name = "T3MaterialParameter";
-    metaClassDescriptions[T3MaterialCompiledData].name = "T3MaterialCompiledData";
-    metaClassDescriptions[T3MaterialRuntimeProperty].name = "T3MaterialRuntimeProperty";
-    metaClassDescriptions[LocalizationRegistry].name = "LocalizationRegistry";
-    metaClassDescriptions[locreg].name = "locreg";
-    metaClassDescriptions[RecordingUtilsEnumRecordingStatus].name = "RecordingUtils::EnumRecordingStatus";
-    metaClassDescriptions[LanguageResLocal].name = "LanguageResLocal";
-    metaClassDescriptions[LanguageRes].name = "LanguageRes";
-    metaClassDescriptions[lang].name = "lang";
-    metaClassDescriptions[UIDGenerator].name = "UID::Generator";
-    metaClassDescriptions[UIDOwner].name = "UID::Owner";
-    metaClassDescriptions[LanguageDB].name = "LanguageDB";
-    metaClassDescriptions[landb].name = "landb";
-    metaClassDescriptions[DlgNodeExchange].name = "DlgNodeExchange";
-    metaClassDescriptions[DlgNodeNotes].name = "DlgNodeNotes";
-    metaClassDescriptions[DlgConditionalCase].name = "DlgConditionalCase";
-    metaClassDescriptions[DlgNodeConditional].name = "DlgNodeConditional";
-    metaClassDescriptions[DlgNodeLogic].name = "DlgNodeLogic";
-    metaClassDescriptions[DlgLine].name = "DlgLine";
-    metaClassDescriptions[DlgLineCollection].name = "DlgLineCollection";
-    metaClassDescriptions[MapTempint_typeDlgLinestdlessTempintLateLate].name = "Map<int,DlgLine,less<int>>";
-    metaClassDescriptions[DlgNodeExchangeEntry].name = "DlgNodeExchange::Entry";
-    metaClassDescriptions[ActingPaletteGroup].name = "ActingPaletteGroup";
-    metaClassDescriptions[ActingPaletteGroupEnumIdleTransition].name = "ActingPaletteGroup::EnumIdleTransition";
-    metaClassDescriptions[ListTempActingPaletteGroupActingPaletteTransitionLate].name = "List<ActingPaletteGroup::ActingPaletteTransition>";
-    metaClassDescriptions[ActingPaletteClass].name = "ActingPaletteClass";
-    metaClassDescriptions[DCArrayTempPtrTempActingPaletteGroupLateLate].name = "DCArray<Ptr<ActingPaletteGroup>>";
-    metaClassDescriptions[DCArrayTempPtrTempActingAccentPaletteLateLate].name = "DCArray<Ptr<ActingAccentPalette>>";
-    metaClassDescriptions[DCArrayTempPtrTempActingPaletteLateLate].name = "DCArray<Ptr<ActingPalette>>";
-    metaClassDescriptions[ResourceGroups].name = "ResourceGroups";
-    metaClassDescriptions[EnumeTangentModes].name = "EnumeTangentModes";
-    metaClassDescriptions[TRangeTempfloatLate].name = "TRange<float>";
-    metaClassDescriptions[int32_type].name = "int32";
-    metaClassDescriptions[ActingOverridablePropOwner].name = "ActingOverridablePropOwner";
-    metaClassDescriptions[StyleGuide].name = "StyleGuide";
-    metaClassDescriptions[style].name = "style";
-    metaClassDescriptions[HandleTempD3DMeshLate].name = "Handle<D3DMesh>";
-    metaClassDescriptions[T3TextureRegionStreamHeader].name = "T3Texture::RegionStreamHeader";
-    metaClassDescriptions[T3TextureStreamHeader].name = "T3Texture::StreamHeader";
-    metaClassDescriptions[Vector2].name = "Vector2";
-    metaClassDescriptions[RenderSwizzleParams].name = "RenderSwizzleParams";
-    metaClassDescriptions[EnumPlatformType].name = "EnumPlatformType";
-    metaClassDescriptions[T3SamplerStateBlock].name = "T3SamplerStateBlock";
-    metaClassDescriptions[T3Texture].name = "T3Texture";
-    metaClassDescriptions[d3dtx].name = "d3dtx";
-    metaClassDescriptions[DlgNodeScript].name = "DlgNodeScript";
-    metaClassDescriptions[DlgObjectPropsMapGroupDefinition].name = "DlgObjectPropsMap::GroupDefinition";
-    metaClassDescriptions[DlgSystemSettings].name = "DlgSystemSettings";
-    metaClassDescriptions[dss].name = "dss";
-    metaClassDescriptions[LogicGroupLogicItem].name = "LogicGroup::LogicItem";
-    metaClassDescriptions[DlgNodeStart].name = "DlgNodeStart";
-    metaClassDescriptions[DlgFolderChild].name = "DlgFolderChild";
-    metaClassDescriptions[LanguageResProxy].name = "LanguageResProxy";
-    metaClassDescriptions[DlgChildSetConditionalCase].name = "DlgChildSetConditionalCase";
-    metaClassDescriptions[DlgNode].name = "DlgNode";
-    metaClassDescriptions[DlgDownstreamVisibilityConditions].name = "DlgDownstreamVisibilityConditions";
-    metaClassDescriptions[DlgVisibilityConditions].name = "DlgVisibilityConditions";
-    metaClassDescriptions[DlgVisibilityConditionsOwner].name = "DlgVisibilityConditionsOwner";
-    metaClassDescriptions[DlgNodeLink].name = "DlgNodeLink";
-    metaClassDescriptions[DlgChainHead].name = "DlgChainHead";
-    metaClassDescriptions[DlgChild].name = "DlgChild";
-    metaClassDescriptions[DlgObjectProps].name = "DlgObjectProps";
-    metaClassDescriptions[DlgObjectPropsOwner].name = "DlgObjectPropsOwner";
-    metaClassDescriptions[DlgFolder].name = "DlgFolder";
-    metaClassDescriptions[DlgObjID].name = "DlgObjID";
-    metaClassDescriptions[DlgObjIDOwner].name = "DlgObjIDOwner";
-    metaClassDescriptions[Dlg].name = "Dlg";
-    metaClassDescriptions[dlog].name = "dlog";
-    metaClassDescriptions[Vector3].name = "Vector3";
-    metaClassDescriptions[HandleTempTransitionMapLate].name = "Handle<TransitionMap>";
-    metaClassDescriptions[Procedural_LookAtEnumLookAtComputeStage].name = "Procedural_LookAt::EnumLookAtComputeStage";
-    metaClassDescriptions[Scene].name = "Scene";
-    metaClassDescriptions[scene].name = "scene";
-    metaClassDescriptions[MapTempStringPropertySetstdlessTempStringLateLate].name = "Map<String,PropertySet,less<String>>";
-    metaClassDescriptions[RenderObject_PostMaterial].name = "RenderObject_PostMaterial";
-    metaClassDescriptions[Environment].name = "Environment";
-    metaClassDescriptions[EnvironmentLight].name = "EnvironmentLight";
-    metaClassDescriptions[BlendMode].name = "BlendMode";
-    metaClassDescriptions[EnumT3MaterialLightModelType].name = "EnumT3MaterialLightModelType";
-    metaClassDescriptions[HandleTempT3TextureLate].name = "Handle<T3Texture>";
-    metaClassDescriptions[T3GFXBuffer].name = "T3GFXBuffer";
-    metaClassDescriptions[GFXPlatformAttributeParams].name = "GFXPlatformAttributeParams";
-    metaClassDescriptions[T3GFXVertexState].name = "T3GFXVertexState";
-    metaClassDescriptions[T3MeshEffectPreloadDynamicFeatures].name = "T3MeshEffectPreloadDynamicFeatures";
-    metaClassDescriptions[T3MeshEffectPreloadEntry].name = "T3MeshEffectPreloadEntry";
-    metaClassDescriptions[T3MeshEffectPreload].name = "T3MeshEffectPreload";
-    metaClassDescriptions[T3MaterialRequirements].name = "T3MaterialRequirements";
-    metaClassDescriptions[T3MeshMaterial].name = "T3MeshMaterial";
-    metaClassDescriptions[Sphere].name = "Sphere";
-    metaClassDescriptions[BoundingBox].name = "BoundingBox";
-    metaClassDescriptions[T3MeshBatch].name = "T3MeshBatch";
-    metaClassDescriptions[T3MeshLOD].name = "T3MeshLOD";
-    metaClassDescriptions[T3MeshData].name = "T3MeshData";
-    metaClassDescriptions[T3MaterialTexture].name = "T3MaterialTexture";
-    metaClassDescriptions[D3DMesh].name = "D3DMesh";
-    metaClassDescriptions[d3dmesh].name = "d3dmesh";
-    metaClassDescriptions[T3MeshLocalTransformEntry].name = "T3MeshLocalTransformEntry";
-    metaClassDescriptions[KeyframedValueTempboolLate].name = "KeyframedValue<bool>";
-    metaClassDescriptions[AnimatedValueInterfaceTempboolLate].name = "AnimatedValueInterface<bool>";
-    metaClassDescriptions[KeyframedValueTempHandleTempD3DMeshLateLate].name = "KeyframedValue<Handle<D3DMesh>>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempD3DMeshLateLate].name = "AnimatedValueInterface<Handle<D3DMesh>>";
-    metaClassDescriptions[T3MeshBoneEntry].name = "T3MeshBoneEntry";
-    metaClassDescriptions[BoneContraints].name = "BoneContraints";
-    metaClassDescriptions[SkeletonEntry].name = "Skeleton::Entry";
-    metaClassDescriptions[T3MaterialStaticParameter].name = "T3MaterialStaticParameter";
-    metaClassDescriptions[T3MaterialEnlightenPrecomputeParams].name = "T3MaterialEnlightenPrecomputeParams";
-    metaClassDescriptions[KeyframedValueTempPhonemeKeyLate].name = "KeyframedValue<PhonemeKey>";
-    metaClassDescriptions[PhonemeKey].name = "PhonemeKey";
-    metaClassDescriptions[AnimatedValueInterfaceTempPhonemeKeyLate].name = "AnimatedValueInterface<PhonemeKey>";
-    metaClassDescriptions[LightType].name = "LightType";
-    metaClassDescriptions[AgentMapAgentMapEntry].name = "AgentMap::AgentMapEntry";
-    metaClassDescriptions[AgentMap].name = "AgentMap";
-    metaClassDescriptions[amap].name = "amap";
-    metaClassDescriptions[DCArrayTempStringLate].name = "DCArray<String>";
-    metaClassDescriptions[DCArrayTempHandleTempChoreLateLate].name = "DCArray<Handle<Chore>>";
-    metaClassDescriptions[HandleTempPropertySetLate].name = "Handle<PropertySet>";
-    metaClassDescriptions[FlagsT3LightEnvGroupSet].name = "FlagsT3LightEnvGroupSet";
-    metaClassDescriptions[HandleTempLightProbeDataLate].name = "Handle<LightProbeData>";
-    metaClassDescriptions[T3LightProbeInternalData].name = "T3LightProbeInternalData";
-    metaClassDescriptions[T3LightProbeInternalDataQualityEntry].name = "T3LightProbeInternalData::QualityEntry";
-    metaClassDescriptions[SetTempFileNameTempSoundEventBankDummyLatestdlessTempFileNameTempSoundEventBankDummyLateLateLate].name = "Set<FileName<SoundEventBankDummy>,less<FileName<SoundEventBankDummy>>>";
-    metaClassDescriptions[SoundEventNameTemp2Late].name = "SoundEventName<2>";
-    metaClassDescriptions[SoundEventNameBase].name = "SoundEventNameBase";
-    metaClassDescriptions[SoundEventNameTemp1Late].name = "SoundEventName<1>";
-    metaClassDescriptions[HandleTempSoundDataLate].name = "Handle<SoundData>";
-    metaClassDescriptions[SoundEventNameTemp0Late].name = "SoundEventName<0>";
-    metaClassDescriptions[HandleTempSoundAmbienceAmbienceDefinitionLate].name = "Handle<SoundAmbience::AmbienceDefinition>";
-    metaClassDescriptions[EnumParticleAffectorType].name = "EnumParticleAffectorType";
-    metaClassDescriptions[Quaternion].name = "Quaternion";
-    metaClassDescriptions[HandleTempParticleSpriteLate].name = "Handle<ParticleSprite>";
-    metaClassDescriptions[EnumParticleGeometryType].name = "EnumParticleGeometryType";
-    metaClassDescriptions[HandleTempParticlePropertiesLate].name = "Handle<ParticleProperties>";
-    metaClassDescriptions[EnumRenderMaskTest].name = "EnumRenderMaskTest";
-    metaClassDescriptions[EnumT3LightEnvGroup].name = "EnumT3LightEnvGroup";
-    metaClassDescriptions[ParticleLODKey].name = "ParticleLODKey";
-    metaClassDescriptions[EnumEmitterParticleCountType].name = "EnumEmitterParticleCountType";
-    metaClassDescriptions[EnumEmitterConstraintType].name = "EnumEmitterConstraintType";
-    metaClassDescriptions[EnumEmitterTriggerEnable].name = "EnumEmitterTriggerEnable";
-    metaClassDescriptions[EnumParticleSortMode].name = "EnumParticleSortMode";
-    metaClassDescriptions[EnumEmitterSpawnShape].name = "EnumEmitterSpawnShape";
-    metaClassDescriptions[EnumEmitterBoneSelection].name = "EnumEmitterBoneSelection";
-    metaClassDescriptions[EnumEmitterColorType].name = "EnumEmitterColorType";
-    metaClassDescriptions[EnumEmitterSpriteAnimationType].name = "EnumEmitterSpriteAnimationType";
-    metaClassDescriptions[EnumEmitterSpriteAnimationSelection].name = "EnumEmitterSpriteAnimationSelection";
-    metaClassDescriptions[SetTempColorstdlessTempColorLateLate].name = "Set<Color,less<Color>>";
-    metaClassDescriptions[DCArrayTempParticlePropConnectLate].name = "DCArray<ParticlePropConnect>";
-    metaClassDescriptions[DCArrayTempSymbolLate].name = "DCArray<Symbol>";
-    metaClassDescriptions[PhysicsObjectEnumePhysicsCollisionType].name = "PhysicsObject::EnumePhysicsCollisionType";
-    metaClassDescriptions[PhysicsObjectEnumePhysicsBoundingVolumeType].name = "PhysicsObject::EnumePhysicsBoundingVolumeType";
-    metaClassDescriptions[MapTempSymbolFootsteps2FootstepBankstdlessTempSymbolLateLate].name = "Map<Symbol,Footsteps2::FootstepBank,less<Symbol>>";
-    metaClassDescriptions[Footsteps2FootstepBank].name = "Footsteps2::FootstepBank";
-    metaClassDescriptions[HandleTempDialogResourceLate].name = "Handle<DialogResource>";
-    metaClassDescriptions[EnumHTextAlignmentType].name = "EnumHTextAlignmentType";
-    metaClassDescriptions[EnumVTextAlignmentType].name = "EnumVTextAlignmentType";
-    metaClassDescriptions[HandleTempFontLate].name = "Handle<Font>";
-    metaClassDescriptions[HandleTempDlgLate].name = "Handle<Dlg>";
-    metaClassDescriptions[Polar].name = "Polar";
-    metaClassDescriptions[NavCamEnumMode].name = "NavCam::EnumMode";
-    metaClassDescriptions[EnumEmittersEnableType].name = "EnumEmittersEnableType";
-    metaClassDescriptions[DCArrayTempHandleTempPropertySetLateLate].name = "DCArray<Handle<PropertySet>>";
-    metaClassDescriptions[RootKey].name = "RootKey";
-    metaClassDescriptions[PivotJointKey].name = "PivotJointKey";
-    metaClassDescriptions[BallJointKey].name = "BallJointKey";
-    metaClassDescriptions[HingeJointKey].name = "HingeJointKey";
-    metaClassDescriptions[BallTwistJointKey].name = "BallTwistJointKey";
-    metaClassDescriptions[PlaceableBallTwistJointKey].name = "PlaceableBallTwistJointKey";
-    metaClassDescriptions[LinkedBallTwistJointKey].name = "LinkedBallTwistJointKey";
-    metaClassDescriptions[EnlightenModuleEnlightenSystemSettings].name = "EnlightenModule::EnlightenSystemSettings";
-    metaClassDescriptions[EnlightenModuleEnumeProbeResolution].name = "EnlightenModule::EnumeProbeResolution";
-    metaClassDescriptions[EnlightenModuleEnumeQuality].name = "EnlightenModule::EnumeQuality";
-    metaClassDescriptions[EnlightenModuleEnlightenCubemapSettings].name = "EnlightenModule::EnlightenCubemapSettings";
-    metaClassDescriptions[EnlightenModuleEnlightenAdaptiveProbeVolumeSettings].name = "EnlightenModule::EnlightenAdaptiveProbeVolumeSettings";
-    metaClassDescriptions[EnlightenModuleEnlightenAutoProbeVolumeSettings].name = "EnlightenModule::EnlightenAutoProbeVolumeSettings";
-    metaClassDescriptions[EnlightenModuleEnlightenProbeVolumeSettings].name = "EnlightenModule::EnlightenProbeVolumeSettings";
-    metaClassDescriptions[MapTempSymbolSymbolstdlessTempSymbolLateLate].name = "Map<Symbol,Symbol,less<Symbol>>";
-    metaClassDescriptions[MapTempStringStringstdlessTempStringLateLate].name = "Map<String,String,less<String>>";
-    metaClassDescriptions[SceneAgentInfo].name = "Scene::AgentInfo";
-    metaClassDescriptions[PreloadPackageResourceKey].name = "PreloadPackage::ResourceKey";
-    metaClassDescriptions[PreloadPackageRuntimeDataScene].name = "PreloadPackage::RuntimeDataScene";
-    metaClassDescriptions[preloadpackagerts].name = "preloadpackagerts";
-    metaClassDescriptions[LocationInfo].name = "LocationInfo";
-    metaClassDescriptions[EnumT3LightEnvMobility].name = "EnumT3LightEnvMobility";
-    metaClassDescriptions[EnumT3LightEnvType].name = "EnumT3LightEnvType";
-    metaClassDescriptions[EnumT3LightEnvShadowQuality].name = "EnumT3LightEnvShadowQuality";
-    metaClassDescriptions[EnumT3LightEnvShadowType].name = "EnumT3LightEnvShadowType";
-    metaClassDescriptions[T3LightEnvInternalData].name = "T3LightEnvInternalData";
-    metaClassDescriptions[DCArrayTempfloatLate].name = "DCArray<float>";
-    metaClassDescriptions[EnumHBAOParticipationType].name = "EnumHBAOParticipationType";
-    metaClassDescriptions[T3LightCinematicRigLOD].name = "T3LightCinematicRigLOD";
-    metaClassDescriptions[ScriptEnumLightComposerLightSourceQuadrant].name = "ScriptEnum:LightComposerLightSourceQuadrant";
-    metaClassDescriptions[ScriptEnumLightComposerNodeLocation].name = "ScriptEnum:LightComposerNodeLocation";
-    metaClassDescriptions[ScriptEnumLightComposerCameraZone].name = "ScriptEnum:LightComposerCameraZone";
-    metaClassDescriptions[DCArrayTempVector2Late].name = "DCArray<Vector2>";
-    metaClassDescriptions[HandleTempChoreLate].name = "Handle<Chore>";
-    metaClassDescriptions[HandleTempSkeletonLate].name = "Handle<Skeleton>";
-    metaClassDescriptions[DCArrayTempHandleTempD3DMeshLateLate].name = "DCArray<Handle<D3DMesh>>";
-    metaClassDescriptions[ScriptEnumReticleActions].name = "ScriptEnum:ReticleActions";
-    metaClassDescriptions[HandleTempPhonemeTableLate].name = "Handle<PhonemeTable>";
-    metaClassDescriptions[MapTempint_typeStringstdlessTempintLateLate].name = "Map<int,String,less<int>>";
-    metaClassDescriptions[T3LightEnvInternalDataQualityEntry].name = "T3LightEnvInternalData::QualityEntry";
-    metaClassDescriptions[ScriptEnumQTE_Type].name = "ScriptEnum:QTE_Type";
-    metaClassDescriptions[ScriptEnumAIAgentState].name = "ScriptEnum:AIAgentState";
-    metaClassDescriptions[ScriptEnumUseableType].name = "ScriptEnum:UseableType";
-    metaClassDescriptions[ScriptEnumDialogMode].name = "ScriptEnum:DialogMode";
-    metaClassDescriptions[ScriptEnumControllerButtons].name = "ScriptEnum:ControllerButtons";
-    metaClassDescriptions[ScriptEnumReticleDisplayMode].name = "ScriptEnum:ReticleDisplayMode";
-    metaClassDescriptions[ScriptEnumMenuVerticalAlignment].name = "ScriptEnum:MenuVerticalAlignment";
-    metaClassDescriptions[ScriptEnumMenuAlignment].name = "ScriptEnum:MenuAlignment";
-    metaClassDescriptions[ScriptEnumAIPatrolType].name = "ScriptEnum:AIPatrolType";
-    metaClassDescriptions[ScriptEnumStruggleType].name = "ScriptEnum:StruggleType";
-    metaClassDescriptions[ScriptEnumGamepadButton].name = "ScriptEnum:GamepadButton";
-    metaClassDescriptions[ScriptEnumBlendTypes].name = "ScriptEnum:BlendTypes";
-    metaClassDescriptions[ScriptEnumAIDummyPos].name = "ScriptEnum:AIDummyPos";
-    metaClassDescriptions[ResourceBundle].name = "ResourceBundle";
-    metaClassDescriptions[bundle].name = "bundle";
-    metaClassDescriptions[InputMapperEventMapping].name = "InputMapper::EventMapping";
-    metaClassDescriptions[InputMapper].name = "InputMapper";
-    metaClassDescriptions[imap].name = "imap";
-    metaClassDescriptions[ListTempStringLate].name = "List<String>";
-    metaClassDescriptions[ParticleSpriteAnimation].name = "ParticleSprite::Animation";
-    metaClassDescriptions[ParticleSprite].name = "ParticleSprite";
-    metaClassDescriptions[sprite].name = "sprite";
-    metaClassDescriptions[EnumT3MaterialNormalSpaceType].name = "EnumT3MaterialNormalSpaceType";
-    metaClassDescriptions[EnumT3MaterialLODFullyRough].name = "EnumT3MaterialLODFullyRough";
-    metaClassDescriptions[HandleTempSoundBusSnapshotSnapshotLate].name = "Handle<SoundBusSnapshot::Snapshot>";
-    metaClassDescriptions[SoundData].name = "SoundData";
-    metaClassDescriptions[wav].name = "wav";
-    metaClassDescriptions[MapTempStringboolstdlessTempStringLateLate].name = "Map<String,bool,less<String>>";
-    metaClassDescriptions[Font].name = "Font";
-    metaClassDescriptions[font].name = "font";
-    metaClassDescriptions[SkeletonPoseValueSample].name = "SkeletonPoseValue::Sample";
-    metaClassDescriptions[DCArrayTempTransformLate].name = "DCArray<Transform>";
-    metaClassDescriptions[SkeletonPoseValueBoneEntry].name = "SkeletonPoseValue::BoneEntry";
-    metaClassDescriptions[SkeletonPoseValue].name = "SkeletonPoseValue";
-    metaClassDescriptions[KeyframedValueTempintLate].name = "KeyframedValue<int>";
-    metaClassDescriptions[AnimatedValueInterfaceTempintLate].name = "AnimatedValueInterface<int>";
-    metaClassDescriptions[KeyframedValueTempVector3Late].name = "KeyframedValue<Vector3>";
-    metaClassDescriptions[AnimatedValueInterfaceTempVector3Late].name = "AnimatedValueInterface<Vector3>";
-    metaClassDescriptions[KeyframedValueTempStringLate].name = "KeyframedValue<String>";
-    metaClassDescriptions[AnimatedValueInterfaceTempStringLate].name = "AnimatedValueInterface<String>";
-    metaClassDescriptions[Rollover].name = "Rollover";
-    metaClassDescriptions[DlgNodeText].name = "DlgNodeText";
-    metaClassDescriptions[EventStorage].name = "EventStorage";
-    metaClassDescriptions[estore].name = "estore";
-    metaClassDescriptions[SoundSystemImplementationChannelHolder].name = "SoundSystem::Implementation::ChannelHolder";
-    metaClassDescriptions[DlgObjectPropsMap].name = "DlgObjectPropsMap";
-    metaClassDescriptions[CSPK2Context].name = "CSPK2Context";
-    metaClassDescriptions[KeyframedValueTempColorLate].name = "KeyframedValue<Color>";
-    metaClassDescriptions[AnimatedValueInterfaceTempColorLate].name = "AnimatedValueInterface<Color>";
-    metaClassDescriptions[AgentState].name = "AgentState";
-    metaClassDescriptions[LipSync2].name = "LipSync2";
-    metaClassDescriptions[LipSync].name = "LipSync";
-    metaClassDescriptions[Style].name = "Style";
-    metaClassDescriptions[FootSteps].name = "FootSteps";
-    metaClassDescriptions[PathTo].name = "PathTo";
-    metaClassDescriptions[SArrayTempTRangeTempfloatLateLate3].name = "SArray<TRange<float>,3>";
-    metaClassDescriptions[LightInstance].name = "LightInstance";
-    metaClassDescriptions[InputMapperRawEvent].name = "InputMapper::RawEvent";
-    metaClassDescriptions[DArrayTempInputMapper__ptr64Late].name = "DArray<InputMapper*__ptr64>";
-    metaClassDescriptions[KeyframedValueTempHandleTempT3TextureLateLate].name = "KeyframedValue<Handle<T3Texture>>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempT3TextureLateLate].name = "AnimatedValueInterface<Handle<T3Texture>>";
-    metaClassDescriptions[TRectTempfloatLate].name = "TRect<float>";
-    metaClassDescriptions[FontGlyphInfo].name = "Font::GlyphInfo";
-    metaClassDescriptions[DCArrayTempT3MeshEffectPreloadDynamicFeaturesLate].name = "DCArray<T3MeshEffectPreloadDynamicFeatures>";
-    metaClassDescriptions[DCArrayTempT3MeshEffectPreloadEntryLate].name = "DCArray<T3MeshEffectPreloadEntry>";
-    metaClassDescriptions[T3MeshTextureIndices].name = "T3MeshTextureIndices";
-    metaClassDescriptions[DCArrayTempT3MeshBatchLate].name = "DCArray<T3MeshBatch>";
-    metaClassDescriptions[DCArrayTempT3MaterialPassDataLate].name = "DCArray<T3MaterialPassData>";
-    metaClassDescriptions[DCArrayTempT3MaterialTextureParamLate].name = "DCArray<T3MaterialTextureParam>";
-    metaClassDescriptions[DCArrayTempT3MaterialStaticParameterLate].name = "DCArray<T3MaterialStaticParameter>";
-    metaClassDescriptions[DCArrayTempT3MaterialPreShaderLate].name = "DCArray<T3MaterialPreShader>";
-    metaClassDescriptions[DCArrayTempT3MaterialNestedMaterialLate].name = "DCArray<T3MaterialNestedMaterial>";
-    metaClassDescriptions[DCArrayTempT3MaterialTransform2DLate].name = "DCArray<T3MaterialTransform2D>";
-    metaClassDescriptions[DCArrayTempT3MaterialTextureLate].name = "DCArray<T3MaterialTexture>";
-    metaClassDescriptions[DCArrayTempT3MaterialParameterLate].name = "DCArray<T3MaterialParameter>";
-    metaClassDescriptions[PlaybackController].name = "PlaybackController";
-    metaClassDescriptions[CinematicLightRig].name = "CinematicLightRig";
-    metaClassDescriptions[CinematicLight].name = "CinematicLight";
-    metaClassDescriptions[WalkAnimator].name = "WalkAnimator";
-    metaClassDescriptions[Mover].name = "Mover";
-    metaClassDescriptions[AnimationManager].name = "AnimationManager";
-    metaClassDescriptions[SetTempPtrTempPlaybackControllerLatestdlessTempPtrTempPlaybackControllerLateLateLate].name = "Set<Ptr<PlaybackController>,less<Ptr<PlaybackController>>>";
-    metaClassDescriptions[ChoreInst].name = "ChoreInst";
-    metaClassDescriptions[DCArrayTempChoreResourceBlockLate].name = "DCArray<ChoreResource::Block>";
-    metaClassDescriptions[RenderObject_Mesh].name = "RenderObject_Mesh";
-    metaClassDescriptions[EnumMeshDebugRenderType].name = "EnumMeshDebugRenderType";
-    metaClassDescriptions[DCArrayTempLightGroupInstanceLate].name = "DCArray<LightGroupInstance>";
-    metaClassDescriptions[DCArrayTempRenderObject_MeshTextureInstanceLate].name = "DCArray<RenderObject_Mesh::TextureInstance>";
-    metaClassDescriptions[DCArrayTempRenderObject_MeshMeshInstanceLate].name = "DCArray<RenderObject_Mesh::MeshInstance>";
-    metaClassDescriptions[RenderObjectInterface].name = "RenderObjectInterface";
-    metaClassDescriptions[SkeletonInstance].name = "SkeletonInstance";
-    metaClassDescriptions[DCArrayTempSklNodeDataLate].name = "DCArray<SklNodeData>";
-    metaClassDescriptions[HandleLockTempSkeletonLate].name = "HandleLock<Skeleton>";
-    metaClassDescriptions[EnlightenModule].name = "EnlightenModule";
-    metaClassDescriptions[MapTempSymbolFootStepsFootstepBankstdlessTempSymbolLateLate].name = "Map<Symbol,FootSteps::FootstepBank,less<Symbol>>";
-    metaClassDescriptions[MapTempSoundFootstepsEnumMaterialDCArrayTempHandleTempSoundDataLateLatestdlessTempSoundFootstepsEnumMaterialLateLate].name = "Map<SoundFootsteps::EnumMaterial,DCArray<Handle<SoundData>>,less<SoundFootsteps::EnumMaterial>>";
-    metaClassDescriptions[DCArrayTempHandleTempSoundDataLateLate].name = "DCArray<Handle<SoundData>>";
-    metaClassDescriptions[EnumLightCellBlendMode].name = "EnumLightCellBlendMode";
-    metaClassDescriptions[EnlightenModuleEnlightenLightSettings].name = "EnlightenModule::EnlightenLightSettings";
-    metaClassDescriptions[HandleTempRulesLate].name = "Handle<Rules>";
-    metaClassDescriptions[HandleLockTempSceneLate].name = "HandleLock<Scene>";
-    metaClassDescriptions[RenderObject_Text2].name = "RenderObject_Text2";
-    metaClassDescriptions[Selectable].name = "Selectable";
-    metaClassDescriptions[Camera].name = "Camera";
-    metaClassDescriptions[SceneInstData].name = "SceneInstData";
-    metaClassDescriptions[EnumTonemapType].name = "EnumTonemapType";
-    metaClassDescriptions[DCArrayTempFileNameTempSoundEventBankDummyLateLate].name = "DCArray<FileName<SoundEventBankDummy>>";
-    metaClassDescriptions[HandleTempPhysicsDataLate].name = "Handle<PhysicsData>";
-    metaClassDescriptions[SoundReverbPreset].name = "SoundReverbPreset";
-    metaClassDescriptions[HandleTempWalkBoxesLate].name = "Handle<WalkBoxes>";
-    metaClassDescriptions[HandleTempSoundBusSnapshotSnapshotSuiteLate].name = "Handle<SoundBusSnapshot::SnapshotSuite>";
-    metaClassDescriptions[HandleTempSoundReverbDefinitionLate].name = "Handle<SoundReverbDefinition>";
-    metaClassDescriptions[EnumTextOrientationType].name = "EnumTextOrientationType";
-    metaClassDescriptions[HandleTempBlendGraphManagerLate].name = "Handle<BlendGraphManager>";
-    metaClassDescriptions[SetTempStringstdlessTempStringLateLate].name = "Set<String,less<String>>";
-    metaClassDescriptions[EnlightenModuleEnlightenPrimitiveSettings].name = "EnlightenModule::EnlightenPrimitiveSettings";
-    metaClassDescriptions[EnlightenModuleEnumeQualityWithDefault].name = "EnlightenModule::EnumeQualityWithDefault";
-    metaClassDescriptions[EnlightenModuleEnumeUpdateMethod].name = "EnlightenModule::EnumeUpdateMethod";
-    metaClassDescriptions[EnlightenModuleEnumeInstanceType].name = "EnlightenModule::EnumeInstanceType";
-    metaClassDescriptions[EnumRenderMaskWrite].name = "EnumRenderMaskWrite";
-    metaClassDescriptions[EnumRenderLightmapUVGenerationType].name = "EnumRenderLightmapUVGenerationType";
-    metaClassDescriptions[MeshSceneLightmapData].name = "MeshSceneLightmapData";
-    metaClassDescriptions[MeshSceneEnlightenData].name = "MeshSceneEnlightenData";
-    metaClassDescriptions[ZTestFunction].name = "ZTestFunction";
-    metaClassDescriptions[CameraFacingTypes].name = "CameraFacingTypes";
-    metaClassDescriptions[EnumT3LightEnvBakeOnStatic].name = "EnumT3LightEnvBakeOnStatic";
-    metaClassDescriptions[T3LightEnvLOD].name = "T3LightEnvLOD";
-    metaClassDescriptions[EnumT3LightEnvLODBehavior].name = "EnumT3LightEnvLODBehavior";
-    metaClassDescriptions[EnumT3LightEnvEnlightenBakeBehavior].name = "EnumT3LightEnvEnlightenBakeBehavior";
-    metaClassDescriptions[EnumDepthOfFieldType].name = "EnumDepthOfFieldType";
-    metaClassDescriptions[Agent].name = "Agent";
-    metaClassDescriptions[HandleLockTempPropertySetLate].name = "HandleLock<PropertySet>";
-    metaClassDescriptions[HandleObjectInfo].name = "HandleObjectInfo";
-    metaClassDescriptions[AssetCollection].name = "AssetCollection";
-    metaClassDescriptions[acol].name = "acol";
-    metaClassDescriptions[SoundBusSystemBusDescription].name = "SoundBusSystem::BusDescription";
-    metaClassDescriptions[SoundBusSystemBusHolder].name = "SoundBusSystem::BusHolder";
-    metaClassDescriptions[audiobus].name = "audiobus";
-    metaClassDescriptions[T3OverlayObjectData_Sprite].name = "T3OverlayObjectData_Sprite";
-    metaClassDescriptions[T3OverlaySpriteParams].name = "T3OverlaySpriteParams";
-    metaClassDescriptions[T3OverlayParams].name = "T3OverlayParams";
-    metaClassDescriptions[T3OverlayData].name = "T3OverlayData";
-    metaClassDescriptions[overlay].name = "overlay";
-    metaClassDescriptions[EventLoggerEvent].name = "EventLoggerEvent";
-    metaClassDescriptions[EventStoragePage].name = "EventStoragePage";
-    metaClassDescriptions[epage].name = "epage";
-    metaClassDescriptions[IdleSlotDefaults].name = "IdleSlotDefaults";
-    metaClassDescriptions[IdleTransitionSettings].name = "IdleTransitionSettings";
-    metaClassDescriptions[Rect].name = "Rect";
-    metaClassDescriptions[DCArrayTempMapTempStringStringstdlessTempStringLateLateLate].name = "DCArray<Map<String,String,less<String>>>";
-    metaClassDescriptions[MapTempSymbolintstdlessTempSymbolLateLate].name = "Map<Symbol,int,less<Symbol>>";
-    metaClassDescriptions[T3MeshPropertyEntry].name = "T3MeshPropertyEntry";
-    metaClassDescriptions[DCArrayTempT3MeshPropertyEntryLate].name = "DCArray<T3MeshPropertyEntry>";
-    metaClassDescriptions[EnumHBAOPreset].name = "EnumHBAOPreset";
-    metaClassDescriptions[EnumHBAODeinterleaving].name = "EnumHBAODeinterleaving";
-    metaClassDescriptions[EnumHBAOQualityLevel].name = "EnumHBAOQualityLevel";
-    metaClassDescriptions[EnumHBAOResolution].name = "EnumHBAOResolution";
-    metaClassDescriptions[EnumRenderAntialiasType].name = "EnumRenderAntialiasType";
-    metaClassDescriptions[EnumRenderTAAJitterType].name = "EnumRenderTAAJitterType";
-    metaClassDescriptions[EnumDOFQualityLevel].name = "EnumDOFQualityLevel";
-    metaClassDescriptions[EnumBokehQualityLevel].name = "EnumBokehQualityLevel";
-    metaClassDescriptions[EnumGlowQualityLevel].name = "EnumGlowQualityLevel";
-    metaClassDescriptions[EnumBokehOcclusionType].name = "EnumBokehOcclusionType";
-    metaClassDescriptions[HandleTempT3OverlayDataLate].name = "Handle<T3OverlayData>";
-    metaClassDescriptions[MapTempSymbolLocalizationLanguagestdlessTempSymbolLateLate].name = "Map<Symbol,Localization::Language,less<Symbol>>";
-    metaClassDescriptions[MapTempSymbolPropertySetstdlessTempSymbolLateLate].name = "Map<Symbol,PropertySet,less<Symbol>>";
-    metaClassDescriptions[MapTempStringintstdlessTempStringLateLate].name = "Map<String,int,less<String>>";
-    metaClassDescriptions[uint32_type].name = "uint32";
-    metaClassDescriptions[LocalizationLanguage].name = "Localization::Language";
-    metaClassDescriptions[MapTempSymbolStringstdlessTempSymbolLateLate].name = "Map<Symbol,String,less<Symbol>>";
-    metaClassDescriptions[SetTempintstdlessTempintLateLate].name = "Set<int,less<int>>";
-    metaClassDescriptions[MapTempintSymbolstdlessTempintLateLate].name = "Map<int,Symbol,less<int>>";
-    metaClassDescriptions[ChorecorderParameters].name = "ChorecorderParameters";
-    metaClassDescriptions[MapTempStringChorecorderParametersstdlessTempStringLateLate].name = "Map<String,ChorecorderParameters,less<String>>";
-    metaClassDescriptions[uint64_type].name = "uint64";
-    metaClassDescriptions[MapTempStringSetTempSymbolstdlessTempSymbolLateLateStringCompareCaseInsensitiveLate].name = "Map<String,Set<Symbol,less<Symbol>>,StringCompareCaseInsensitive>";
-    metaClassDescriptions[MapTempSymbolMapTempSymbolSetTempSymbolstdlessTempSymbolLateLatestdlessTempSymbolLateLatestdlessTempSymbolLateLate].name = "Map<Symbol,Map<Symbol,Set<Symbol,less<Symbol>>,less<Symbol>>,less<Symbol>>";
-    metaClassDescriptions[MapTempSymbolMapTempSymbolintstdlessTempSymbolLateLatestdlessTempSymbolLateLate].name = "Map<Symbol,Map<Symbol,int,less<Symbol>>,less<Symbol>>";
-    metaClassDescriptions[MapTempSymbolPreloadPackageResourceSeenTimesstdlessTempSymbolLateLate].name = "Map<Symbol,PreloadPackage::ResourceSeenTimes,less<Symbol>>";
-    metaClassDescriptions[MapTempPreloadPackageResourceKeyPreloadPackageResourceSeenTimesstdlessTempPreloadPackageResourceKeyLateLate].name = "Map<PreloadPackage::ResourceKey,PreloadPackage::ResourceSeenTimes,less<PreloadPackage::ResourceKey>>";
-    metaClassDescriptions[MapTempunsignedintSetTempSymbolstdlessTempSymbolLateLatestdlessTempunsignedintLateLate].name = "Map<unsignedint,Set<Symbol,less<Symbol>>,less<unsignedint>>";
-    metaClassDescriptions[MapTempunsignedlongFontGlyphInfostdlessTempunsignedlongLateLate].name = "Map<unsignedlong,Font::GlyphInfo,less<unsignedlong>>";
-    metaClassDescriptions[MapTempunsignedlongLanguageResstdlessTempunsignedlongLateLate].name = "Map<unsignedlong,LanguageRes,less<unsignedlong>>";
-    metaClassDescriptions[MapTempStringHandleTempPropertySetLatestdlessTempStringLateLate].name = "Map<String,Handle<PropertySet>,less<String>>";
-    metaClassDescriptions[MapTempStringVector3stdlessTempStringLateLate].name = "Map<String,Vector3,less<String>>";
-    metaClassDescriptions[MapTempSymbolDCArrayTempLanguageResLocalLatestdlessTempSymbolLateLate].name = "Map<Symbol,DCArray<LanguageResLocal>,less<Symbol>>";
-    metaClassDescriptions[MapTempStringStyleGuideRefstdlessTempStringLateLate].name = "Map<String,StyleGuideRef,less<String>>";
-    metaClassDescriptions[MapTempStringSetTempSymbolstdlessTempSymbolLateLatestdlessTempStringLateLate].name = "Map<String,Set<Symbol,less<Symbol>>,less<String>>";
-    metaClassDescriptions[MapTempStringSetTempStringstdlessTempStringLateLatestdlessTempStringLateLate].name = "Map<String,Set<String,less<String>>,less<String>>";
-    metaClassDescriptions[MapTempStringPhonemeTablePhonemeEntrystdlessTempStringLateLate].name = "Map<String,PhonemeTable::PhonemeEntry,less<String>>";
-    metaClassDescriptions[MapTempStringMapTempStringDCArrayTempStringLatestdlessTempStringLateLatestdlessTempStringLateLate].name = "Map<String,Map<String,DCArray<String>,less<String>>,less<String>>";
-    metaClassDescriptions[MapTempStringfloatstdlessTempStringLateLate].name = "Map<String,float,less<String>>";
-    metaClassDescriptions[MapTempStringAnimOrChorestdlessTempStringLateLate].name = "Map<String,AnimOrChore,less<String>>";
-    metaClassDescriptions[MapTempMetaClassDescriptionconst__ptr64intstdlessTempMetaClassDescriptionconst__ptr64LateLate].name = "Map<MetaClassDescriptionconst*__ptr64,int,less<MetaClassDescriptionconst*__ptr64>>";
-    metaClassDescriptions[MapTempintPropertySetstdlessTempintLateLate].name = "Map<int,PropertySet,less<int>>";
-    metaClassDescriptions[MapTempintintstdlessTempintLateLate].name = "Map<int,int,less<int>>";
-    metaClassDescriptions[MapTempDlgObjIDintDlgObjIDLessLate].name = "Map<DlgObjID,int,DlgObjIDLess>";
-    metaClassDescriptions[MapTempStringDCArrayTempunsignedcharLatestdlessTempStringLateLate].name = "Map<String,DCArray<unsignedchar>,less<String>>";
-    metaClassDescriptions[ListTempVector3Late].name = "List<Vector3>";
-    metaClassDescriptions[ListTempunsignedintLate].name = "List<unsignedint>";
-    metaClassDescriptions[ListTempT3ToonGradientRegionLate].name = "List<T3ToonGradientRegion>";
-    metaClassDescriptions[ListTempPropertySetLate].name = "List<PropertySet>";
-    metaClassDescriptions[ListTempintLate].name = "List<int>";
-    metaClassDescriptions[ListTempMapTempStringStringstdlessTempStringLateLateLate].name = "List<Map<String,String,less<String>>>";
-    metaClassDescriptions[ListTempListTempPropertySetLateLate].name = "List<List<PropertySet>>";
-    metaClassDescriptions[ListTempHandleLockTempSceneLateLate].name = "List<HandleLock<Scene>>";
-    metaClassDescriptions[ListTempHandleTempT3TextureLateLate].name = "List<Handle<T3Texture>>";
-    metaClassDescriptions[ListTempHandleTempSceneLateLate].name = "List<Handle<Scene>>";
-    metaClassDescriptions[ListTempHandleTempRulesLateLate].name = "List<Handle<Rules>>";
-    metaClassDescriptions[ListTempHandleTempPropertySetLateLate].name = "List<Handle<PropertySet>>";
-    metaClassDescriptions[ListTempHandleTempD3DMeshLateLate].name = "List<Handle<D3DMesh>>";
-    metaClassDescriptions[ListTempHandleTempChoreLateLate].name = "List<Handle<Chore>>";
-    metaClassDescriptions[ListTempHandleTempSoundDataLateLate].name = "List<Handle<SoundData>>";
-    metaClassDescriptions[ListTempHandleTempAudioDataLateLate].name = "List<Handle<AudioData>>";
-    metaClassDescriptions[ListTempHandleTempAnimOrChoreLateLate].name = "List<Handle<AnimOrChore>>";
-    metaClassDescriptions[ListTempfloatLate].name = "List<float>";
-    metaClassDescriptions[ListTempListTempSymbolLateLate].name = "List<List<Symbol>>";
-    metaClassDescriptions[ListTempDCArrayTempStringLateLate].name = "List<DCArray<String>>";
-    metaClassDescriptions[ListTempColorLate].name = "List<Color>";
-    metaClassDescriptions[ListTempboolLate].name = "List<bool>";
-    metaClassDescriptions[DCArrayTempPreloadPackageRuntimeDataDialogDialogResourceInfoLate].name = "DCArray<PreloadPackage::RuntimeDataDialog::DialogResourceInfo>";
-    metaClassDescriptions[DCArrayTempunsignedcharLate].name = "DCArray<unsignedchar>";
-    metaClassDescriptions[DCArrayTempHandleTempT3TextureLateLate].name = "DCArray<PropertySet>";
-    metaClassDescriptions[DCArrayTempHandleTempT3TextureLateLate].name = "DCArray<Handle<T3Texture>>";
-    metaClassDescriptions[DCArrayTempHandleTempSceneLateLate].name = "DCArray<Handle<Scene>>";
-    metaClassDescriptions[DCArrayTempHandleTempRulesLateLate].name = "DCArray<Handle<Rules>>";
-    metaClassDescriptions[DCArrayTempHandleTempAudioDataLateLate].name = "DCArray<Handle<AudioData>>";
-    metaClassDescriptions[DCArrayTempHandleTempAnimOrChoreLateLate].name = "DCArray<Handle<AnimOrChore>>";
-    metaClassDescriptions[DCArrayTempDlgNodeInstanceParallelElemInstanceDataLate].name = "DCArray<DlgNodeInstanceParallel::ElemInstanceData>";
-    metaClassDescriptions[DCArrayTempDlgNodeInstanceSequenceElemInstanceDataLate].name = "DCArray<DlgNodeInstanceSequence::ElemInstanceData>";
-    metaClassDescriptions[DCArrayTempDCArrayTempStringLateLate].name = "DCArray<DCArray<String>>";
-    metaClassDescriptions[DCArrayTempDCArrayTempPropertySetLateLate].name = "DCArray<DCArray<PropertySet>>";
-    metaClassDescriptions[DCArrayTempColorLate].name = "DCArray<Color>";
-    metaClassDescriptions[DCArrayTempboolLate].name = "DCArray<bool>";
-    metaClassDescriptions[SingleValueTempCompressedPathBlockingValueCompressedPathInfoKeyLate].name = "SingleValue<CompressedPathBlockingValue::CompressedPathInfoKey>";
-    metaClassDescriptions[CompressedKeysTempCompressedPathBlockingValueCompressedPathInfoKeyLate].name = "CompressedKeys<CompressedPathBlockingValue::CompressedPathInfoKey>";
-    metaClassDescriptions[SingleValueTempPolarLate].name = "SingleValue<Polar>";
-    metaClassDescriptions[CompressedKeysTempPolarLate].name = "CompressedKeys<Polar>";
-    metaClassDescriptions[KeyframedValueTempPolarLate].name = "KeyframedValue<Polar>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempPolarLateSampleLate].name = "DCArray<KeyframedValue<Polar>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempPolarLate].name = "AnimatedValueInterface<Polar>";
-    metaClassDescriptions[SingleValueTempVector4Late].name = "SingleValue<Vector4>";
-    metaClassDescriptions[CompressedKeysTempVector4Late].name = "CompressedKeys<Vector4>";
-    metaClassDescriptions[KeyframedValueTempVector4Late].name = "KeyframedValue<Vector4>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempVector4LateSampleLate].name = "DCArray<KeyframedValue<Vector4>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempVector4Late].name = "AnimatedValueInterface<Vector4>";
-    metaClassDescriptions[SingleValueTempVector3Late].name = "SingleValue<Vector3>";
-    metaClassDescriptions[CompressedKeysTempVector3Late].name = "CompressedKeys<Vector3>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempVector3LateSampleLate].name = "DCArray<KeyframedValue<Vector3>::Sample>";
-    metaClassDescriptions[SingleValueTempVector2Late].name = "SingleValue<Vector2>";
-    metaClassDescriptions[CompressedKeysTempVector2Late].name = "CompressedKeys<Vector2>";
-    metaClassDescriptions[KeyframedValueTempVector2Late].name = "KeyframedValue<Vector2>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempVector2LateSampleLate].name = "DCArray<KeyframedValue<Vector2>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempVector2Late].name = "AnimatedValueInterface<Vector2>";
-    metaClassDescriptions[SingleValueTempunsigned__int64Late].name = "SingleValue<unsigned__int64>";
-    metaClassDescriptions[CompressedKeysTempunsigned__int64Late].name = "CompressedKeys<unsigned__int64>";
-    metaClassDescriptions[KeyframedValueTempunsigned__int64Late].name = "KeyframedValue<unsigned__int64>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempunsigned__int64LateSampleLate].name = "DCArray<KeyframedValue<unsigned__int64>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempunsigned__int64Late].name = "AnimatedValueInterface<unsigned__int64>";
-    metaClassDescriptions[SingleValueTempTransformLate].name = "SingleValue<Transform>";
-    metaClassDescriptions[CompressedKeysTempTransformLate].name = "CompressedKeys<Transform>";
-    metaClassDescriptions[SingleValueTempT3VertexBufferSampleTempT3NormalSampleDataT3HeapAllocatorLateLate].name = "SingleValue<T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>>";
-    metaClassDescriptions[CompressedKeysTempT3VertexBufferSampleTempT3NormalSampleDataT3HeapAllocatorLateLate].name = "CompressedKeys<T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>>";
-    metaClassDescriptions[SingleValueTempT3VertexBufferSampleTempT3PositionSampleDataT3HeapAllocatorLateLate].name = "SingleValue<T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>>";
-    metaClassDescriptions[CompressedKeysTempT3VertexBufferSampleTempT3PositionSampleDataT3HeapAllocatorLateLate].name = "CompressedKeys<T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>>";
-    metaClassDescriptions[KeyframedValueTempT3VertexBufferSampleTempT3PositionSampleDataT3HeapAllocatorLateLate].name = "KeyframedValue<T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempT3VertexBufferSampleTempT3PositionSampleDataT3HeapAllocatorLateLateSampleLate].name = "DCArray<KeyframedValue<T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>>::Sample>";
-    metaClassDescriptions[T3VertexBufferSampleTempT3PositionSampleDataT3HeapAllocatorLate].name = "T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>";
-    metaClassDescriptions[AnimatedValueInterfaceTempT3VertexBufferSampleTempT3PositionSampleDataT3HeapAllocatorLateLate].name = "AnimatedValueInterface<T3VertexBufferSample<T3PositionSampleData,T3HeapAllocator>>";
-    metaClassDescriptions[SingleValueTempSymbolLate].name = "SingleValue<Symbol>";
-    metaClassDescriptions[CompressedKeysTempSymbolLate].name = "CompressedKeys<Symbol>";
-    metaClassDescriptions[KeyframedValueTempSymbolLate].name = "KeyframedValue<Symbol>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempSymbolLateSampleLate].name = "DCArray<KeyframedValue<Symbol>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempSymbolLate].name = "AnimatedValueInterface<Symbol>";
-    metaClassDescriptions[SingleValueTempStringLate].name = "SingleValue<String>";
-    metaClassDescriptions[CompressedKeysTempStringLate].name = "CompressedKeys<String>";
-    metaClassDescriptions[SingleValueTempSoundEventNameTemp1LateLate].name = "SingleValue<SoundEventName<1>>";
-    metaClassDescriptions[CompressedKeysTempSoundEventNameTemp1LateLate].name = "CompressedKeys<SoundEventName<1>>";
-    metaClassDescriptions[KeyframedValueTempSoundEventNameTemp1LateLate].name = "KeyframedValue<SoundEventName<1>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempSoundEventNameTemp1LateLateSampleLate].name = "DCArray<KeyframedValue<SoundEventName<1>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempSoundEventNameTemp1LateLate].name = "AnimatedValueInterface<SoundEventName<1>>";
-    metaClassDescriptions[SingleValueTempSoundEventNameTemp2LateLate].name = "SingleValue<SoundEventName<0>>";
-    metaClassDescriptions[CompressedKeysTempSoundEventNameTemp2LateLate].name = "CompressedKeys<SoundEventName<0>>";
-    metaClassDescriptions[KeyframedValueTempSoundEventNameTemp2LateLate].name = "KeyframedValue<SoundEventName<0>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempSoundEventNameTemp2LateLateSampleLate].name = "DCArray<KeyframedValue<SoundEventName<0>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempSoundEventNameTemp2LateLate].name = "AnimatedValueInterface<SoundEventName<0>>";
-    metaClassDescriptions[SingleValueTempSoundEventNameTemp0LateLate].name = "SingleValue<SoundEventName<3>>";
-    metaClassDescriptions[CompressedKeysTempSoundEventNameTemp0LateLate].name = "CompressedKeys<SoundEventName<3>>";
-    metaClassDescriptions[KeyframedValueTempSoundEventNameTemp0LateLate].name = "KeyframedValue<SoundEventName<3>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempSoundEventNameTemp0LateLateSampleLate].name = "DCArray<KeyframedValue<SoundEventName<3>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempSoundEventNameTemp0LateLate].name = "AnimatedValueInterface<SoundEventName<3>>";
-    metaClassDescriptions[SingleValueTempScriptEnumLate].name = "SingleValue<SoundEventName<2>>";
-    metaClassDescriptions[CompressedKeysTempScriptEnumLate].name = "CompressedKeys<SoundEventName<2>>";
-    metaClassDescriptions[KeyframedValueTempScriptEnumLate].name = "KeyframedValue<SoundEventName<2>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempScriptEnumLateSampleLate].name = "DCArray<KeyframedValue<SoundEventName<2>>::Sample>";
-    metaClassDescriptions[ScriptEnum].name = "ScriptEnum";
-    metaClassDescriptions[AnimatedValueInterfaceTempScriptEnumLate].name = "AnimatedValueInterface<SoundEventName<2>>";
-    metaClassDescriptions[SingleValueTempQuaternionLate].name = "SingleValue<Quaternion>";
-    metaClassDescriptions[CompressedKeysTempQuaternionLate].name = "CompressedKeys<Quaternion>";
-    metaClassDescriptions[KeyframedValueTempQuaternionLate].name = "KeyframedValue<Quaternion>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempQuaternionLateSampleLate].name = "DCArray<KeyframedValue<Quaternion>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempQuaternionLate].name = "AnimatedValueInterface<Quaternion>";
-    metaClassDescriptions[SingleValueTempPhonemeKeyLate].name = "SingleValue<PhonemeKey>";
-    metaClassDescriptions[CompressedKeysTempPhonemeKeyLate].name = "CompressedKeys<PhonemeKey>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempPhonemeKeyLateSampleLate].name = "DCArray<KeyframedValue<PhonemeKey>::Sample>";
-    metaClassDescriptions[SingleValueTempintLate].name = "SingleValue<int>";
-    metaClassDescriptions[CompressedKeysTempintLate].name = "CompressedKeys<int>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempintLateSampleLate].name = "DCArray<KeyframedValue<int>::Sample>";
-    metaClassDescriptions[SingleValueTempHandleTempWalkBoxesLateLate].name = "SingleValue<Handle<WalkBoxes>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempWalkBoxesLateLate].name = "CompressedKeys<Handle<WalkBoxes>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempWalkBoxesLateLate].name = "KeyframedValue<Handle<WalkBoxes>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempWalkBoxesLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<WalkBoxes>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempWalkBoxesLateLate].name = "AnimatedValueInterface<Handle<WalkBoxes>>";
-    metaClassDescriptions[SingleValueTempHandleTempT3TextureLateLate].name = "SingleValue<Handle<T3Texture>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempT3TextureLateLate].name = "CompressedKeys<Handle<T3Texture>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempT3TextureLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<T3Texture>>::Sample>";
-    metaClassDescriptions[SingleValueTempHandleTempSoundAmbienceAmbienceDefinitionLateLate].name = "SingleValue<Handle<SoundAmbience::AmbienceDefinition>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempSoundAmbienceAmbienceDefinitionLateLate].name = "CompressedKeys<Handle<SoundAmbience::AmbienceDefinition>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempSoundAmbienceAmbienceDefinitionLateLate].name = "KeyframedValue<Handle<SoundAmbience::AmbienceDefinition>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempSoundAmbienceAmbienceDefinitionLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<SoundAmbience::AmbienceDefinition>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempSoundAmbienceAmbienceDefinitionLateLate].name = "AnimatedValueInterface<Handle<SoundAmbience::AmbienceDefinition>>";
-    metaClassDescriptions[SingleValueTempHandleTempSoundBusSnapshotSnapshotSuiteLateLate].name = "SingleValue<Handle<SoundBusSnapshot::SnapshotSuite>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempSoundBusSnapshotSnapshotSuiteLateLate].name = "CompressedKeys<Handle<SoundBusSnapshot::SnapshotSuite>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempSoundBusSnapshotSnapshotSuiteLateLate].name = "KeyframedValue<Handle<SoundBusSnapshot::SnapshotSuite>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempSoundBusSnapshotSnapshotSuiteLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<SoundBusSnapshot::SnapshotSuite>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempSoundBusSnapshotSnapshotSuiteLateLate].name = "AnimatedValueInterface<Handle<SoundBusSnapshot::SnapshotSuite>>";
-    metaClassDescriptions[SingleValueTempHandleTempSoundBusSnapshotSnapshotLateLate].name = "SingleValue<Handle<SoundBusSnapshot::Snapshot>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempSoundBusSnapshotSnapshotLateLate].name = "CompressedKeys<Handle<SoundBusSnapshot::Snapshot>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempSoundBusSnapshotSnapshotLateLate].name = "KeyframedValue<Handle<SoundBusSnapshot::Snapshot>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempSoundBusSnapshotSnapshotLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<SoundBusSnapshot::Snapshot>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempSoundBusSnapshotSnapshotLateLate].name = "AnimatedValueInterface<Handle<SoundBusSnapshot::Snapshot>>";
-    metaClassDescriptions[SingleValueTempHandleTempSoundReverbDefinitionLateLate].name = "SingleValue<Handle<SoundReverbDefinition>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempSoundReverbDefinitionLateLate].name = "CompressedKeys<Handle<SoundReverbDefinition>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempSoundReverbDefinitionLateLate].name = "KeyframedValue<Handle<SoundReverbDefinition>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempSoundReverbDefinitionLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<SoundReverbDefinition>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempSoundReverbDefinitionLateLate].name = "AnimatedValueInterface<Handle<SoundReverbDefinition>>";
-    metaClassDescriptions[SingleValueTempHandleTempSoundEventSnapshotDataLateLate].name = "SingleValue<Handle<SoundEventSnapshotData>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempSoundEventSnapshotDataLateLate].name = "CompressedKeys<Handle<SoundEventSnapshotData>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempSoundEventSnapshotDataLateLate].name = "KeyframedValue<Handle<SoundEventSnapshotData>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempSoundEventSnapshotDataLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<SoundEventSnapshotData>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempSoundEventSnapshotDataLateLate].name = "AnimatedValueInterface<Handle<SoundEventSnapshotData>>";
-    metaClassDescriptions[SingleValueTempHandleTempSoundEventDataLateLate].name = "SingleValue<Handle<SoundEventData>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempSoundEventDataLateLate].name = "CompressedKeys<Handle<SoundEventData>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempSoundEventDataLateLate].name = "KeyframedValue<Handle<SoundEventData>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempSoundEventDataLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<SoundEventData>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempSoundEventDataLateLate].name = "AnimatedValueInterface<Handle<SoundEventData>>";
-    metaClassDescriptions[SingleValueTempHandleTempSoundDataLateLate].name = "SingleValue<Handle<SoundData>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempSoundDataLateLate].name = "CompressedKeys<Handle<SoundData>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempSoundDataLateLate].name = "KeyframedValue<Handle<SoundData>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempSoundDataLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<SoundData>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempSoundDataLateLate].name = "AnimatedValueInterface<Handle<SoundData>>";
-    metaClassDescriptions[SingleValueTempHandleTempSceneLateLate].name = "SingleValue<Handle<Scene>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempSceneLateLate].name = "CompressedKeys<Handle<Scene>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempSceneLateLate].name = "KeyframedValue<Handle<Scene>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempSceneLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<Scene>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempSceneLateLate].name = "AnimatedValueInterface<Handle<Scene>>";
-    metaClassDescriptions[SingleValueTempHandleTempPropertySetLateLate].name = "SingleValue<Handle<PropertySet>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempPropertySetLateLate].name = "CompressedKeys<Handle<PropertySet>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempPropertySetLateLate].name = "KeyframedValue<Handle<PropertySet>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempPropertySetLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<PropertySet>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempPropertySetLateLate].name = "AnimatedValueInterface<Handle<PropertySet>>";
-    metaClassDescriptions[SingleValueTempHandleTempPhonemeTableLateLate].name = "SingleValue<Handle<PhonemeTable>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempPhonemeTableLateLate].name = "CompressedKeys<Handle<PhonemeTable>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempPhonemeTableLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<PhonemeTable>>::Sample>";
-    metaClassDescriptions[SingleValueTempHandleTempFontLateLate].name = "SingleValue<Handle<Font>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempFontLateLate].name = "CompressedKeys<Handle<Font>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempFontLateLate].name = "KeyframedValue<Handle<Font>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempFontLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<Font>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempFontLateLate].name = "AnimatedValueInterface<Handle<Font>>";
-    metaClassDescriptions[SingleValueTempHandleTempDlgLateLate].name = "SingleValue<Handle<Dlg>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempDlgLateLate].name = "CompressedKeys<Handle<Dlg>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempDlgLateLate].name = "KeyframedValue<Handle<Dlg>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempDlgLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<Dlg>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempDlgLateLate].name = "AnimatedValueInterface<Handle<Dlg>>";
-    metaClassDescriptions[SingleValueTempHandleTempD3DMeshLateLate].name = "SingleValue<Handle<D3DMesh>>";
-    metaClassDescriptions[CompressedKeysTempHandleTempD3DMeshLateLate].name = "CompressedKeys<Handle<D3DMesh>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempD3DMeshLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<D3DMesh>>::Sample>";
-    metaClassDescriptions[SingleValueTempfloatLate].name = "SingleValue<float>";
-    metaClassDescriptions[CompressedKeysTempfloatLate].name = "CompressedKeys<float>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempfloatLateSampleLate].name = "DCArray<KeyframedValue<float>::Sample>";
-    metaClassDescriptions[SingleValueTempColorLate].name = "SingleValue<Color>";
-    metaClassDescriptions[CompressedKeysTempColorLate].name = "CompressedKeys<Color>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempColorLateSampleLate].name = "DCArray<KeyframedValue<Color>::Sample>";
-    metaClassDescriptions[SingleValueTempboolLate].name = "SingleValue<bool>";
-    metaClassDescriptions[CompressedKeysTempboolLate].name = "CompressedKeys<bool>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempboolLateSampleLate].name = "DCArray<KeyframedValue<bool>::Sample>";
-    metaClassDescriptions[SingleValueTempLocationInfoLate].name = "SingleValue<LocationInfo>";
-    metaClassDescriptions[CompressedKeysTempLocationInfoLate].name = "CompressedKeys<LocationInfo>";
-    metaClassDescriptions[KeyframedValueTempLocationInfoLate].name = "KeyframedValue<LocationInfo>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempLocationInfoLateSampleLate].name = "DCArray<KeyframedValue<LocationInfo>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempLocationInfoLate].name = "AnimatedValueInterface<LocationInfo>";
-    metaClassDescriptions[SingleValueTempAnimOrChoreLate].name = "SingleValue<AnimOrChore>";
-    metaClassDescriptions[CompressedKeysTempAnimOrChoreLate].name = "CompressedKeys<AnimOrChore>";
-    metaClassDescriptions[KeyframedValueTempAnimOrChoreLate].name = "KeyframedValue<AnimOrChore>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempAnimOrChoreLateSampleLate].name = "DCArray<KeyframedValue<AnimOrChore>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempAnimOrChoreLate].name = "AnimatedValueInterface<AnimOrChore>";
-    metaClassDescriptions[WalkBoxes].name = "WalkBoxes";
-    metaClassDescriptions[wbox].name = "wbox";
-    metaClassDescriptions[DCArrayTempWalkBoxesQuadLate].name = "DCArray<WalkBoxes::Quad>";
-    metaClassDescriptions[DCArrayTempVector3Late].name = "DCArray<Vector3>";
-    metaClassDescriptions[DCArrayTempWalkBoxesVertLate].name = "DCArray<WalkBoxes::Vert>";
-    metaClassDescriptions[DCArrayTempWalkBoxesTriLate].name = "DCArray<WalkBoxes::Tri>";
-    metaClassDescriptions[HandleTempVoiceDataLate].name = "Handle<VoiceData>";
-    metaClassDescriptions[VoiceData].name = "VoiceData";
-    metaClassDescriptions[DCArrayTempT3ToonGradientRegionLate].name = "DCArray<T3ToonGradientRegion>";
-    metaClassDescriptions[DCArrayTempT3OverlayObjectData_TextLate].name = "DCArray<T3OverlayObjectData_Text>";
-    metaClassDescriptions[DCArrayTempT3OverlayObjectData_SpriteLate].name = "DCArray<T3OverlayObjectData_Sprite>";
-    metaClassDescriptions[HandleTempStyleIdleTransitionsResLate].name = "Handle<StyleIdleTransitionsRes>";
-    metaClassDescriptions[HandleTempStyleGuideRefLate].name = "Handle<StyleGuideRef>";
-    metaClassDescriptions[StyleGuideRef].name = "StyleGuideRef";
-    metaClassDescriptions[DArrayTempboolLate].name = "DArray<bool>";
-    metaClassDescriptions[HandleTempStyleGuideLate].name = "Handle<StyleGuide>";
-    metaClassDescriptions[DCArrayTempActingPaletteClassLate].name = "DCArray<ActingPaletteClass>";
-    metaClassDescriptions[DCArrayTempPtrTempActingPaletteClassLateLate].name = "DCArray<Ptr<ActingPaletteClass>>";
-    metaClassDescriptions[HandleTempSoundEventBankDummyLate].name = "Handle<SoundEventBankDummy>";
-    metaClassDescriptions[SoundEventBankDummy].name = "SoundEventBankDummy";
-    metaClassDescriptions[bank].name = "bank";
-    metaClassDescriptions[DCArrayTempSkeletonEntryLate].name = "DCArray<Skeleton::Entry>";
-    metaClassDescriptions[HandleTempSceneLate].name = "Handle<Scene>";
-    metaClassDescriptions[DCArrayTempHandleLockTempSceneLateLate].name = "DCArray<HandleLock<Scene>>";
-    metaClassDescriptions[LinkedListTempSceneAgentInfo0Late].name = "LinkedList<Scene::AgentInfo,0>";
-    metaClassDescriptions[HandleTempSaveGameLate].name = "Handle<SaveGame>";
-    metaClassDescriptions[SaveGame].name = "SaveGame";
-    metaClassDescriptions[save].name = "save";
-    metaClassDescriptions[DCArrayTempSaveGameAgentInfoLate].name = "DCArray<SaveGame::AgentInfo>";
-    metaClassDescriptions[Rules].name = "rules";
-    metaClassDescriptions[rules].name = "rules";
-    metaClassDescriptions[MapTempStringRule__ptr64stdlessTempStringLateLate].name = "Map<String,Rule*__ptr64,less<String>>";
-    metaClassDescriptions[HandleTempRuleLate].name = "Handle<Rule>";
-    metaClassDescriptions[HandleTempResourceGroupInfoLate].name = "Handle<ResourceGroupInfo>";
-    metaClassDescriptions[ResourceGroupInfo].name = "ResourceGroupInfo";
-    metaClassDescriptions[HandleTempResourceBundleLate].name = "Handle<ResourceBundle>";
-    metaClassDescriptions[DCArrayTempResourceBundleResourceInfoLate].name = "DCArray<ResourceBundle::ResourceInfo>";
-    metaClassDescriptions[HandleTempPreloadPackageRuntimeDataSceneLate].name = "Handle<PreloadPackage::RuntimeDataScene>";
-    metaClassDescriptions[HandleTempPreloadPackageRuntimeDataDialogLate].name = "Handle<PreloadPackage::RuntimeDataDialog>";
-    metaClassDescriptions[HandleTempPhysicsObjectLate].name = "Handle<PhysicsObject>";
-    metaClassDescriptions[DCArrayTempParticleSpriteAnimationLate].name = "DCArray<ParticleSprite::Animation>";
-    metaClassDescriptions[SArrayTempHandleTempT3TextureLate1Late].name = "SArray<Handle<T3Texture>,1>";
-    metaClassDescriptions[ParticleProperties].name = "ParticleProperties";
-    metaClassDescriptions[particle].name = "particle";
-    metaClassDescriptions[DCArrayTempParticlePropertiesAnimationLate].name = "DCArray<ParticleProperties::Animation>";
-    metaClassDescriptions[HandleTempLocomotionDBLate].name = "Handle<LocomotionDB>";
-    metaClassDescriptions[LocomotionDB].name = "LocomotionDB";
-    metaClassDescriptions[ldb].name = "ldb";
-    metaClassDescriptions[MapTempStringLocomotionDBAnimationInfolessTempStringLateLate].name = "Map<String,LocomotionDB::AnimationInfo,less<String>>";
-    metaClassDescriptions[LightProbeData].name = "LightProbeData";
-    metaClassDescriptions[probe].name = "probe";
-    metaClassDescriptions[HandleTempLanguageResourceLate].name = "Handle<LanguageResource>";
-    metaClassDescriptions[LanguageResource].name = "LanguageResource";
-    metaClassDescriptions[langres].name = "langres";
-    metaClassDescriptions[HandleTempLanguageDatabaseLate].name = "Handle<LanguageDatabase>";
-    metaClassDescriptions[LanguageDatabase].name = "LanguageDatabase";
-    metaClassDescriptions[langdb].name = "langdb";
-    metaClassDescriptions[MapTempintLanguageResourcelessTempintLateLate].name = "Map<int,LanguageResource,less<int>>";
-    metaClassDescriptions[HandleTempInputMapperLate].name = "Handle<InputMapper>";
-    metaClassDescriptions[DCArrayTempInputMapperEventMappingLate].name = "DCArray<InputMapper::EventMapping>";
-    metaClassDescriptions[DCArrayTempunsignedintLate].name = "DCArray<unsignedint>";
-    metaClassDescriptions[DCArrayTempT3TextureLate].name = "DCArray<T3Texture>";
-    metaClassDescriptions[MapTempunsignedintFontGlyphInfolessTempunsignedintLateLate].name = "Map<unsignedint,Font::GlyphInfo,less<unsignedint>>";
-    metaClassDescriptions[HandleTempEventStorageLate].name = "Handle<EventStorage>";
-    metaClassDescriptions[JiraRecordManager].name = "JiraRecordManager";
-    metaClassDescriptions[MapTempStringPtrTempJiraRecordLatelessTempStringLateLate].name = "Map<String,Ptr<JiraRecord>,less<String>>";
-    metaClassDescriptions[DialogResource].name = "DialogResource";
-    metaClassDescriptions[dlg].name = "dlg";
-    metaClassDescriptions[MapTempintPtrTempDialogTextLatelessTempintLateLate].name = "Map<int,Ptr<DialogText>,less<int>>";
-    metaClassDescriptions[MapTempintPtrTempDialogLineLatelessTempintLateLate].name = "Map<int,Ptr<DialogLine>,less<int>>";
-    metaClassDescriptions[MapTempintPtrTempDialogExchangeLatelessTempintLateLate].name = "Map<int,Ptr<DialogExchange>,less<int>>";
-    metaClassDescriptions[MapTempintPtrTempDialogItemLatelessTempintLateLate].name = "Map<int,Ptr<DialogItem>,less<int>>";
-    metaClassDescriptions[MapTempintPtrTempDialogBranchLatelessTempintLateLate].name = "Map<int,Ptr<DialogBranch>,less<int>>";
-    metaClassDescriptions[MapTempintPtrTempDialogDialogLatelessTempintLateLate].name = "Map<int,Ptr<DialogDialog>,less<int>>";
-    metaClassDescriptions[DArrayTempintLate].name = "DArray<int>";
-    metaClassDescriptions[DCArrayTempHandleBaseLate].name = "DCArray<HandleBase>";
-    metaClassDescriptions[DCArrayTempT3MeshEffectPreloadLate].name = "DCArray<T3MeshEffectPreload>";
-    metaClassDescriptions[DCArrayTempT3MeshLocalTransformEntryLate].name = "DCArray<T3MeshLocalTransformEntry>";
-    metaClassDescriptions[DCArrayTempT3MeshBoneEntryLate].name = "DCArray<T3MeshBoneEntry>";
-    metaClassDescriptions[DCArrayTempT3MeshMaterialOverrideLate].name = "DCArray<T3MeshMaterialOverride>";
-    metaClassDescriptions[DCArrayTempT3MeshMaterialLate].name = "DCArray<T3MeshMaterial>";
-    metaClassDescriptions[DCArrayTempT3MeshTextureLate].name = "DCArray<T3MeshTexture>";
-    metaClassDescriptions[DCArrayTempT3MeshLODLate].name = "DCArray<T3MeshLOD>";
-    metaClassDescriptions[MapTempSymbolWalkPathlessTempSymbolLateLate].name = "Map<Symbol,WalkPath,less<Symbol>>";
-    metaClassDescriptions[DependencyLoaderTemp1Late].name = "DependencyLoader<1>";
-    metaClassDescriptions[HandleTempSoundEventSnapshotDataLate].name = "Handle<SoundEventSnapshotData>";
-    metaClassDescriptions[SoundEventSnapshotData].name = "SoundEventSnapshotData";
-    metaClassDescriptions[HandleTempSoundEventDataLate].name = "Handle<SoundEventData>";
-    metaClassDescriptions[SoundEventData].name = "SoundEventData";
-    metaClassDescriptions[HandleTempBlendModeLate].name = "Handle<BlendMode>";
-    metaClassDescriptions[HandleTempAudioDataLate].name = "Handle<AudioData>";
-    metaClassDescriptions[AudioData].name = "AudioData";
-    metaClassDescriptions[HandleTempAnimOrChoreLate].name = "Handle<AnimOrChore>";
-    metaClassDescriptions[HandleTempAgentMapLate].name = "Handle<AgentMap>";
-    metaClassDescriptions[MapTempStringAgentMapAgentMapEntrylessTempStringLateLate].name = "Map<String,AgentMap::AgentMapEntry,less<String>>";
-    metaClassDescriptions[HandleTempActorAgentMapperLate].name = "Handle<ActorAgentMapper>";
-    metaClassDescriptions[ActorAgentMapper].name = "ActorAgentMapper";
-    metaClassDescriptions[aam].name = "aam";
-    metaClassDescriptions[CameraSelect].name = "CameraSelect";
-    metaClassDescriptions[cameraselectresource].name = "cameraselectresource";
-    metaClassDescriptions[KeyframedValueSteppedString].name = "KeyframedValueSteppedString";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempStringLateSampleLate].name = "DCArray<KeyframedValue<String>::Sample>";
-    metaClassDescriptions[BlendCameraResource].name = "BlendCameraResource";
-    metaClassDescriptions[blendcameraresource].name = "blendcameraresource";
-    metaClassDescriptions[PointOfInterestBlocking].name = "PointOfInterestBlocking";
-    metaClassDescriptions[poiblocking].name = "poiblocking";
-    metaClassDescriptions[EnumHBAOPerPixelNormals].name = "EnumHBAOPerPixelNormals";
-    metaClassDescriptions[EnumHBAOBlurQuality].name = "EnumHBAOBlurQuality";
-    metaClassDescriptions[DCArrayTempGuideLate].name = "DCArray<Guide>";
-    metaClassDescriptions[TextAlignmentType].name = "TextAlignmentType";
-    metaClassDescriptions[T3ToonGradientRegion].name = "T3ToonGradientRegion";
-    metaClassDescriptions[T3RenderStateBlock].name = "T3RenderStateBlock";
-    metaClassDescriptions[SArrayTempunsignedint3Late].name = "SArray<unsignedint,3>";
-    metaClassDescriptions[T3OcclusionMeshData].name = "T3OcclusionMeshData";
-    metaClassDescriptions[DCArrayTempT3OcclusionMeshBatchLate].name = "DCArray<T3OcclusionMeshBatch>";
-    metaClassDescriptions[T3MaterialSwizzleParams].name = "T3MaterialSwizzleParams";
-    metaClassDescriptions[EnumT3MaterialSwizzleType].name = "EnumT3MaterialSwizzleType";
-    metaClassDescriptions[DCArrayTempT3MaterialCompiledDataLate].name = "DCArray<T3MaterialCompiledData>";
-    metaClassDescriptions[DCArrayTempT3MaterialRuntimePropertyLate].name = "DCArray<T3MaterialRuntimeProperty>";
-    metaClassDescriptions[TetrahedralMeshData].name = "TetrahedralMeshData";
-    metaClassDescriptions[WalkPath].name = "WalkPath";
-    metaClassDescriptions[TransitionMap].name = "TransitionMap";
-    metaClassDescriptions[tmap].name = "tmap";
-    metaClassDescriptions[MapTempSymbolTransitionMapTransitionMapInfolessTempSymbolLateLate].name = "Map<Symbol,TransitionMap::TransitionMapInfo,less<Symbol>>";
-    metaClassDescriptions[StyleIdleTransitionsRes].name = "StyleIdleTransitionsRes";
-    metaClassDescriptions[trans].name = "trans";
-    metaClassDescriptions[SceneAgentQualitySettings].name = "Scene::AgentQualitySettings";
-    metaClassDescriptions[StringFilter].name = "StringFilter";
-    metaClassDescriptions[SoundEventBankMap].name = "SoundEventBankMap";
-    metaClassDescriptions[soundeventbankmap].name = "soundeventbankmap";
-    metaClassDescriptions[MapTempStringDCArrayTempStringLatelessTempStringLateLate].name = "Map<String,DCArray<String>,less<String>>";
-    metaClassDescriptions[SoundBankWaveMap].name = "SoundBankWaveMap";
-    metaClassDescriptions[bankwavemap].name = "bankwavemap";
-    metaClassDescriptions[MapTempSymbolSoundBankWaveMapEntrylessTempSymbolLateLate].name = "Map<Symbol,SoundBankWaveMapEntry,less<Symbol>>";
-    metaClassDescriptions[SoundBusSnapshotSnapshotSuite].name = "SoundBusSnapshot::SnapshotSuite";
-    metaClassDescriptions[snapshotsuite].name = "snapshotsuite";
-    metaClassDescriptions[MapTempSymbolHandleTempSoundBusSnapshotSnapshotLatelessTempSymbolLateLate].name = "Map<Symbol,Handle<SoundBusSnapshot::Snapshot>,less<Symbol>>";
-    metaClassDescriptions[SoundBusSnapshotSnapshot].name = "SoundBusSnapshot::Snapshot";
-    metaClassDescriptions[bussnapshot].name = "bussnapshot";
-    metaClassDescriptions[SoundReverbDefinition].name = "SoundReverbDefinition";
-    metaClassDescriptions[reverb].name = "reverb";
-    metaClassDescriptions[MapTempStringSoundBusSystemBusDescriptionstdlessTempStringLateLate].name = "Map<String,SoundBusSystem::BusDescription,less<String>>";
-    metaClassDescriptions[SoundAmbienceAmbienceDefinition].name = "SoundAmbience::AmbienceDefinition";
-    metaClassDescriptions[ambience].name = "ambience";
-    metaClassDescriptions[DCArrayTempSoundAmbienceEventContextLate].name = "DCArray<SoundAmbience::EventContext>";
-    metaClassDescriptions[DCArrayTempSkeletonPoseValueSampleLate].name = "DCArray<SkeletonPoseValue::Sample>";
-    metaClassDescriptions[DCArrayTempSkeletonPoseValueBoneEntryLate].name = "DCArray<SkeletonPoseValue::BoneEntry>";
-    metaClassDescriptions[SingleVector3Value].name = "SingleVector3Value";
-    metaClassDescriptions[SingleQuaternionValue].name = "SingleQuaternionValue";
-    metaClassDescriptions[SArrayTempunsignedchar32Late].name = "SArray<unsignedchar,32>";
-    metaClassDescriptions[MapTempSymbolfloatlessTempSymbolLateLate].name = "Map<Symbol,float,less<Symbol>>";
-    metaClassDescriptions[ProceduralEyes].name = "ProceduralEyes";
-    metaClassDescriptions[eyes].name = "eyes";
-    metaClassDescriptions[DCArrayTempPtrTempAnimationValueInterfaceBaseLateLate].name = "DCArray<Ptr<AnimationValueInterfaceBase>>";
-    metaClassDescriptions[Procedural_LookAt_Value].name = "Procedural_LookAt_Value";
-    metaClassDescriptions[PreloadPackageRuntimeDataDialogDialogResourceInfo].name = "PreloadPackage::RuntimeDataDialog::DialogResourceInfo";
-    metaClassDescriptions[DCArrayTempPreloadPackageResourceKeyLate].name = "DCArray<PreloadPackage::ResourceKey>";
-    metaClassDescriptions[PreloadPackageRuntimeDataDialog].name = "PreloadPackage::RuntimeDataDialog";
-    metaClassDescriptions[preloadpackagertd].name = "preloadpackagertd";
-    metaClassDescriptions[DCArrayTempPreloadPackageRuntimeDataDialogDlgObjIdAndStartNodeOffsetLate].name = "DCArray<PreloadPackage::RuntimeDataDialog::DlgObjIdAndStartNodeOffset>";
-    metaClassDescriptions[DCArrayTempPreloadPackageRuntimeDataDialogDlgObjIdAndResourceVectorLate].name = "DCArray<PreloadPackage::RuntimeDataDialog::DlgObjIdAndResourceVector>";
-    metaClassDescriptions[MetaAgentResourceContext].name = "Meta::AgentResourceContext";
-    metaClassDescriptions[MetaDependentResource].name = "Meta::DependentResource";
-    metaClassDescriptions[PreloadPackageResourceSeenTimes].name = "PreloadPackage::ResourceSeenTimes";
-    metaClassDescriptions[PhysicsObject].name = "PhysicsObject";
-    metaClassDescriptions[PhysicsData].name = "PhysicsData";
-    metaClassDescriptions[t3bullet].name = "t3bullet";
-    metaClassDescriptions[BinaryBuffer].name = "BinaryBuffer";
-    metaClassDescriptions[MapTempSymbolPhonemeTablePhonemeEntrylessTempSymbolLateLate].name = "Map<Symbol,PhonemeTable::PhonemeEntry,less<Symbol>>";
-    metaClassDescriptions[PerAgentClipResourceFilter].name = "PerAgentClipResourceFilter";
-    metaClassDescriptions[SetTempStringStringCompareCaseInsensitiveLate].name = "Set<String,StringCompareCaseInsensitive>";
-    metaClassDescriptions[MapTempStringClipResourceFilterStringCompareCaseInsensitiveLate].name = "Map<String,ClipResourceFilter,StringCompareCaseInsensitive>";
-    metaClassDescriptions[PathSegment].name = "PathSegment";
-    metaClassDescriptions[ParticlePropConnect].name = "ParticlePropConnect";
-    metaClassDescriptions[ParticleInverseKinematics].name = "ParticleInverseKinematics";
-    metaClassDescriptions[MovieCaptureInfo].name = "MovieCaptureInfo";
-    metaClassDescriptions[MovieCaptureInfoEnumCompressorType].name = "MovieCaptureInfo::EnumCompressorType";
-    metaClassDescriptions[DCArrayTempunsignedshortLate].name = "DCArray<unsignedshort>";
-    metaClassDescriptions[DCArrayTempMeshSceneLightmapDataEntryLate].name = "DCArray<MeshSceneLightmapData::Entry>";
-    metaClassDescriptions[Matrix4].name = "Matrix4";
-    metaClassDescriptions[MapTempStringMapTempStringStringlessTempStringLateLatelessTempStringLateLate].name = "Map<String,Map<String,String,less<String>>,less<String>>";
-    metaClassDescriptions[KeyframedValueTempHandleTempChoreLateLate].name = "KeyframedValue<Handle<Chore>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempHandleTempChoreLateLateSampleLate].name = "DCArray<KeyframedValue<Handle<Chore>>::Sample>";
-    metaClassDescriptions[AnimatedValueInterfaceTempHandleTempChoreLateLate].name = "AnimatedValueInterface<Handle<Chore>>";
-    metaClassDescriptions[KeyframedValueTempT3VertexBufferSampleTempT3NormalSampleDataT3HeapAllocatorLateLate].name = "KeyframedValue<T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempT3VertexBufferSampleTempT3NormalSampleDataT3HeapAllocatorLateLateSampleLate].name = "DCArray<KeyframedValue<T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>>::Sample>";
-    metaClassDescriptions[T3VertexBufferSampleTempT3NormalSampleDataT3HeapAllocatorLate].name = "T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>";
-    metaClassDescriptions[AnimatedValueInterfaceTempT3VertexBufferSampleTempT3NormalSampleDataT3HeapAllocatorLateLate].name = "AnimatedValueInterface<T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>>";
-    metaClassDescriptions[InverseKinematicsBase].name = "InverseKinematicsBase";
-    metaClassDescriptions[InverseKinematicsAttach].name = "InverseKinematicsAttach";
-    metaClassDescriptions[InverseKinematics].name = "InverseKinematics";
-    metaClassDescriptions[ik].name = "ik";
-    metaClassDescriptions[HandleLockTempAnimationLate].name = "HandleLock<Animation>";
-    metaClassDescriptions[InverseKinematicsDerived].name = "InverseKinematicsDerived";
-    metaClassDescriptions[HermiteCurvePathSegment].name = "HermiteCurvePathSegment";
-    metaClassDescriptions[PathBase].name = "PathBase";
-    metaClassDescriptions[MapTempSoundFootstepsEnumMaterialSoundEventNameTemp0LatelessTempSoundFootstepsEnumMaterialLateLate].name = "Map<SoundFootsteps::EnumMaterial,SoundEventName<0>,less<SoundFootsteps::EnumMaterial>>";
-    metaClassDescriptions[FootStepsFootstepBank].name = "FootSteps::FootstepBank";
-    metaClassDescriptions[FilterArea].name = "FilterArea";
-    metaClassDescriptions[FileNameTempSoundEventBankDummyLate].name = "FileName<SoundEventBankDummy>";
-    metaClassDescriptions[FileNameBase].name = "FileNameBase";
-    metaClassDescriptions[DCArrayTempEventStoragePageEntryLate].name = "DCArray<EventStorage::PageEntry>";
-    metaClassDescriptions[EnumRenderTextureResolution].name = "EnumRenderTextureResolution";
-    metaClassDescriptions[T3LightSceneInternalData].name = "T3LightSceneInternalData";
-    metaClassDescriptions[T3LightSceneInternalDataQualityEntry].name = "T3LightSceneInternalData::QualityEntry";
-    metaClassDescriptions[DCArrayTempT3LightSceneInternalDataLightmapPageLate].name = "DCArray<T3LightSceneInternalData::LightmapPage>";
-    metaClassDescriptions[EnumT3NPRSpecularType].name = "EnumT3NPRSpecularType";
-    metaClassDescriptions[EnumT3DetailShadingType].name = "EnumT3DetailShadingType";
-    metaClassDescriptions[EnumParticlePropModifier].name = "EnumParticlePropModifier";
-    metaClassDescriptions[EnumParticlePropDriver].name = "EnumParticlePropDriver";
-    metaClassDescriptions[EnlightenModuleEnumeDistributedBuildSystem].name = "EnlightenModule::EnumeDistributedBuildSystem";
-    metaClassDescriptions[EnlightenModuleEnumeSceneOptimisationMode].name = "EnlightenModule::EnumeSceneOptimisationMode";
-    metaClassDescriptions[EnlightenModuleEnumeBackfaceType].name = "EnlightenModule::EnumeBackfaceType";
-    metaClassDescriptions[EnlightenModuleEnumeAutoUVSimplificationMode].name = "EnlightenModule::EnumeAutoUVSimplificationMode";
-    metaClassDescriptions[EnlightenModuleEnumeProbeSampleMethod].name = "EnlightenModule::EnumeProbeSampleMethod";
-    metaClassDescriptions[EnlightenModuleEnumeDisplayQuality].name = "EnlightenModule::EnumeDisplayQuality";
-    metaClassDescriptions[EnlightenModuleEnumeRadiositySampleRate].name = "EnlightenModule::EnumeRadiositySampleRate";
-    metaClassDescriptions[EnlightenModuleEnumeUpdateMethodWithDefault].name = "EnlightenModule::EnumeUpdateMethodWithDefault";
-    metaClassDescriptions[EnlightenModuleEnumeProbeResolutionWithDefault].name = "EnlightenModule::EnumeProbeResolutionWithDefault";
-    metaClassDescriptions[EnlightenModuleEnumeAgentUsage].name = "EnlightenModule::EnumeAgentUsage";
-    metaClassDescriptions[EnlightenModuleEnlightenMeshSettings].name = "EnlightenModule::EnlightenMeshSettings";
-    metaClassDescriptions[EnlightenModuleEnlightenMeshSettingsAutoUVSettings].name = "EnlightenModule::EnlightenMeshSettings::AutoUVSettings";
-    metaClassDescriptions[EnlightenModuleEnumeSimplifyMode].name = "EnlightenModule::EnumeSimplifyMode";
-    metaClassDescriptions[DlgNodeInstanceParallelElemInstanceData].name = "DlgNodeInstanceParallel::ElemInstanceData";
-    metaClassDescriptions[DlgNodeInstanceSequenceElemInstanceData].name = "DlgNodeInstanceSequence::ElemInstanceData";
-    metaClassDescriptions[LanguageLookupMap].name = "LanguageLookupMap";
-    metaClassDescriptions[llm].name = "llm";
-    metaClassDescriptions[DCArrayTempLanguageLookupMapDlgIDSetLate].name = "DCArray<LanguageLookupMap::DlgIDSet>";
-    metaClassDescriptions[DCArrayTempLanguageResLocalLate].name = "DCArray<LanguageResLocal>";
-    metaClassDescriptions[DCArrayTempProjectDatabaseIDPairLate].name = "DCArray<ProjectDatabaseIDPair>";
-    metaClassDescriptions[ToolProps].name = "ToolProps";
-    metaClassDescriptions[MapTempunsignedintLanguageReslessTempunsignedintLateLate].name = "Map<unsignedint,LanguageRes,less<unsignedint>>";
-    metaClassDescriptions[DlgNodeStatsCohort].name = "DlgNodeStats::Cohort";
-    metaClassDescriptions[DlgNodeStats].name = "DlgNodeStats";
-    metaClassDescriptions[DlgNodeStatsDlgChildSetCohort].name = "DlgNodeStats::DlgChildSetCohort";
-    metaClassDescriptions[DlgNodeCancelChoices].name = "DlgNodeCancelChoices";
-    metaClassDescriptions[DlgNodeStoryBoard].name = "DlgNodeStoryBoard";
-    metaClassDescriptions[DlgNodeMarker].name = "DlgNodeMarker";
-    metaClassDescriptions[DlgNodeWait].name = "DlgNodeWait";
-    metaClassDescriptions[IntrusiveSetTempSymbolPropertySetKeyInfoTagPropertyKeyInfoSetSymbolCompareCRCLate].name = "IntrusiveSet<Symbol,PropertySet::KeyInfo,TagPropertyKeyInfoSet,Symbol::CompareCRC>";
-    metaClassDescriptions[DlgNodeParallelPElement].name = "DlgNodeParallel::PElement";
-    metaClassDescriptions[DlgNodeParallel].name = "DlgNodeParallel";
-    metaClassDescriptions[DlgNodeParallelDlgChildSetElement].name = "DlgNodeParallel::DlgChildSetElement";
-    metaClassDescriptions[DlgNodeSequenceElement].name = "DlgNodeSequence::Element";
-    metaClassDescriptions[DlgNodeSequence].name = "DlgNodeSequence";
-    metaClassDescriptions[DlgNodeCriteria].name = "DlgNodeCriteria";
-    metaClassDescriptions[DlgNodeCriteriaEnumDefaultResultT].name = "DlgNodeCriteria::EnumDefaultResultT";
-    metaClassDescriptions[DlgNodeCriteriaEnumThresholdT].name = "DlgNodeCriteria::EnumThresholdT";
-    metaClassDescriptions[DlgNodeCriteriaEnumTestT].name = "DlgNodeCriteria::EnumTestT";
-    metaClassDescriptions[DlgNodeSequenceDlgChildSetElement].name = "DlgNodeSequence::DlgChildSetElement";
-    metaClassDescriptions[DlgNodeJump].name = "DlgNodeJump";
-    metaClassDescriptions[DlgNodeIdle].name = "DlgNodeIdle";
-    metaClassDescriptions[DlgNodeExit].name = "DlgNodeExit";
-    metaClassDescriptions[DCArrayTempDlgNodeExchangeEntryLate].name = "DCArray<DlgNodeExchange::Entry>";
-    metaClassDescriptions[DlgNodeChore].name = "DlgNodeChore";
-    metaClassDescriptions[DlgNodeChoices].name = "DlgNodeChoices";
-    metaClassDescriptions[DlgChildSetChoicesChildPost].name = "DlgChildSetChoicesChildPost";
-    metaClassDescriptions[DlgChildSetChoicesChildPre].name = "DlgChildSetChoicesChildPre";
-    metaClassDescriptions[DlgChildSetChoice].name = "DlgChildSetChoice";
-    metaClassDescriptions[DlgChildSet].name = "DlgChildSet";
-    metaClassDescriptions[DCArrayTempPtrTempDlgChildLateLate].name = "DCArray<Ptr<DlgChild>>";
-    metaClassDescriptions[DlgConditionTime].name = "DlgConditionTime";
-    metaClassDescriptions[DlgConditionRule].name = "DlgConditionRule";
-    metaClassDescriptions[DCArrayTempLogicGroupLate].name = "DCArray<LogicGroup>";
-    metaClassDescriptions[MapTempStringLogicGroupLogicItemlessTempStringLateLate].name = "Map<String,LogicGroup::LogicItem,less<String>>";
-    metaClassDescriptions[DlgConditionInput].name = "DlgConditionInput";
-    metaClassDescriptions[DlgCondition].name = "DlgCondition";
-    metaClassDescriptions[DlgChoicesChildPost].name = "DlgChoicesChildPost";
-    metaClassDescriptions[DlgChoicesChildPre].name = "DlgChoicesChildPre";
-    metaClassDescriptions[DlgChoice].name = "DlgChoice";
-    metaClassDescriptions[DlgConditionSet].name = "DlgConditionSet";
-    metaClassDescriptions[DialogItemEnumPlaybackMode].name = "DialogItem::EnumPlaybackMode";
-    metaClassDescriptions[DateStamp].name = "DateStamp";
-    metaClassDescriptions[CompressedPathBlockingValue].name = "CompressedPathBlockingValue";
-    metaClassDescriptions[KeyframedValueTempCompressedPathBlockingValueCompressedPathInfoKeyLate].name = "KeyframedValue<CompressedPathBlockingValue::CompressedPathInfoKey>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempCompressedPathBlockingValueCompressedPathInfoKeyLateSampleLate].name = "DCArray<KeyframedValue<CompressedPathBlockingValue::CompressedPathInfoKey>::Sample>";
-    metaClassDescriptions[CompressedPathBlockingValueCompressedPathInfoKey].name = "CompressedPathBlockingValue::CompressedPathInfoKey";
-    metaClassDescriptions[AnimatedValueInterfaceTempCompressedPathBlockingValueCompressedPathInfoKeyLate].name = "AnimatedValueInterface<CompressedPathBlockingValue::CompressedPathInfoKey>";
-    metaClassDescriptions[DCArrayTempKeyframedValueTempTransformLateSampleLate].name = "DCArray<KeyframedValue<Transform>::Sample>";
-    metaClassDescriptions[KeyframedValueInterface].name = "KeyframedValueInterface";
-    metaClassDescriptions[CompressedVertexPositionKeys].name = "CompressedVertexPositionKeys";
-    metaClassDescriptions[CompressedVertexNormalKeys].name = "CompressedVertexNormalKeys";
-    metaClassDescriptions[CompressedVector3Keys2].name = "CompressedVector3Keys2";
-    metaClassDescriptions[CompressedTransformKeys].name = "CompressedTransformKeys";
-    metaClassDescriptions[CompressedSkeletonPoseKeys].name = "CompressedSkeletonPoseKeys";
-    metaClassDescriptions[CompressedQuaternionKeys2].name = "CompressedQuaternionKeys2";
-    metaClassDescriptions[CompressedPhonemeKeys].name = "CompressedPhonemeKeys";
-    metaClassDescriptions[ColorHDR].name = "ColorHDR";
-    metaClassDescriptions[ClipResourceFilter].name = "ClipResourceFilter";
-    metaClassDescriptions[ChoreEnumExtentsMode].name = "Chore::EnumExtentsMode";
-    metaClassDescriptions[BlendGraphManager].name = "BlendGraphManager";
-    metaClassDescriptions[bgm].name = "bgm";
-    metaClassDescriptions[HandleTempBlendGraphLate].name = "Handle<BlendGraph>";
-    metaClassDescriptions[BlendGraph].name = "BlendGraph";
-    metaClassDescriptions[bgh].name = "bgh";
-    metaClassDescriptions[DCArrayTempintLate].name = "DCArray<int>";
-    metaClassDescriptions[BlendGraphEnumBlendGraphType].name = "BlendGraph::EnumBlendGraphType";
-    metaClassDescriptions[EnumBase].name = "EnumBase";
-    metaClassDescriptions[DCArrayTempBlendEntryLate].name = "DCArray<BlendEntry>";
-    metaClassDescriptions[BlendEntry].name = "BlendEntry";
-    metaClassDescriptions[DCArrayTempCorrespondencePointLate].name = "DCArray<CorrespondencePoint>";
-    metaClassDescriptions[ContainerInterface].name = "ContainerInterface";
-    metaClassDescriptions[BGM_HeadTurn_Value].name = "BGM_HeadTurn_Value";
-    metaClassDescriptions[BitSetBaseTemp9Late].name = "BitSetBase<9>";
-    metaClassDescriptions[BitSetBaseTemp8Late].name = "BitSetBase<8>";
-    metaClassDescriptions[BitSetBaseTemp7Late].name = "BitSetBase<7>";
-    metaClassDescriptions[BitSetBaseTemp6Late].name = "BitSetBase<6>";
-    metaClassDescriptions[BitSetBaseTemp5Late].name = "BitSetBase<5>";
-    metaClassDescriptions[BitSetBaseTemp4Late].name = "BitSetBase<4>";
-    metaClassDescriptions[BitSetBaseTemp3Late].name = "BitSetBase<3>";
-    metaClassDescriptions[BitSetBaseTemp2Late].name = "BitSetBase<2>";
-    metaClassDescriptions[BitSetBaseTemp1Late].name = "BitSetBase<1>";
-    metaClassDescriptions[AnimationConstraintParameters].name = "AnimationConstraintParameters";
-    metaClassDescriptions[PtrTempPtrBaseLate].name = "Ptr<PtrBase>";
-    metaClassDescriptions[SkeletonPose].name = "SkeletonPose";
-    metaClassDescriptions[HandleTempAnimationLate].name = "Handle<Animation>";
-    metaClassDescriptions[HandleBase].name = "HandleBase";
-    metaClassDescriptions[Vector4].name = "Vector4";
-    metaClassDescriptions[DebugString].name = "DebugString";
-    metaClassDescriptions[int64_type].name = "int64";
-    metaClassDescriptions[uint16_type].name = "uint16";
-    metaClassDescriptions[uint8_type].name = "uint8";
-    metaClassDescriptions[int16_type].name = "int16";
-    metaClassDescriptions[int8_type].name = "int8";
-    metaClassDescriptions[double_type].name = "double";
-    metaClassDescriptions[unsigned__int64_type].name = "unsigned__int64";
-    metaClassDescriptions[__int64_type].name = "__int64";
-    metaClassDescriptions[unsignedlong_type].name = "unsignedlong";
-    metaClassDescriptions[long_type].name = "long";
-    metaClassDescriptions[unsignedint_type].name = "unsignedint";
-    metaClassDescriptions[int_type].name = "int";
-    metaClassDescriptions[unsignedshort_type].name = "unsignedshort";
-    metaClassDescriptions[short_type].name = "short";
-    metaClassDescriptions[unsignedchar_type].name = "unsignedchar";
-    metaClassDescriptions[char_type].name = "char";
-
-    /* Functions */
-
-    metaClassDescriptions[bool_type].read = BoolRead;
-    metaClassDescriptions[int32_type].read = intrinsic4Read;
-    metaClassDescriptions[LanguageResProxy].read = intrinsic4Read;
-    metaClassDescriptions[float_type].read = intrinsic4Read;
-    metaClassDescriptions[String].read = StringRead;
-    metaClassDescriptions[AnimOrChore].read = AnimOrChoreRead;
-    metaClassDescriptions[Vector3].read = Vector3Read;
-    metaClassDescriptions[Color].read = ColorRead;
-
-    /* ScriptEnum */
-    metaClassDescriptions[ScriptEnumAIAgentState].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumAIDummyPos].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumAIPatrolType].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumBlendTypes].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumControllerButtons].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumDialogMode].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumGamepadButton].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumLightComposerCameraZone].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumLightComposerLightSourceQuadrant].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumLightComposerNodeLocation].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumMenuAlignment].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumMenuVerticalAlignment].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumQTE_Type].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumReticleActions].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumReticleDisplayMode].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumStruggleType].read = ScriptEnumRead;
-    metaClassDescriptions[ScriptEnumUseableType].read = ScriptEnumRead;
-
-    /* Handles */
-
-    metaClassDescriptions[HandleTempD3DMeshLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempActorAgentMapperLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempAgentMapLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempAnimationLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempAnimOrChoreLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempAudioDataLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempBlendGraphLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempBlendGraphManagerLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempBlendModeLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempChoreLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempD3DMeshLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempDialogResourceLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempDlgLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempEventStorageLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempFontLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempInputMapperLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempLanguageDatabaseLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempLanguageResourceLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempLightProbeDataLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempLocomotionDBLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempParticlePropertiesLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempParticleSpriteLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempPhonemeTableLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempPhysicsDataLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempPhysicsObjectLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempPreloadPackageRuntimeDataDialogLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempPreloadPackageRuntimeDataSceneLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempPropertySetLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempResourceBundleLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempResourceGroupInfoLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempRuleLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempRulesLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempSaveGameLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempSceneLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempSkeletonLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempSoundAmbienceAmbienceDefinitionLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempSoundBusSnapshotSnapshotLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempSoundBusSnapshotSnapshotSuiteLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempSoundDataLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempSoundEventBankDummyLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempSoundEventDataLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempSoundEventSnapshotDataLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempSoundReverbDefinitionLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempStyleGuideLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempStyleGuideRefLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempStyleIdleTransitionsResLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempT3OverlayDataLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempT3TextureLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempTransitionMapLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempVoiceDataLate].read = intrinsic8Read;
-    metaClassDescriptions[HandleTempWalkBoxesLate].read = intrinsic8Read;
-
-    /* Dlg Functions */
-
-    metaClassDescriptions[DlgNodeLogic].read = DlgNodeLogicRead;
-    metaClassDescriptions[DlgNodeText].read = DlgNodeTextRead;
-    metaClassDescriptions[DlgNodeExchange].read = DlgNodeExchangeRead;
-    metaClassDescriptions[DlgNodeChoices].read = DlgNodeChoicesRead;
-    metaClassDescriptions[DlgChoice].read = DlgChoiceRead;
-    metaClassDescriptions[DlgNodeChore].read = DlgNodeChoreRead;
-    metaClassDescriptions[DlgNodeWait].read = DlgNodeWaitRead;
-    metaClassDescriptions[DlgNodeCancelChoices].read = DlgNodeCancelChoicesRead;
-    metaClassDescriptions[DlgNodeMarker].read = DlgNodeMarkerRead;
-    metaClassDescriptions[DlgNodeIdle].read = DlgNodeIdleRead;
-    metaClassDescriptions[DlgConditionalCase].read = DlgConditionalCaseRead;
-    metaClassDescriptions[DlgNodeScript].read = DlgNodeScriptRead;
-    metaClassDescriptions[DlgNodeSequence].read = DlgNodeSequenceRead;
-    metaClassDescriptions[DlgNodeParallel].read = DlgNodeParallelRead;
-    metaClassDescriptions[DlgNodeParallelPElement].read = DlgNodeParallelPElementRead;
-    metaClassDescriptions[DlgNodeJump].read = DlgNodeJumpRead;
-    metaClassDescriptions[DlgNodeStart].read = DlgNodeStartRead;
-    metaClassDescriptions[DlgNodeNotes].read = DlgNodeNotesRead;
-    metaClassDescriptions[DlgNodeExit].read = DlgNodeExitRead;
-    metaClassDescriptions[DlgNodeConditional].read = DlgNodeConditionalRead;
-    metaClassDescriptions[DlgFolderChild].read = DlgFolderChildRead;
-    metaClassDescriptions[DlgChoicesChildPre].read = DlgChoicesChildPreRead;
-    metaClassDescriptions[DlgChoicesChildPost].read = DlgChoicesChildPostRead;
-    metaClassDescriptions[DlgConditionInput].read = DlgConditionInputRead;
-    metaClassDescriptions[DlgConditionTime].read = DlgConditionTimeRead;
-    metaClassDescriptions[DlgConditionRule].read = DlgConditionRuleRead;
-    metaClassDescriptions[DlgNodeSequenceElement].read = DlgNodeSequenceElementRead;
-
-    printf("init metaClassDescriptions\n");
-    return 0;
+    return descriptions + index;
 }
