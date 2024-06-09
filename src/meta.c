@@ -1071,9 +1071,9 @@ void writeMetaStreamHeader(FILE *stream, struct MetaStreamHeader *header)
 
 const struct MetaClassDescription *getMetaClassDescriptionBySymbol(uint64_t symbol)
 {
-    uint64_t low = 0;
-    uint64_t high = META_CLASS_DESCRIPTIONS_COUNT;
-    uint64_t currentIndex = META_CLASS_DESCRIPTIONS_COUNT / 2;
+    int64_t low = 0;
+    int64_t high = META_CLASS_DESCRIPTIONS_COUNT;
+    int64_t currentIndex = META_CLASS_DESCRIPTIONS_COUNT / 2;
     while (low <= high)
     {
         if (symbol == descriptions[currentIndex].crc)
