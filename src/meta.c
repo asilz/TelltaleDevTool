@@ -17,7 +17,7 @@
 
 #define META_CLASS_DESCRIPTIONS_COUNT 978
 
-const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_COUNT] = {
+static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_COUNT] = {
     {0x004F023463D89FB0, "Symbol", intrinsic8Read, NULL},
     {0x00A87B9875C485DB, "DCArray<LanguageResLocal>", NULL, NULL},
     {0x00ACFF947A409DDB, "Mover", NULL, NULL},
@@ -549,7 +549,7 @@ const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_COUNT] = 
     {0x8758F70880295F9B, "Handle<SoundAmbience::AmbienceDefinition>", intrinsic8Read, NULL},
     {0x878A3470E047E140, "Map<int,Ptr<DialogDialog>,less<int>>", NULL, NULL},
     {0x87B6B95067DB12F9, "DlgChildSetConditionalCase", NULL, NULL},
-    {0x87E0E880D7D2DFC1, "DlgObjID", NULL, NULL},
+    {0x87E0E880D7D2DFC1, "DlgObjID", intrinsic8Read, NULL},
     {0x880F40C15BF127CC, "InputMapper::RawEvent", NULL, NULL},
     {0x881C335AC79F7149, "DCArray<Color>", NULL, NULL},
     {0x885A35D99A8D1A4D, "Set<Symbol,less<Symbol>>", NULL, NULL},
@@ -793,7 +793,7 @@ const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_COUNT] = 
     {0xCA26CD88FAD4EF7E, "EnlightenModule::EnlightenLightSettings", NULL, NULL},
     {0xCA272B9CDA05B750, "bgm", NULL, NULL},
     {0xCA874E09192E2598, "AnimatedValueInterface<Color>", NULL, NULL},
-    {0xCB029403B12D08D6, "unsignedint", NULL, NULL},
+    {0xCB029403B12D08D6, "unsignedint", intrinsic4Read, NULL},
     {0xCB17BA9E6EF9F5A9, "AnimatedValueInterface<Vector3>", NULL, NULL},
     {0xCB31FAC32D7FAD8D, "eyes", NULL, NULL},
     {0xCB39F1559069B3BA, "wav", NULL, NULL},
