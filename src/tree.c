@@ -102,3 +102,23 @@ struct TreeNode *copyTree(struct TreeNode *tree)
 
     return copy;
 }
+
+void treeErase(struct TreeNode *tree, uint16_t childIndex)
+{
+    if (tree->childCount <= childIndex)
+    {
+        printf("Warning: treeErase: Index out of range");
+        return;
+    }
+    treeFree(tree->children[childIndex]);
+    free(tree->children[childIndex]);
+
+    struct TreeNode **newChildren = malloc((--tree->childCount) * sizeof(struct TreeNode *));
+    for (uint16_t i = 0; i < tree->childCount; ++i)
+    {
+        newChildren[i] = tree->children[i + (i >= childIndex)];
+    }
+
+    free(tree->children);
+    tree->children = newChildren;
+}
