@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <container.h>
+#include <meta.h>
+#include <types.h>
 
 struct String
 {
@@ -28,4 +31,14 @@ int StringRead(FILE *stream, struct TreeNode *string, uint32_t flags)
         fread(string->data.staticBuffer + sizeof(stringSize), stringSize, 1, stream);
     }
     return 0;
+}
+
+int DCArray_String_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(String));
+}
+
+int Map_StringStringless_String__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(String), getMetaClassDescriptionByIndex(String));
 }
