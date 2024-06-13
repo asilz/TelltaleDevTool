@@ -890,7 +890,7 @@ int DlgChildRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeIdleRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgNodeIdleRead\n");
+    // printf("DlgNodeIdleRead\n");
 
     node->childCount = 1;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -911,7 +911,7 @@ int DlgNodeIdleRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeMarkerRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgNodeMarkerRead\n");
+    // printf("DlgNodeMarkerRead\n");
 
     node->childCount = 1;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -960,7 +960,7 @@ int DlgLineRead(FILE *stream, struct TreeNode *line, uint32_t flags)
 
 int DlgLineCollectionRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgLineCollectionRead\n");
+    // printf("DlgLineCollectionRead\n");
 
     node->childCount = 2;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -985,7 +985,7 @@ int DlgLineCollectionRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeExchangeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgNodeExchange\n");
+    // printf("DlgNodeExchange\n");
 
     node->childCount = 4;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -1261,7 +1261,7 @@ int DlgChildSetChoicesChildPostRead(FILE *stream, struct TreeNode *node, uint32_
 
 int DlgNodeChoicesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgNodeChoice\n");
+    // printf("DlgNodeChoice\n");
 
     node->childCount = 4;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -1319,7 +1319,7 @@ int DlgChoicesChildPostRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgChoiceRead\n");
+    // printf("DlgChoiceRead\n");
 
     node->childCount = 2;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
@@ -1435,7 +1435,7 @@ int DlgNodeSequenceElementRead(FILE *stream, struct TreeNode *node, uint32_t fla
 
 int DlgNodeSequenceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    printf("DlgNodeSequenceRead\n");
+    // printf("DlgNodeSequenceRead\n");
 
     node->childCount = 5;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
