@@ -1087,7 +1087,7 @@ const struct MetaClassDescription *getMetaClassDescriptionBySymbol(uint64_t symb
         {
             low = currentIndex + 1;
         }
-        if (symbol < descriptions[currentIndex].crc)
+        else
         {
             high = currentIndex - 1;
         }
