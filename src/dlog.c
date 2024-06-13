@@ -188,6 +188,13 @@ struct DlgConditionRule
 {
 };
 
+struct DlgNodeCancelChoices
+{
+    uint32_t nodeBlock;
+    struct DlgNode node;
+    uint32_t cancelGroup;
+};
+
 struct DlgNode
 {
     uint32_t idOwnerBlock; // 0x10
@@ -215,6 +222,21 @@ struct DlgNodeConditional // 0x28668D1ACB589778
     struct DlgNode node;
     uint32_t casesBlock;
     struct DlgChildSetConditionalCase cases;
+};
+
+struct DlgNodeParallel // 0x26cfc1cc3991ba97
+{
+    struct DlgChildSetElements
+    {
+        uint32_t childSetBlock;
+        struct DlgChildSet childSet;
+    };
+    uint32_t nodeBlock;
+    struct DlgNode node;
+    uint32_t mPElementsBlock;
+    struct DlgChildSetElements mPElements;
+    uint32_t criteriaBlock;
+    struct DlgNodeCriteria mElemUseCriteria;
 };
 
 struct DlgChoicesChildPre // 0xe985d67eccd73fee
@@ -254,6 +276,16 @@ struct DlgNodeChoices // 0x9134de0b6f8d9913
     struct DlgChildSetChoicesChildPre preChoice;
     uint32_t postChoiceBlock;
     struct DlgChildSetChoicesChildPost postChoice;
+};
+
+struct DlgNodeChore // 0xd9fe2f7550af5a2a
+{
+    uint32_t nodeBlock;
+    struct DlgNode node;
+    uint32_t handleBlock;
+    uint64_t choreHandle;
+    int priority;
+    uint8_t loopings;
 };
 
 struct DlgNodeJump // 0x987d701bcf0be72e
@@ -353,12 +385,6 @@ struct DlgNodeExchange // 0x979ec6c0f454d985
     struct NodeExchangeEntry *entries;
 };
 
-struct DlgChildSetElement
-{
-    uint32_t block;
-    struct DlgChildSet childSet;
-};
-
 struct DlgNodeSequenceElement // 0x59f8b5e15f177d70
 {
     uint32_t childBlock;
@@ -386,6 +412,11 @@ struct DlgNodeSequenceElement // 0x59f8b5e15f177d70
 
 struct DlgNodeSequence // 0x7432d68ab467e336
 {
+    struct DlgChildSetElement
+    {
+        uint32_t block;
+        struct DlgChildSet childSet;
+    };
     uint32_t nodeBlock;
     struct DlgNode node;
     uint32_t elementsBlock;
