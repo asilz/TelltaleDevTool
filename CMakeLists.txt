@@ -13,14 +13,17 @@ set(SOURCES
     src/lua.c
     src/crc64.c
     src/ttarch.c
-    src/meta.c
     src/ttstring.c
     src/intrinsic.c
-    src/tree.c
-    src/prop.c
     src/container.c
     src/dlg.c
+    src/tree.c
+    src/meta.c
+    src/prop.c
     src/landb.c
+    src/skeleton.c
+    src/chore.c
+    src/scene.c
 )
 
 if(UNIX)

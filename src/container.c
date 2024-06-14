@@ -60,7 +60,5 @@ int genericMapRead(FILE *stream, struct TreeNode *node, uint32_t flags, const st
 
 int Set_Symbolless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(Symbol));
-
-    return 0;
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(Symbol));
 }

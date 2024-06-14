@@ -52,5 +52,12 @@ int LogicItemRead(FILE *stream, struct TreeNode *logicItem, uint32_t flags);
 int ScriptEnumRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int AnimOrChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int Vector3Read(FILE *stream, struct TreeNode *node, uint32_t flags);
-int ColorRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int Vector4Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int Set_Colorless_Color__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int Map_Symbolintless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int Map_Symbolboolless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int Map_StringLogicGroup__LogicItemless_String__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_LogicGroup_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int Map_intDlgLineless_int__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+
 #endif

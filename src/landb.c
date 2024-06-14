@@ -34,6 +34,11 @@ int LanguageResLocalRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     return 0;
 }
 
+int DCArray_LanguageResLocal_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(LanguageResLocal));
+}
+
 int LanguageResRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     node->childCount = 10;
@@ -67,7 +72,7 @@ int LanguageResRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     node->children[5]->isBlocked = 1;
     node->children[5]->description = getMetaClassDescriptionByIndex(DCArray_LanguageResLocal_);
-    genericArrayRead(stream, node->children[5], flags, getMetaClassDescriptionByIndex(LanguageResLocal));
+    node->children[5]->description->read(stream, node->children[5], flags);
 
     node->children[6]->description = getMetaClassDescriptionByIndex(float_type);
     intrinsic4Read(stream, node->children[6], flags);
@@ -88,6 +93,11 @@ int LanguageResRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     return 0;
 }
 
+int Map_intSymbolless_int__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(int_type), getMetaClassDescriptionByIndex(Symbol));
+}
+
 int LocalizationRegistryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     node->childCount = 3;
@@ -102,15 +112,15 @@ int LocalizationRegistryRead(FILE *stream, struct TreeNode *node, uint32_t flags
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     node->children[0]->isBlocked = 1;
     node->children[0]->description = getMetaClassDescriptionByIndex(Map_Symbolintless_Symbol__);
-    genericMapRead(stream, node->children[0], flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionByIndex(int_type));
+    node->children[0]->description->read(stream, node->children[0], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     node->children[1]->isBlocked = 1;
     node->children[1]->description = getMetaClassDescriptionByIndex(Map_intSymbolless_int__);
-    genericMapRead(stream, node->children[1], flags, getMetaClassDescriptionByIndex(int_type), getMetaClassDescriptionByIndex(Symbol));
+    node->children[1]->description->read(stream, node->children[1], flags);
 
     node->children[2]->description = getMetaClassDescriptionByIndex(ToolProps);
-    BoolRead(stream, node->children[2], flags);
+    intrinsic1Read(stream, node->children[2], flags);
 
     return 0;
 }
@@ -151,6 +161,16 @@ static int LangAnmWavTripletRead(FILE *stream, struct TreeNode *node, uint32_t f
     return 0;
 }
 
+int DCArray_ProjectDatabaseIDPair_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(ProjectDatabaseIDPair));
+}
+
+int Map_unsignedintLanguageResless_unsignedint__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(int_type), getMetaClassDescriptionByIndex(LanguageRes));
+}
+
 int LanguageDBRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     node->childCount = 8;
@@ -175,7 +195,7 @@ int LanguageDBRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     node->children[2]->isBlocked = 1;
     node->children[2]->description = getMetaClassDescriptionByIndex(Map_unsignedintLanguageResless_unsignedint__);
-    genericMapRead(stream, node->children[2], flags, getMetaClassDescriptionByIndex(int_type), getMetaClassDescriptionByIndex(LanguageRes));
+    node->children[2]->description->read(stream, node->children[2], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     node->children[3]->isBlocked = 1;
@@ -191,7 +211,7 @@ int LanguageDBRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     node->children[6]->isBlocked = 1;
     node->children[6]->description = getMetaClassDescriptionByIndex(DCArray_ProjectDatabaseIDPair_);
-    genericArrayRead(stream, node->children[6], flags, getMetaClassDescriptionByIndex(ProjectDatabaseIDPair));
+    node->children[6]->description->read(stream, node->children[6], flags);
 
     // node->children[7]->typeSymbol = 0; // TODO: Set description
     node->children[7]->childCount = *(uint32_t *)(node->children[2]->children[0]->data.staticBuffer);

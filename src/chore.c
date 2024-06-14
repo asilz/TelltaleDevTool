@@ -10,6 +10,53 @@
 #include <stream.h>
 #include <string.h>
 
+int Map_StringClipResourceFilterStringCompareCaseInsensitive_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(String), getMetaClassDescriptionByIndex(ClipResourceFilter));
+}
+
+int Set_StringStringCompareCaseInsensitive_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(String));
+}
+
+int DCArray_Handle_Chore__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(Handle_Chore_));
+}
+
+int Map_SymbolWalkPathless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionBySymbol(WalkPath));
+}
+
+int PerAgentClipResourceFilterRead(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    node->childCount = 3;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+
+    for (uint16_t i = 0; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+    }
+
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[0]->isBlocked = 1;
+    node->children[0]->description = getMetaClassDescriptionByIndex(Map_StringClipResourceFilterStringCompareCaseInsensitive_);
+    node->children[0]->description->read(stream, node->children[0], flags);
+
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[1]->isBlocked = 1;
+    node->children[1]->description = getMetaClassDescriptionByIndex(Set_StringStringCompareCaseInsensitive_);
+    node->children[1]->description->read(stream, node->children[1], flags);
+
+    node->children[2]->description = getMetaClassDescriptionByIndex(bool_type);
+    node->children[2]->description->read(stream, node->children[2], flags);
+
+    return 0;
+}
+
 int WalkPathRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     node->childCount = 2;
@@ -115,10 +162,9 @@ int KeyframedValue_unsigned__int64___SampleRead(FILE *stream, struct TreeNode *n
 
 int DCArray_KeyframedValue_unsigned__int64___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "KeyframedValue<unsigned__int64>::Sample", KeyframedValue_unsigned__int64___SampleRead, NULL};
+    const struct MetaClassDescription description = {0, "KeyframedValue<unsigned__int64>::Sample", KeyframedValue_unsigned__int64___SampleRead, NULL}; // TODO: Fix stupid problem
 
-    genericArrayRead(stream, node, flags, &description);
-    return 0;
+    return genericArrayRead(stream, node, flags, &description);
 }
 
 int KeyframedValue_unsigned__int64_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -224,6 +270,11 @@ int ChoreAgentAttachmentRead(FILE *stream, struct TreeNode *node, uint32_t flags
     return 0;
 }
 
+int DCArray_int_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(int_type));
+}
+
 int ChoreAgentRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     node->childCount = 6;
@@ -246,7 +297,7 @@ int ChoreAgentRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[2]->isBlocked = 1;
     node->children[2]->description = getMetaClassDescriptionByIndex(DCArray_int_);
-    genericArrayRead(stream, node->children[2], flags, getMetaClassDescriptionByIndex(int_type));
+    node->children[2]->description->read(stream, node->children[2], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[3]->isBlocked = 1;
@@ -273,6 +324,16 @@ int ChoreResourceBlockRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
+}
+
+int DCArray_ChoreResource__Block_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(ChoreResource__Block));
+}
+
+int Map_Symbolfloatless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionByIndex(float_type));
 }
 
 int ChoreResourceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -322,7 +383,7 @@ int ChoreResourceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[8]->isBlocked = 1;
     node->children[8]->description = getMetaClassDescriptionByIndex(DCArray_ChoreResource__Block_);
-    genericArrayRead(stream, node->children[8], flags, getMetaClassDescriptionByIndex(ChoreResource__Block));
+    node->children[8]->description->read(stream, node->children[8], flags);
 
     node->children[9]->description = getMetaClassDescriptionByIndex(bool_type);
     node->children[9]->description->read(stream, node->children[9], flags);
@@ -356,7 +417,7 @@ int ChoreResourceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[18]->isBlocked = 1;
     node->children[18]->description = getMetaClassDescriptionByIndex(Map_Symbolfloatless_Symbol__);
-    genericMapRead(stream, node->children[18], flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionByIndex(float_type));
+    node->children[18]->description->read(stream, node->children[18], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[19]->isBlocked = 1;
@@ -448,12 +509,12 @@ int ChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     DependencyLoaderRead(stream, node->children[9], flags);
 
     node->children[10]->description = getMetaClassDescriptionByIndex(ToolProps);
-    BoolRead(stream, node->children[10], flags);
+    intrinsic1Read(stream, node->children[10], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // skip block
     node->children[11]->isBlocked = 1;
     node->children[11]->description = getMetaClassDescriptionByIndex(Map_SymbolWalkPathless_Symbol__);
-    genericMapRead(stream, node->children[11], flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionBySymbol(WalkPath));
+    node->children[11]->description->read(stream, node->children[11], flags);
 
     uint16_t index = 12;
     for (; index < 12 + *(uint32_t *)(node->children[3]->data.staticBuffer); ++index)

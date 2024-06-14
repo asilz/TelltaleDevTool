@@ -8,3 +8,5 @@ int SArray_TRange_float_3_Read(FILE *stream, struct TreeNode *node, uint32_t fla
 int BoneContraintsRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int SkeletonEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int SkeletonRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+
+int DCArray_Skeleton__Entry_Read(FILE *stream, struct TreeNode *node, uint32_t flags);

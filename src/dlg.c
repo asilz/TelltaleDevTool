@@ -41,7 +41,12 @@ int AnimOrChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO
     return 0;
 }
 
-int ColorRead(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Move to different file
+int Set_Colorless_Color__Read(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Move to different file
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(Color));
+}
+
+int Vector4Read(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Move to different file
 {
     node->dataSize = sizeof(float) * 4;
     node->data.dynamicBuffer = malloc(node->dataSize);
@@ -73,7 +78,7 @@ int DependencyLoaderRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children[0] = calloc(1, sizeof(struct TreeNode));
     node->children[0]->parent = node;
     node->children[0]->description = getMetaClassDescriptionByIndex(bool_type);
-    BoolRead(stream, node->children[0], flags);
+    intrinsic1Read(stream, node->children[0], flags);
 
     if (node->children[0]->data.staticBuffer[0] == '1')
     {
@@ -287,7 +292,7 @@ int DlgRead(FILE *stream, struct TreeNode *dlg, uint32_t flags)
     dlg->children[11]->description = getMetaClassDescriptionByIndex(JiraRecordManager);
 
     dlg->children[12]->description = getMetaClassDescriptionByIndex(bool_type);
-    BoolRead(stream, dlg->children[12], flags);
+    intrinsic1Read(stream, dlg->children[12], flags);
 
     // dlg->children[13]->typeSymbol = 0; // TODO: Set symbol
     genericArrayRead(stream, dlg->children[13], flags, getMetaClassDescriptionByIndex(DlgFolder));
@@ -319,10 +324,20 @@ int DlgRead(FILE *stream, struct TreeNode *dlg, uint32_t flags)
     }
 
     dlg->children[15]->description = getMetaClassDescriptionByIndex(bool_type); // crc64 of "bool"
-    BoolRead(stream, dlg->children[15], flags);
+    intrinsic1Read(stream, dlg->children[15], flags);
 
     printf("Dlg Read\n");
     return 0;
+}
+
+int Map_Symbolboolless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionByIndex(bool_type));
+}
+
+int Map_Symbolintless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionByIndex(int_type));
 }
 
 int LogicItemRead(FILE *stream, struct TreeNode *logicItem, uint32_t flags)
@@ -347,21 +362,31 @@ int LogicItemRead(FILE *stream, struct TreeNode *logicItem, uint32_t flags)
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     logicItem->children[2]->description = getMetaClassDescriptionByIndex(Map_Symbolboolless_Symbol__);
-    genericMapRead(stream, logicItem->children[2], flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionByIndex(bool_type));
+    logicItem->children[2]->description->read(stream, logicItem->children[2], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     logicItem->children[3]->description = getMetaClassDescriptionByIndex(Map_Symbolintless_Symbol__);
-    genericMapRead(stream, logicItem->children[3], flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionByIndex(int_type));
+    logicItem->children[3]->description->read(stream, logicItem->children[3], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     logicItem->children[4]->description = getMetaClassDescriptionByIndex(Map_Symbolintless_Symbol__);
-    genericMapRead(stream, logicItem->children[4], flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionByIndex(int_type));
+    logicItem->children[4]->description->read(stream, logicItem->children[4], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     logicItem->children[5]->description = getMetaClassDescriptionByIndex(DCArray_String_);
-    genericArrayRead(stream, logicItem->children[5], flags, getMetaClassDescriptionByIndex(String));
+    logicItem->children[5]->description->read(stream, logicItem->children[5], flags);
 
     return 0;
+}
+
+int Map_StringLogicGroup__LogicItemless_String__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(String), getMetaClassDescriptionByIndex(LogicGroup__LogicItem));
+}
+
+int DCArray_LogicGroup_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(LogicGroup));
 }
 
 int LogicGroupRead(FILE *stream, struct TreeNode *logicGroup, uint32_t flags) // TODO: Fix to allow general write function
@@ -381,12 +406,12 @@ int LogicGroupRead(FILE *stream, struct TreeNode *logicGroup, uint32_t flags) //
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     logicGroup->children[1]->isBlocked = 1;
     logicGroup->children[1]->description = getMetaClassDescriptionByIndex(Map_StringLogicGroup__LogicItemless_String__);
-    genericMapRead(stream, logicGroup->children[1], flags, getMetaClassDescriptionByIndex(String), getMetaClassDescriptionByIndex(LogicGroup__LogicItem));
+    logicGroup->children[1]->description->read(stream, logicGroup->children[1], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     logicGroup->children[2]->isBlocked = 1;
     logicGroup->children[2]->description = getMetaClassDescriptionByIndex(DCArray_LogicGroup_);
-    genericArrayRead(stream, logicGroup->children[2], flags, getMetaClassDescriptionByIndex(LogicGroup));
+    logicGroup->children[2]->description->read(stream, logicGroup->children[2], flags);
 
     logicGroup->children[3]->description = getMetaClassDescriptionByIndex(int_type);
     intrinsic4Read(stream, logicGroup->children[3], flags);
@@ -487,7 +512,7 @@ int DlgNodeChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     intrinsic4Read(stream, node->children[1], flags);
 
     node->children[2]->description = getMetaClassDescriptionByIndex(bool_type);
-    BoolRead(stream, node->children[2], flags);
+    intrinsic1Read(stream, node->children[2], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
     node->children[3]->isBlocked = 1;
@@ -516,7 +541,7 @@ int DlgVisibilityConditionsRead(FILE *stream, struct TreeNode *visCond, uint32_t
         visCond->children[i]->parent = visCond;
     }
     visCond->children[0]->description = getMetaClassDescriptionByIndex(bool_type);
-    BoolRead(stream, visCond->children[0], flags);
+    intrinsic1Read(stream, visCond->children[0], flags);
 
     visCond->children[1]->description = getMetaClassDescriptionByIndex(Flags);
     intrinsic4Read(stream, visCond->children[1], flags);
@@ -958,6 +983,11 @@ int DlgLineRead(FILE *stream, struct TreeNode *line, uint32_t flags)
     return 0;
 }
 
+int Map_intDlgLineless_int__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(int_type), getMetaClassDescriptionByIndex(DlgLine));
+}
+
 int DlgLineCollectionRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     // printf("DlgLineCollectionRead\n");
@@ -978,7 +1008,7 @@ int DlgLineCollectionRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
     node->children[1]->description = getMetaClassDescriptionByIndex(Map_intDlgLineless_int__); // crc64 of "Map<int,DlgLine,less<int>>"
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);                                                // skip block
-    genericMapRead(stream, node->children[1], flags, getMetaClassDescriptionByIndex(int_type), getMetaClassDescriptionByIndex(DlgLine));
+    node->children[1]->description->read(stream, node->children[1], flags);
 
     return 0;
 }

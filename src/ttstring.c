@@ -42,3 +42,18 @@ int Map_StringStringless_String__Read(FILE *stream, struct TreeNode *node, uint3
 {
     return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(String), getMetaClassDescriptionByIndex(String));
 }
+
+int Map_intStringless_int__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(int_type), getMetaClassDescriptionByIndex(String));
+}
+
+int Map_Stringintless_String__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(String), getMetaClassDescriptionByIndex(int_type));
+}
+
+int List_String_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(String));
+}

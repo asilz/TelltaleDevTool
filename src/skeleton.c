@@ -121,7 +121,7 @@ int SkeletonEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[11]->isBlocked = 1;
     node->children[11]->description = getMetaClassDescriptionByIndex(Map_Symbolfloatless_Symbol__);
-    genericMapRead(stream, node->children[11], flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionByIndex(float_type));
+    node->children[11]->description->read(stream, node->children[11], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[12]->isBlocked = 1;
@@ -134,6 +134,11 @@ int SkeletonEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     return 0;
 }
 
+int DCArray_Skeleton__Entry_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(Skeleton__Entry));
+}
+
 int SkeletonRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     node->childCount = 1;
@@ -143,8 +148,8 @@ int SkeletonRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children[0]->parent = node;
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(Map_Symbolfloatless_Symbol__);
-    genericArrayRead(stream, node->children[0], flags, getMetaClassDescriptionByIndex(Skeleton__Entry));
+    node->children[0]->description = getMetaClassDescriptionByIndex(DCArray_Skeleton__Entry_);
+    node->children[0]->description->read(stream, node->children[0], flags);
 
     return 0;
 }

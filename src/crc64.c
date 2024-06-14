@@ -4,6 +4,7 @@
 #include <stream.h>
 #include <string.h>
 #include <stdlib.h>
+#include <meta.h>
 
 const uint64_t crc64_table[] = {
     0x0000000000000000, 0x42F0E1EBA9EA3693, 0x85E1C3D753D46D26, 0xC711223CFA3E5BB5,
@@ -204,11 +205,11 @@ struct HashName
 
 void writeConstStruct()
 {
-    struct HashName *hashNames = malloc(sizeof(struct HashName) * 977);
+    struct HashName *hashNames = malloc(sizeof(struct HashName) * FILE_NAME_COUNT);
 
-    FILE *typeFile = fopen("./typeNames2.txt", "rb");
+    FILE *typeFile = fopen("./fileNames.txt", "rb");
 
-    for (uint32_t i = 0; i < 977; ++i)
+    for (uint32_t i = 0; i < FILE_NAME_COUNT; ++i)
     {
         uint8_t buffer[256];
         for (int j = 0; j < 256; ++j)
@@ -235,7 +236,7 @@ void writeConstStruct()
     while (1)
     {
         uint8_t complete = 1;
-        for (uint32_t i = 1; i < 977; ++i)
+        for (uint32_t i = 1; i < FILE_NAME_COUNT; ++i)
         {
             if (hashNames[i - 1].hash > hashNames[i].hash)
             {
@@ -251,11 +252,14 @@ void writeConstStruct()
         }
     }
     printf("sorted\n");
-    FILE *database = fopen("./typeNames_sorted2.txt", "wb");
+    FILE *database = fopen("./result_sorted.txt", "wb");
 
-    for (uint32_t i = 0; i < 977; ++i)
+    for (uint32_t i = 0; i < FILE_NAME_COUNT; ++i)
     {
-        /*
+        if (i != 0 && hashNames[i - 1].hash == hashNames[i].hash)
+        {
+            continue;
+        }
         printf("%d\n", i);
         char textBuffer[19];
         sprintf(textBuffer, "0x%016lX", hashNames[i].hash);
@@ -265,29 +269,27 @@ void writeConstStruct()
         fputc('"', database);
         fwrite(hashNames[i].name, strlen(hashNames[i].name), 1, database);
         fputc('"', database);
-        fputc(',', database);
-        fwrite("NULL", 4, 1, database);
-        fputc(',', database);
-        fwrite("NULL", 4, 1, database);
         fputc('}', database);
         fputc(',', database);
         free(hashNames[i].name);
-        */
-        for (size_t j = 0; j < strlen(hashNames[i].name); ++j)
-        {
-            if (hashNames[i].name[j] == ',')
-            {
-                continue;
-            }
-            if (hashNames[i].name[j] == '<' || hashNames[i].name[j] == '>' || hashNames[i].name[j] == ':' || hashNames[i].name[j] == '*')
-            {
-                hashNames[i].name[j] = '_';
-            }
-            fputc(hashNames[i].name[j], database);
-        }
 
-        fputc(',', database);
-        fputc('\n', database);
+        /*
+         for (size_t j = 0; j < strlen(hashNames[i].name); ++j)
+         {
+             if (hashNames[i].name[j] == ',')
+             {
+                 continue;
+             }
+             if (hashNames[i].name[j] == '<' || hashNames[i].name[j] == '>' || hashNames[i].name[j] == ':' || hashNames[i].name[j] == '*')
+             {
+                 hashNames[i].name[j] = '_';
+             }
+             fputc(hashNames[i].name[j], database);
+         }
+
+         fputc(',', database);
+         fputc('\n', database);
+         */
     }
 
     free(hashNames);
@@ -311,8 +313,6 @@ void writeConstStruct()
 void binWalk(FILE *stream)
 {
     printf("Looking for patterns\n");
-    uint64_t stringCount = 0;
-
     uint64_t buffer;
     fread(&buffer, sizeof(buffer) - 1, 1, stream);
 
@@ -321,33 +321,30 @@ void binWalk(FILE *stream)
         buffer = buffer >> 8;
         buffer = buffer | (((uint64_t)i) << 56);
 
-        if (((uint32_t)buffer) + 8 == (uint32_t)(buffer >> 32))
+        const struct MetaClassDescription *description = getMetaClassDescriptionBySymbol(buffer);
+        if (description != NULL)
         {
-            ++stringCount;
-        }
-
-        uint32_t type = (uint32_t)searchDatabase("protonDatabase.db", buffer);
-        if (type && type != 3922)
-        {
-            printf("Type = %d at 0x%lx\n", type, cftell(stream));
+            printf("Type = %s at 0x%lx\n", description->name, cftell(stream));
         }
     }
-    printf("String count = %ld\n", stringCount);
 }
 
 int streamsAreEqual(FILE *stream1, FILE *stream2)
 {
     int a = 0;
     int b = 0;
+    int count = 0;
     while (a != EOF && b != EOF)
     {
         a = fgetc(stream1);
         b = fgetc(stream2);
         if (a != b)
         {
-
-            printf("ftell = %lx\n", cftell(stream1));
-            return 0;
+            if ((count++) == 9)
+            {
+                printf("ftell = %lx\n", cftell(stream1));
+                return 0;
+            }
         }
     }
     return 1;
