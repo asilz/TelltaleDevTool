@@ -21,6 +21,7 @@
 #include <style.h>
 #include <ptable.h>
 #include <wbox.h>
+#include <sprite.h>
 
 #define META_CLASS_DESCRIPTIONS_COUNT 978
 
@@ -185,13 +186,13 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0x29653DC4D2D86302, "int16", NULL, NULL},
     {0x2A2E93F6AF788919, "bussnapshot", NULL, NULL},
     {0x2A5AAF50752FFED9, "DlgNodeChore", DlgNodeChoreRead, NULL},
-    {0x2ABB7B45E2D0C5FE, "ParticleSprite", NULL, NULL},
+    {0x2ABB7B45E2D0C5FE, "ParticleSprite", ParticleSpriteRead, NULL},
     {0x2B1181164B35FCD3, "PreloadPackage::ResourceSeenTimes", NULL, NULL},
     {0x2B1A694F2F80DEEC, "AnimatedValueInterface<Handle<D3DMesh>>", NULL, NULL},
     {0x2B764A50099A3FEF, "Map<String,Set<Symbol,less<Symbol>>,less<String>>", NULL, NULL},
     {0x2B7B462F08600B16, "DialogItem::EnumPlaybackMode", NULL, NULL},
     {0x2BDB4B5DC519BBFA, "List<Map<String,String,less<String>>>", NULL, NULL},
-    {0x2BF8E79FDA2D294E, "ParticleSprite::Animation", NULL, NULL},
+    {0x2BF8E79FDA2D294E, "ParticleSprite::Animation", ParticleSprite__AnimationRead, NULL},
     {0x2C85F7D8B8F8342F, "DCArray<bool>", NULL, NULL},
     {0x2CC6C64673C9E079, "PlaybackController", NULL, NULL},
     {0x2D0EC64E3F776C29, "LanguageDatabase", NULL, NULL},
@@ -682,7 +683,7 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0xA6E64DD3378991B4, "SoundAmbience::AmbienceDefinition", NULL, NULL},
     {0xA7152CED90755212, "DlgFolder", DlgFolderRead, NULL},
     {0xA7353268AC8AAD1F, "DCArray<T3MaterialCompiledData>", NULL, NULL},
-    {0xA7A8C91070E4C52E, "DCArray<ParticleSprite::Animation>", NULL, NULL},
+    {0xA7A8C91070E4C52E, "DCArray<ParticleSprite::Animation>", DCArray_ParticleSprite__Animation_Read, NULL},
     {0xA7DAAA296D1491CC, "DCArray<T3MeshTexture>", NULL, NULL},
     {0xA7FE20E35345AC33, "DlgLine", DlgLineRead, NULL},
     {0xA877237AFCDAAA59, "KeyframedValue<Handle<PropertySet>>", NULL, NULL},
@@ -932,7 +933,7 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0xEAE06ABE810518EE, "T3LightEnvInternalData", T3LightEnvInternalDataRead, NULL},
     {0xEB48981A297A46B7, "KeyframedValue<Handle<SoundReverbDefinition>>", NULL, NULL},
     {0xEB7FE6D415249768, "Handle<PreloadPackage::RuntimeDataScene>", intrinsic8Read, NULL},
-    {0xEB906C78C340D4A6, "SArray<Handle<T3Texture>,1>", NULL, NULL},
+    {0xEB906C78C340D4A6, "SArray<Handle<T3Texture>,1>", intrinsic8Read, NULL},
     {0xECB739634B43D072, "Map<Symbol,Map<Symbol,int,less<Symbol>>,less<Symbol>>", NULL, NULL},
     {0xEE3C7E2110139663, "DCArray<DCArray<PropertySet>>", NULL, NULL},
     {0xEE3FD7CC7ED685E9, "DlgChoicesChildPre", DlgChoicesChildPreRead, NULL},
