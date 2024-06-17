@@ -10,6 +10,10 @@ Note that this library does not represent how the telltale engine works. Conside
 - [ ] .skl file conversion
 - [x] .landb file reading
 - [x] .scene file reading
+- [x] .prop file reading
+- [x] .wbox file reading
+- [x] .ptable file reading
+- [x] .style file reading
 - [ ] .animation file reading
 - [ ] .animation file conversion
 - [ ] .d3dmesh file reading
