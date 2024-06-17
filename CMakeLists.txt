@@ -27,6 +27,7 @@ set(SOURCES
     src/style.c
     src/ptable.c
     src/wbox.c
+    src/sprite.c
 )
 
 if(UNIX)
