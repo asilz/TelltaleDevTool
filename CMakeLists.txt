@@ -24,6 +24,9 @@ set(SOURCES
     src/skeleton.c
     src/chore.c
     src/scene.c
+    src/style.c
+    src/ptable.c
+    src/wbox.c
 )
 
 if(UNIX)
