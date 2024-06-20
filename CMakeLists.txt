@@ -28,6 +28,7 @@ set(SOURCES
     src/ptable.c
     src/wbox.c
     src/sprite.c
+    src/d3dmesh.c
 )
 
 if(UNIX)
