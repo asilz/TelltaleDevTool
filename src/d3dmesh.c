@@ -633,8 +633,23 @@ int DCArray_T3MeshLOD_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DCArray_T3MeshTexture_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "T3MeshTexture", T3MeshTextureRead, NULL}; // TODO: FIX
-    return genericArrayRead(stream, node, flags, &description);
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    node->children[0]->description->read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        T3MeshTextureRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 int DCArray_T3MeshMaterial_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -644,8 +659,23 @@ int DCArray_T3MeshMaterial_Read(FILE *stream, struct TreeNode *node, uint32_t fl
 
 int DCArray_T3MeshMaterialOverride_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "T3MeshMaterialOverride", T3MeshMaterialOverrideRead, NULL}; // TODO: FIX
-    return genericArrayRead(stream, node, flags, &description);
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    node->children[0]->description->read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        T3MeshMaterialOverrideRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 int DCArray_T3MeshBoneEntry_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -794,8 +824,23 @@ static int T3OcclusionMeshBatchRead(FILE *stream, struct TreeNode *node, uint32_
 
 int DCArray_T3OcclusionMeshBatch_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "T3OcclusionMeshBatch", T3OcclusionMeshBatchRead, NULL}; // TODO: Fix this
-    return genericArrayRead(stream, node, flags, &description);
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    node->children[0]->description->read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        T3OcclusionMeshBatchRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 int T3OcclusionMeshDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -1054,8 +1099,23 @@ static int T3MaterialNestedMaterialRead(FILE *stream, struct TreeNode *node, uin
 
 int DCArray_T3MaterialNestedMaterial_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "T3MaterialNestedMaterial", T3MaterialNestedMaterialRead, NULL}; // TODO: Fix this
-    return genericArrayRead(stream, node, flags, &description);
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    node->children[0]->description->read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        T3MaterialNestedMaterialRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 int T3MaterialPreShaderRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -1097,8 +1157,23 @@ static int T3MaterialTextureParamRead(FILE *stream, struct TreeNode *node, uint3
 
 int DCArray_T3MaterialTextureParam_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "T3MaterialTextureParam", T3MaterialTextureParamRead, NULL}; // TODO: Fix this
-    return genericArrayRead(stream, node, flags, &description);
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    node->children[0]->description->read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        T3MaterialTextureParamRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 int T3MaterialPassDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)

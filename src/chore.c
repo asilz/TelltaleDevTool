@@ -162,9 +162,24 @@ int KeyframedValue_unsigned__int64___SampleRead(FILE *stream, struct TreeNode *n
 
 int DCArray_KeyframedValue_unsigned__int64___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "KeyframedValue<unsigned__int64>::Sample", KeyframedValue_unsigned__int64___SampleRead, NULL}; // TODO: Fix stupid problem
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    intrinsic4Read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
 
-    return genericArrayRead(stream, node, flags, &description);
+    int64_t ftell = cftell(stream);
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        KeyframedValue_unsigned__int64___SampleRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 int KeyframedValue_unsigned__int64_Read(FILE *stream, struct TreeNode *node, uint32_t flags)

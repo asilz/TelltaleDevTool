@@ -207,14 +207,44 @@ static int ActingAccentPaletteRead(FILE *stream, struct TreeNode *node, uint32_t
 
 int DCArray_Ptr_ActingAccentPalette__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "ActingAccentPalette", ActingAccentPaletteRead, NULL}; // TODO: Fix this
-    return genericArrayRead(stream, node, flags, &description);
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    node->children[0]->description->read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        ActingAccentPaletteRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 int DCArray_Ptr_ActingPalette__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "ActingPalette", ActingPaletteRead, NULL}; // TODO: Fix this
-    return genericArrayRead(stream, node, flags, &description);
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    node->children[0]->description->read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        ActingPaletteRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 static int ActingPaletteGroup__ActingPaletteTransitionRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -249,8 +279,23 @@ static int ActingPaletteGroup__ActingPaletteTransitionRead(FILE *stream, struct 
 
 int List_ActingPaletteGroup__ActingPaletteTransition_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "ActingPaletteGroup::ActingPaletteTransition", ActingPaletteGroup__ActingPaletteTransitionRead, NULL}; // TODO: Fix this
-    return genericArrayRead(stream, node, flags, &description);
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    node->children[0]->description->read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        ActingPaletteGroup__ActingPaletteTransitionRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 int ActingPaletteGroupRead(FILE *stream, struct TreeNode *node, uint32_t flags)

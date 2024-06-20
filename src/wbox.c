@@ -166,20 +166,65 @@ static int WalkBoxes__QuadRead(FILE *stream, struct TreeNode *node, uint32_t fla
 
 int DCArray_WalkBoxes__Tri_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "WalkBoxes::Tri", WalkBoxes__TriRead, NULL}; // TODO: Fix this
-    return genericArrayRead(stream, node, flags, &description);
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    node->children[0]->description->read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        WalkBoxes__TriRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 int DCArray_WalkBoxes__Vert_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "WalkBoxes::Vert", WalkBoxes__VertRead, NULL}; // TODO: Fix this
-    return genericArrayRead(stream, node, flags, &description);
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    node->children[0]->description->read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        WalkBoxes__VertRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 int DCArray_WalkBoxes__Quad_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const struct MetaClassDescription description = {0, "WalkBoxes::Quad", WalkBoxes__QuadRead, NULL}; // TODO: Fix this
-    return genericArrayRead(stream, node, flags, &description);
+    node->childCount = 1;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->children[0] = calloc(1, sizeof(struct TreeNode));
+    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
+    node->children[0]->description->read(stream, node->children[0], flags);
+    node->children[0]->parent = node;
+
+    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
+    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+    for (uint32_t i = 1; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        WalkBoxes__QuadRead(stream, node->children[i], flags); // TODO: Set description
+    }
+    return 0;
 }
 
 int DCArray_Vector3_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
