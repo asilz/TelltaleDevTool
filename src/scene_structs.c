@@ -53,10 +53,33 @@ struct SoundEventName_0_
     struct SoundEventNameBase base;
 };
 
+struct FootSteps__FootstepBank
+{
+    uint32_t soundsBlock;
+    uint32_t soundsCount;
+    uint64_t *sounds;
+};
+
 struct FootSteps2__FootstepBank
 {
     struct SoundEventName_0_ eventName;
     void *materialMap; // Map<SoundFootsteps::EnumMaterial,SoundEventName<0>,std::less<S oundFootsteps::EnumMaterial>_>
+};
+
+struct EnlightenModule__EnlightenPrimitiveSettings
+{
+    uint32_t systemIDBlock;
+    struct String systemID;
+    uint32_t enlightenLightingMode; // blocked
+    uint32_t enlightenUpdateMethod; // blocked
+    uint32_t enlightenQuality;      // blocked
+};
+
+struct EnlightenModule__EnlightenSystemSettings
+{
+    uint32_t defaultQuality;          // blocked
+    uint32_t adaptiveProbeResolution; // blocked
+    uint8_t disableEnlighten;
 };
 
 struct LocationInfo

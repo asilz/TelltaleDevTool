@@ -20,6 +20,7 @@ sk62_clementine_walk.chore
 sk62_clementineWalk_toAction.anm
 
 0x74 is start
+0xB9 is start of mystery buffer
 CompressedSkeletonPoseKeys2
 KeyframedValue<Transform>
 
@@ -83,25 +84,31 @@ struct Vector3
 
 struct Transform
 {
-    uint32_t rotBlock;
-    struct Quaternion rot;
-    uint32_t transBlock;
-    struct Vector3 trans;
+    struct Quaternion rotation;
+    struct Vector3 translation;
+};
+
+struct KeyFramedValue_Transform__Sample
+{
+    float time;
+    uint8_t interpolateToNextKey;
+    int32_t tangentMode; // TangentUnkown, TangentStepped, TangentKnot, TangentSmooth, TangentFlat
+    struct Transform value;
+    float recipTimeToNextSample; // Not serialized?
 };
 
 struct KeyframedValue_Transform_
 {
     uint32_t interfaceBlock;
     struct AnimatedValueInterface_Transform_ Baseclass_AnimatedValueInterface_T_;
-    uint32_t keyframedValueInterfaceBlock;
-    struct KeyframedValueInterface Baseclass_KeyframedValueInterface;
+    struct KeyframedValueInterface Baseclass_KeyframedValueInterface; // Not serialized
     uint32_t minValueBlock;
     struct Transform minValue;
     uint32_t maxValueBlock;
     struct Transform maxValue;
     uint32_t samplesBlock;
     uint32_t samplesCount;
-    struct KeyFramedValue_Transform_ *samples; // DCArray<KeyFramedValue<Transform>
+    struct KeyFramedValue_Transform__Sample *samples; // DCArray<KeyFramedValue<Transform>::Sample>
 };
 
 struct DependencyLoader
@@ -128,6 +135,45 @@ struct HandleBase
     uint64_t symbol;
     int64_t num;
 };
+
+struct __attribute__((__packed__)) DataBuffer
+{
+    float xMinDeltaV;
+    float yMinDeltaV;
+    float zMinDeltaV;
+    float xScaleDeltaV; // mScaleDeltaV.x = xScaleDeltaV *  0.0009775171
+    float yScaleDeltaV; // mScaleDeltaV.y = yScaleDeltaV *  0.0004885198
+    float zScaleDeltaV; // mScaleDeltaV.z = zScaleDeltaV *  0.0004885198
+    float xMinDeltaQ;
+    float yMinDeltaQ;
+    float zMinDeltaQ;
+    float xScaleDeltaQ; // mScaleDeltaQ.x = xScaleDeltaQ * 0.0009775171
+    float yScaleDeltaQ; // mScaleDeltaQ.y = yScaleDeltaQ * 0.0004885198
+    float zScaleDeltaQ; // mScaleDeltaQ.z = zScaleDeltaQ * 0.0004885198
+    float xMinVector;
+    float yMinVector;
+    float zMinVector;
+    float xScaleVector; // mScaleVector.x = xScale * 9.536752e-07
+    float yScaleVector; //  mScaleVector.y = yScale * 2.384186e-07
+    float zScaleVector; //  mScaleVector.z = zScale * 2.384186e-07
+    float unknown;
+    uint16_t boneSymbolCount; // 0x13 (float) //
+    uint16_t paddingMaybe;
+    int64_t symbolOffset;
+    int64_t unknown2;
+
+    // 0x60  // Here is where mpSampleDataBuffer points
+    uint32_t flagsMaybe;
+
+    // symbolOffset
+    uint64_t *boneSymbols; // The count is equal to boneSymbolCount .The bytes of the left and right half of these symbols seem to be swapped. mpSampleHeaderBuffer points to after these symbols
+    uint16_t CSPKMinTime;  // Multiply by unknown and 1.525902e-05 to get time
+};
+
+int func()
+{
+    sizeof(struct DataBuffer);
+}
 
 struct Animation
 {
