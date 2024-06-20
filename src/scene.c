@@ -30,9 +30,24 @@ int Map_SymbolFootsteps2__FootstepBankless_Symbol__Read(FILE *stream, struct Tre
     return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionByIndex(Footsteps2__FootstepBank));
 }
 
+int Map_SoundFootsteps__EnumMaterialDCArray_Handle_SoundData__less_SoundFootsteps__EnumMaterial__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(long_type), getMetaClassDescriptionByIndex(DCArray_Handle_SoundData__));
+}
+
+int Map_SymbolFootSteps__FootstepBankless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(Symbol), getMetaClassDescriptionByIndex(FootSteps__FootstepBank));
+}
+
 int DCArray_Vector2_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(Vector2));
+}
+
+int DCArray_Handle_SoundData__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(Handle_SoundData_));
 }
 
 int Vector2Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -59,6 +74,67 @@ int FileName_SoundEventBankDummy_Read(FILE *stream, struct TreeNode *node, uint3
     node->children[0]->parent = node;
     node->children[0]->description = getMetaClassDescriptionByIndex(FileNameBase);
     node->children[0]->description->read(stream, node->children[0], flags);
+
+    return 0;
+}
+
+int EnlightenModule__EnlightenPrimitiveSettingsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    node->childCount = 4;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+
+    for (uint16_t i = 0; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+    }
+
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[0]->isBlocked = 1;
+    node->children[0]->description = getMetaClassDescriptionByIndex(String);
+    node->children[0]->description->read(stream, node->children[0], flags);
+
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[1]->isBlocked = 1;
+    node->children[1]->description = getMetaClassDescriptionByIndex(EnlightenModule__EnumeInstanceType);
+    node->children[1]->description->read(stream, node->children[1], flags);
+
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[2]->isBlocked = 1;
+    node->children[2]->description = getMetaClassDescriptionByIndex(EnlightenModule__EnumeUpdateMethod);
+    node->children[2]->description->read(stream, node->children[2], flags);
+
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[3]->isBlocked = 1;
+    node->children[3]->description = getMetaClassDescriptionByIndex(EnlightenModule__EnumeQualityWithDefault);
+    node->children[3]->description->read(stream, node->children[3], flags);
+
+    return 0;
+}
+
+int EnlightenModule__EnlightenSystemSettingsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    node->childCount = 3;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+
+    for (uint16_t i = 0; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+    }
+
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[0]->isBlocked = 1;
+    node->children[0]->description = getMetaClassDescriptionByIndex(EnlightenModule__EnumeQuality);
+    node->children[0]->description->read(stream, node->children[0], flags);
+
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[1]->isBlocked = 1;
+    node->children[1]->description = getMetaClassDescriptionByIndex(EnlightenModule__EnumeProbeResolution);
+    node->children[1]->description->read(stream, node->children[1], flags);
+
+    node->children[2]->description = getMetaClassDescriptionByIndex(bool_type);
+    node->children[2]->description->read(stream, node->children[2], flags);
 
     return 0;
 }
@@ -196,6 +272,29 @@ int SoundEventNameRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     return 0;
 }
 
+int Footsteps__FootstepBankRead(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    node->childCount = 2;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+
+    for (uint16_t i = 0; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        node->children[i]->isBlocked = 1;
+    }
+
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[0]->description = getMetaClassDescriptionByIndex(DCArray_Handle_SoundData__);
+    node->children[0]->description->read(stream, node->children[0], flags);
+
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+    node->children[1]->description = getMetaClassDescriptionByIndex(Map_SoundFootsteps__EnumMaterialDCArray_Handle_SoundData__less_SoundFootsteps__EnumMaterial__);
+    node->children[1]->description->read(stream, node->children[1], flags);
+
+    return 0;
+}
+
 int Footsteps2__FootstepBankRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     node->childCount = 2;
@@ -215,6 +314,7 @@ int Footsteps2__FootstepBankRead(FILE *stream, struct TreeNode *node, uint32_t f
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[1]->description = getMetaClassDescriptionByIndex(Map_SoundFootsteps__EnumMaterialSoundEventName_0_less_SoundFootsteps__EnumMaterial__);
     node->children[1]->description->read(stream, node->children[1], flags);
+
     return 0;
 }
 
