@@ -56,7 +56,7 @@ uint32_t writeTree(FILE *stream, struct TreeNode *root)
             ret += writeTree(stream, root->children[i]);
         }
     }
-    if (root->dataSize <= 8)
+    if (root->dataSize <= sizeof(root->data))
     {
         ret += fwrite(root->data.staticBuffer, 1, root->dataSize, stream);
     }
