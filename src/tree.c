@@ -33,20 +33,20 @@ void treeFree(struct TreeNode *root)
 uint32_t writeTree(FILE *stream, struct TreeNode *root)
 {
     // printf("ftell = %lx\n", cftell(stream));
-    int64_t ftell = cftell(stream);
     uint32_t ret = 0;
-    if (root->serializeType)
-    {
-        ret += fwrite(&root->description->crc, 1, sizeof(root->description->crc), stream);
-    }
+
     for (uint16_t i = 0; i < root->childCount; ++i)
     {
+        if (root->children[i]->serializeType)
+        {
+            ret += fwrite(&root->children[i]->description->crc, 1, sizeof(root->children[i]->description->crc), stream);
+        }
         if (root->children[i]->isBlocked)
         {
             size_t childSize = 0;
             childSize = fwrite(&childSize, 1, sizeof(uint32_t), stream);
             childSize += writeTree(stream, root->children[i]);
-            cfseek(stream, -(int32_t)childSize, SEEK_CUR);
+            cfseek(stream, -(int64_t)childSize, SEEK_CUR);
             fwrite(&childSize, 1, sizeof(uint32_t), stream);
             cfseek(stream, childSize - sizeof(uint32_t), SEEK_CUR);
             ret += childSize;
