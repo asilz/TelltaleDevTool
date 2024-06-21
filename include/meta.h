@@ -21,4 +21,4 @@ void readMetaStream(FILE *stream, struct MetaStreamHeader *header);
 void writeMetaStreamHeader(FILE *stream, struct MetaStreamHeader *header);
 const struct MetaClassDescription *getMetaClassDescriptionBySymbol(uint64_t symbol);
 const struct MetaClassDescription *getMetaClassDescriptionByIndex(uint16_t index);
-char *getFileName(uint64_t symbol);
+const char *getFileName(uint64_t symbol);

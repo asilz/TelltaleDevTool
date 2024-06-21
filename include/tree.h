@@ -12,7 +12,7 @@ struct MetaClassDescription
 {
     const uint64_t crc;
     const char *name;
-    SerializeFunction read;
+    const SerializeFunction read;
     const RenderFunction render;
 };
 
