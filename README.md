@@ -16,8 +16,8 @@ Note that this library does not represent how the telltale engine works. Conside
 - [x] .style file reading
 - [ ] .animation file reading
 - [ ] .animation file conversion
-- [ ] .d3dmesh file reading
-- [ ] .d3dmesh file conversion 
+- [x] .d3dmesh file reading
+- [x] .d3dmesh file conversion (Partially supported)
 - [ ] Archive file rebuilding
 # List of supported Games
 - Telltale the walking dead definitive series
