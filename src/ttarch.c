@@ -174,23 +174,21 @@ int streamDecrypt(FILE **compressedStreamPtr)
 
 int archiveSplit(FILE *stream, uint8_t *folderPath)
 {
-    FILE *fileNames = cfopen("./fileNames101.txt", "wb");
-
     struct ArchiveHeader header;
-    fread((uint8_t *)(&header), sizeof(struct ArchiveHeader), 1, stream);
+    fread(&header, sizeof(struct ArchiveHeader), 1, stream);
+
     printf("fileCount = %" PRIu32 " \n", header.fileCount);
 
     uint64_t nameTableOffset = 28 * header.fileCount + sizeof(struct ArchiveHeader); // 28 is the size of all the FileHeader members. Using sizeof(struct FileHeader) will return the size including the 4 byte trailing padding.
-
     uint8_t filePath[512];
     size_t outPathLength = strlen(folderPath);
     memcpy(filePath, folderPath, outPathLength);
-
     for (uint32_t i = 0; i < header.fileCount; ++i)
     {
         struct FileHeader entry;
+
         cfseek(stream, sizeof(struct ArchiveHeader) + 28 * i, SEEK_SET);
-        fread((uint8_t *)(&entry), 28, 1, stream);
+        fread(&entry, 28, 1, stream);
 
         cfseek(stream, nameTableOffset + entry.nameTableChunkIndex * 0x10000 + entry.nameTableOffset, SEEK_SET);
 
@@ -202,21 +200,9 @@ int archiveSplit(FILE *stream, uint8_t *folderPath)
                 break;
             }
         }
-
         if (entry.crcName != CRC64_CaseInsensitive(0, filePath + outPathLength))
         {
             printf("Warning: Name does not match crc Name = %s\n", filePath + outPathLength);
-        }
-        for (uint32_t i = 0;; ++i)
-        {
-            char a = *(filePath + outPathLength + i);
-            if (a == '\0')
-            {
-                a = '\n';
-                fputc(a, fileNames);
-                break;
-            }
-            fputc(a, fileNames);
         }
         cfseek(stream, nameTableOffset + header.nameSize + entry.offset, SEEK_SET);
 
@@ -230,12 +216,10 @@ int archiveSplit(FILE *stream, uint8_t *folderPath)
             free(fileData);
             return -1;
         }
-
         fwrite(fileData, entry.size, 1, file);
         fclose(file);
         free(fileData);
     }
-    fclose(fileNames);
     return 0;
 }
 
