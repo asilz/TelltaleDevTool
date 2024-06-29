@@ -23,7 +23,7 @@ int AnimatedValueInterface_Transform_Read(FILE *stream, struct TreeNode *node, u
 
 static int KeyframedValue_Transform___SampleRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 5;
+    node->childCount = 4;
     node->children = malloc(node->childCount * sizeof(struct TreeNode *));
 
     for (uint16_t i = 0; i < node->childCount; ++i)
@@ -45,9 +45,6 @@ static int KeyframedValue_Transform___SampleRead(FILE *stream, struct TreeNode *
     node->children[3]->isBlocked = 1;
     node->children[3]->description = getMetaClassDescriptionByIndex(Transform);
     node->children[3]->description->read(stream, node->children[3], flags);
-
-    node->children[4]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[4]->description->read(stream, node->children[4], flags);
 
     return 0;
 }
@@ -104,95 +101,6 @@ int KeyframedValue_Transform_Read(FILE *stream, struct TreeNode *node, uint32_t 
     node->children[3]->isBlocked = 1;
     node->children[3]->description = getMetaClassDescriptionByIndex(DCArray_KeyframedValue_Transform___Sample_);
     node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
-}
-
-int CompressedSkeletonPoseKeys2Read(FILE *stream, struct TreeNode *node, uint32_t flags)
-{
-    int64_t initialPosition = cftell(stream);
-
-    node->childCount = 12;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(unsignedlong); // This is reading the block, which is bad. TODO: Fix this
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    for (uint32_t i = 1; i < 7; ++i)
-    {
-        node->children[i]->description = getMetaClassDescriptionByIndex(Vector3);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
-
-    node->children[7]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[7]->description->read(stream, node->children[7], flags);
-
-    node->children[8]->description = getMetaClassDescriptionByIndex(unsignedshort);
-    node->children[8]->description->read(stream, node->children[8], flags);
-
-    node->children[9]->description = getMetaClassDescriptionByIndex(unsignedshort);
-    node->children[9]->description->read(stream, node->children[9], flags);
-
-    node->children[10]->description = getMetaClassDescriptionByIndex(int64);
-    node->children[10]->description->read(stream, node->children[10], flags);
-
-    node->children[11]->description = getMetaClassDescriptionByIndex(int64);
-    node->children[11]->description->read(stream, node->children[11], flags);
-
-    uint32_t sampleHeaderCount = (*(uint32_t *)node->children[0]->data.staticBuffer - *(uint64_t *)(node->children[10]->data.staticBuffer) + *(uint16_t *)(node->children[8]->data.staticBuffer) * sizeof(uint64_t)) / sizeof(uint32_t);
-    assert(((*(uint32_t *)node->children[0]->data.staticBuffer - *(uint64_t *)(node->children[10]->data.staticBuffer) + *(uint16_t *)(node->children[8]->data.staticBuffer) * sizeof(uint64_t)) % sizeof(uint32_t)) == 0);
-
-    node->childCount += 2 * sampleHeaderCount + *(uint16_t *)(node->children[8]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *)); // TODO: Check return value of this because it is a large realloc that could fail. In theory I should check all allocs, but I am lazy
-
-    cfseek(stream, *(uint64_t *)(node->children[10]->data.staticBuffer) + *(uint16_t *)(node->children[8]->data.staticBuffer) * sizeof(uint64_t), SEEK_CUR); // seek to headers
-
-    for (uint32_t i = 0; i < sampleHeaderCount; ++i)
-    {
-        node->children[node->childCount - sampleHeaderCount + i] = calloc(1, sizeof(struct TreeNode));
-        node->children[node->childCount - sampleHeaderCount + i]->parent = node;
-
-        node->children[node->childCount - sampleHeaderCount + i]->description = getMetaClassDescriptionByIndex(unsignedlong);
-        node->children[node->childCount - sampleHeaderCount + i]->description->read(stream, node->children[node->childCount - sampleHeaderCount + i], flags);
-    }
-    int64_t ftel = cftell(stream);
-    int64_t seekVar0 = *(uint64_t *)(node->children[10]->data.staticBuffer) + *(uint16_t *)(node->children[8]->data.staticBuffer) * sizeof(uint64_t);
-    int64_t seekVar = -(int64_t)(*(uint64_t *)(node->children[10]->data.staticBuffer) + *(uint16_t *)(node->children[8]->data.staticBuffer) * sizeof(uint64_t) + sampleHeaderCount * 4);
-    cfseek(stream, -(int64_t)(*(uint64_t *)(node->children[10]->data.staticBuffer) + *(uint16_t *)(node->children[8]->data.staticBuffer) * sizeof(uint64_t) + sampleHeaderCount * 4), SEEK_CUR); // Seek back to the start of sample data
-    int64_t ftel2 = cftell(stream);
-
-    for (uint32_t i = 12; i < sampleHeaderCount + 12; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-
-        if (*(int32_t *)node->children[node->childCount - sampleHeaderCount + i - 12]->data.staticBuffer < 0)
-        {
-            node->children[i]->dataSize = 4 * sizeof(uint32_t);
-        }
-        else
-        {
-            node->children[i]->dataSize = 8 * sizeof(uint32_t);
-        }
-
-        node->children[i]->data.dynamicBuffer = malloc(node->dataSize);
-        fread(node->children[i]->data.dynamicBuffer, node->dataSize, 1, stream);
-    }
-
-    for (uint32_t i = sampleHeaderCount + 12; i < sampleHeaderCount + 12 + *(uint16_t *)(node->children[8]->data.staticBuffer); ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-
-        node->children[i]->description = getMetaClassDescriptionByIndex(Symbol);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
 
     return 0;
 }
@@ -272,8 +180,19 @@ static int AnimationCoreRead(FILE *stream, struct TreeNode *node, uint32_t flags
     node->children[++childIndex]->description = getMetaClassDescriptionByIndex(unsignedshort);
     node->children[childIndex]->description->read(stream, node->children[childIndex], flags);
 
-    if (*(uint16_t *)(node->children[childIndex]->data.staticBuffer))
+    if (*(uint16_t *)(node->children[childIndex]->data.staticBuffer) == 0)
     {
+        node->childCount += interfaceCount;
+        node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+
+        while (childIndex < node->childCount - 1)
+        {
+            node->children[++childIndex] = calloc(1, sizeof(struct TreeNode));
+            node->children[childIndex]->parent = node;
+
+            node->children[childIndex]->description = getMetaClassDescriptionByIndex(Symbol);
+            node->children[childIndex]->description->read(stream, node->children[childIndex], flags);
+        }
     }
 
     return 0;

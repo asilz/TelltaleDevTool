@@ -23,6 +23,7 @@
 #include <wbox.h>
 #include <sprite.h>
 #include <d3dmesh.h>
+#include <animation.h>
 
 #define META_CLASS_DESCRIPTIONS_COUNT 978
 
@@ -357,7 +358,7 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0x540181F155761548, "DCArray<Handle<D3DMesh>>", DCArray_Handle_D3DMesh__Read, NULL},
     {0x54268116A226A267, "List<Handle<Scene>>", NULL, NULL},
     {0x5472BFB3E281088F, "EnlightenModule::EnumeProbeSampleMethod", intrinsic4Read, NULL},
-    {0x552D6026F0D9CDD8, "AnimatedValueInterface<Transform>", NULL, NULL},
+    {0x552D6026F0D9CDD8, "AnimatedValueInterface<Transform>", AnimatedValueInterface_Transform_Read, NULL},
     {0x5531D898F735D354, "EnumHBAOResolution", intrinsic4Read, NULL},
     {0x5549D9EFE67060E1, "Rule", RuleRead, NULL},
     {0x559AE24458E0D573, "EnumT3LightEnvShadowQuality", intrinsic4Read, NULL},
@@ -377,7 +378,7 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0x593F9647E67E405D, "EnlightenModule::EnlightenSystemSettings", EnlightenModule__EnlightenSystemSettingsRead, NULL},
     {0x599C62C7A01A35E3, "Procedural_LookAt::Constraint", NULL, NULL},
     {0x59A72EC50742FCD0, "Map<String,PropertySet,less<String>>", NULL, NULL},
-    {0x59D13F814FD13B69, "CompressedSkeletonPoseKeys2", NULL, NULL},
+    {0x59D13F814FD13B69, "CompressedSkeletonPoseKeys2", StringRead, NULL},
     {0x59F6BEC43DCEDCA4, "KeyframedValue<Vector2>", NULL, NULL},
     {0x59FA44B05D07FB9A, "DlgConditionalCase", DlgConditionalCaseRead, NULL},
     {0x5A21B47B07AE5F3A, "CompressedPathBlockingValue::CompressedPathInfoKey", NULL, NULL},
@@ -395,7 +396,7 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0x5D043364452053FE, "SoundReverbPreset", intrinsic4Read, NULL},
     {0x5D199F8AC4F57196, "Map<Symbol,float,less<Symbol>>", Map_Symbolfloatless_Symbol__Read, NULL},
     {0x5D39DE4AC5468B6E, "KeyframedValue<LocationInfo>", NULL, NULL},
-    {0x5D3E9FC6FA9369BF, "KeyframedValue<Transform>", NULL, NULL},
+    {0x5D3E9FC6FA9369BF, "KeyframedValue<Transform>", KeyframedValue_Transform_Read, NULL},
     {0x5D4EFA69722CE03A, "AnimatedValueInterface<Polar>", NULL, NULL},
     {0x5DAEEE1F30D32952, "DCArray<T3ToonGradientRegion>", NULL, NULL},
     {0x5DBB10F7184DA54B, "EnumT3LightEnvType", intrinsic4Read, NULL},
@@ -494,7 +495,7 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0x76592B0CF8E8A12F, "DCArray<T3MeshBoneEntry>", DCArray_T3MeshBoneEntry_Read, NULL},
     {0x766BB06D64BF383B, "MeshSceneEnlightenData", MeshSceneEnlightenDataRead, NULL},
     {0x773ECCCE0DD2EDAD, "EnumRenderLightmapUVGenerationType", intrinsic4Read, NULL},
-    {0x774CFA08CA715D06, "Animation", NULL, NULL},
+    {0x774CFA08CA715D06, "Animation", AnimationRead, NULL},
     {0x77752EC5B9F72F50, "Localization::Language", NULL, NULL},
     {0x7864EA122E854260, "HandleBase", HandleBaseRead, NULL},
     {0x789758CB1A8D6628, "DlgNodeConditional", DlgNodeConditionalRead, NULL},
@@ -676,7 +677,7 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0xA47918A7D3C3A67A, "Handle<PhysicsObject>", intrinsic8Read, NULL},
     {0xA4811058F13AB197, "SoundEventBankDummy", NULL, NULL},
     {0xA4ECFBE186FB1452, "T3OverlayData", NULL, NULL},
-    {0xA5190A70F8F74C4C, "DCArray<KeyframedValue<Transform>::Sample>", NULL, NULL},
+    {0xA5190A70F8F74C4C, "DCArray<KeyframedValue<Transform>::Sample>", DCArray_KeyframedValue_Transform___Sample_Read, NULL},
     {0xA56C05706DC70A8B, "SingleValue<Handle<SoundBusSnapshot::Snapshot>>", NULL, NULL},
     {0xA5B4E0529A022754, "AnimOrChore", AnimOrChoreRead, NULL},
     {0xA5D09E10B6CE1CC4, "DCArray<unsignedchar>", NULL, NULL},
