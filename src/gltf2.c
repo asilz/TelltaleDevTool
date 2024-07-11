@@ -7,6 +7,42 @@
 #include <assert.h>
 #include <stdalign.h>
 #include <float.h>
+#include <math.h>
+
+struct Quaternion
+{
+    float x;
+    float y;
+    float z;
+    float w;
+};
+
+struct Vector3
+{
+    float x;
+    float y;
+    float z;
+};
+
+struct Frame
+{
+    float time;
+    float transform[4];
+};
+
+struct Frames
+{
+    uint32_t skeletonBoneIndex;
+    uint32_t frameCount;
+    struct Frame *frames;
+};
+
+struct FrameNode
+{
+    struct FrameNode *prev;
+    struct Frame frame;
+    struct FrameNode *next;
+};
 
 struct HeaderGLTF
 {
@@ -38,6 +74,13 @@ struct Accessor
         float floatComponent[16];
     } minimum, maximum;
     uint8_t isNormalized;
+    uint8_t isLimited;
+};
+
+struct Accessors
+{
+    struct Accessor *accessors;
+    uint32_t accessorCount;
 };
 
 struct BufferView
@@ -47,6 +90,12 @@ struct BufferView
     uint32_t byteLength;
     uint32_t byteStride;
     uint32_t target;
+};
+
+struct BufferViews
+{
+    struct BufferView *bufferViews;
+    uint32_t bufferViewCount;
 };
 
 struct Mesh
@@ -79,10 +128,52 @@ struct Node
 {
     uint32_t *children;
     uint32_t childCount;
-    int32_t mesh;
+    int32_t meshIndex;
+    int32_t skinIndex;
+    int32_t cameraIndex;
     float translation[3];
     float rotation[4];
     float scale[3];
+};
+
+struct Nodes
+{
+    struct Node *nodes;
+    uint32_t nodeCount;
+};
+
+struct Animation
+{
+    uint32_t channelCount;
+    uint32_t samplerCount;
+    struct Channel
+    {
+        uint32_t samplerIndex;
+        struct Target
+        {
+            uint32_t nodeIndex;
+            char path[12]; // null terminated string, "translation", "rotation", "scale", "weights"
+        } target;
+    } *channels;
+    struct Sampler
+    {
+        uint32_t input;
+        uint32_t output;
+        char interpolation[12]; // null terminated string, "CUBICSPLINE" or "LINEAR" or "STEP"
+    } *samplers;
+};
+
+struct AnimationPack
+{
+    struct Animation animation;
+    uint8_t *gltfAnimationBuffer;
+};
+
+struct Skin
+{
+    int32_t skeletonIndex;
+    uint32_t jointCount;
+    uint32_t *jointIndices;
 };
 
 enum GLTFComponentType
@@ -173,32 +264,91 @@ float Q_rsqrt(float number) // Fast inverse square root from QUAKE 3, pretty muc
     return y;
 }
 
+uint32_t writeSkin(const struct Skin *skin, FILE *stream)
+{
+    assert(skin->jointCount && skin->jointIndices);
+
+    char text[1024] = "{\"joints\":[";
+    int offset = 11;
+
+    for (uint32_t i = 0; i < skin->jointCount; ++i)
+    {
+        offset += snprintf(text + offset, sizeof(text) - offset, "%" PRIu32 ",", skin->jointIndices[i]);
+    }
+    text[offset - 1] = ']';
+
+    if (skin->skeletonIndex >= 0)
+    {
+        offset += snprintf(text + offset, sizeof(text) - offset, ",\"skeleton\":%" PRIu32, skin->skeletonIndex);
+    }
+
+    text[offset++] = '}';
+
+    return fwrite(text, 1, offset, stream);
+};
+
+uint32_t writeAnimation(const struct Animation *animation, FILE *stream)
+{
+    assert(animation->channelCount > 0 && animation->samplerCount > 0);
+
+    char text[0x10000] = "{\"channels\":[";
+    int offset = 13;
+    for (uint32_t i = 0; i < animation->channelCount; ++i)
+    {
+        offset += snprintf(text + offset, sizeof(text) - offset, "{\"sampler\":%" PRIu32 ",\"target\":{\"node\":%" PRIu32 ",\"path\":\"%s\"}},", animation->channels[i].samplerIndex, animation->channels[i].target.nodeIndex, animation->channels[i].target.path);
+    }
+    text[offset - 1] = ']';
+    text[offset++] = ',';
+
+    memcpy(text + offset, "\"samplers\":[", 12);
+    offset += 12;
+    for (uint32_t i = 0; i < animation->samplerCount; ++i)
+    {
+        offset += snprintf(text + offset, sizeof(text) - offset, "{\"input\":%" PRIu32 ",\"output\":%" PRIu32 ",\"interpolation\":\"%s\"},", animation->samplers[i].input, animation->samplers[i].output, animation->samplers[i].interpolation);
+    }
+    text[offset - 1] = ']';
+    text[offset++] = '}';
+
+    return fwrite(text, 1, offset, stream);
+}
+
 uint32_t writeAccessor(const struct Accessor *accessor, FILE *stream)
 {
     char text[1024] = "{";
     int offset = 1;
 
-    uint32_t dimensions = 0;
-    if (!strcmp(accessor->type, "VEC3"))
+    if (accessor->isLimited)
     {
-        dimensions = 3;
-    }
-    if (dimensions && accessor->componentType == eFLOAT)
-    {
-        memcpy(text + offset, "\"max\":[", 7);
-        offset += 7;
-        for (uint32_t i = 0; i < dimensions; ++i)
+        uint32_t dimensions = 0;
+        if (*(uint32_t *)accessor->type == *(uint32_t *)"VEC3")
         {
-            offset += snprintf(text + offset, sizeof(text) - offset, "%.9g,", accessor->maximum.floatComponent[i]);
+            dimensions = 3;
         }
-        memcpy(text + (--offset), "],\"min\":[", 9);
-        offset += 9;
-        for (uint32_t i = 0; i < dimensions; ++i)
+        if (*(uint32_t *)accessor->type == *(uint32_t *)"VEC2")
         {
-            offset += snprintf(text + offset, sizeof(text) - offset, "%.9g,", accessor->minimum.floatComponent[i]);
+            dimensions = 2;
         }
-        text[offset - 1] = ']';
-        text[offset++] = ',';
+        if (*(uint32_t *)accessor->type == *(uint32_t *)"SCALAR")
+        {
+            dimensions = 1;
+        }
+        if (dimensions && accessor->componentType == eFLOAT)
+        {
+            memcpy(text + offset, "\"max\":[", 7);
+            offset += 7;
+            for (uint32_t i = 0; i < dimensions; ++i)
+            {
+                offset += snprintf(text + offset, sizeof(text) - offset, "%.9g,", accessor->maximum.floatComponent[i]);
+            }
+            memcpy(text + (--offset), "],\"min\":[", 9);
+            offset += 9;
+            for (uint32_t i = 0; i < dimensions; ++i)
+            {
+                offset += snprintf(text + offset, sizeof(text) - offset, "%.9g,", accessor->minimum.floatComponent[i]);
+            }
+            text[offset - 1] = ']';
+            text[offset++] = ',';
+        }
     }
     if (accessor->isNormalized)
     {
@@ -217,8 +367,12 @@ uint32_t writeBufferView(const struct BufferView *bufferView, FILE *stream)
     {
         offset += snprintf(text + offset, sizeof(text) - offset, "\"byteStride\":%" PRIu32 ",", bufferView->byteStride);
     }
+    if (bufferView->target == 34962 || bufferView->target == 34963)
+    {
+        offset += snprintf(text + offset, sizeof(text) - offset, "\"target\":%" PRIu32 ",", bufferView->target);
+    }
 
-    offset += snprintf(text + offset, sizeof(text), "\"buffer\":%" PRIu32 ",\"byteOffset\":%" PRIu32 ",\"byteLength\":%" PRIu32 ",\"target\":%" PRIu32 "}", bufferView->bufferIndex, bufferView->byteOffset, bufferView->byteLength, bufferView->target);
+    offset += snprintf(text + offset, sizeof(text), "\"buffer\":%" PRIu32 ",\"byteOffset\":%" PRIu32 ",\"byteLength\":%" PRIu32 "}", bufferView->bufferIndex, bufferView->byteOffset, bufferView->byteLength);
     return fwrite(text, 1, offset, stream);
 }
 
@@ -234,15 +388,20 @@ uint32_t writeNode(const struct Node *node, FILE *stream)
 
         for (uint32_t i = 0; i < node->childCount; ++i)
         {
-            offset += snprintf(text + offset, sizeof(text) - offset, "%" PRIu32, node->children[i]);
+            offset += snprintf(text + offset, sizeof(text) - offset, "%" PRIu32 ",", node->children[i]);
         }
         text[offset - 1] = ']';
         text[offset++] = ',';
     }
 
-    if (node->mesh >= 0)
+    if (node->skinIndex >= 0)
     {
-        offset += snprintf(text + offset, sizeof(text) - offset, "\"mesh\":%" PRIu32 ",", node->mesh);
+        offset += snprintf(text + offset, sizeof(text) - offset, "\"skin\":%" PRIu32 ",", node->meshIndex);
+    }
+
+    if (node->meshIndex >= 0)
+    {
+        offset += snprintf(text + offset, sizeof(text) - offset, "\"mesh\":%" PRIu32 ",", node->meshIndex);
     }
 
     offset += snprintf(text + offset, sizeof(text) - offset, "\"translation\":[%f,%f,%f],\"rotation\":[%f,%f,%f,%f],\"scale\":[%f,%f,%f]}", node->translation[0], node->translation[1], node->translation[2], node->rotation[0], node->rotation[1], node->rotation[2], node->rotation[3], node->scale[0], node->scale[1], node->scale[2]);
@@ -320,16 +479,481 @@ uint32_t writeScene(const struct Scene scene, FILE *glb)
     return fwrite(text, 1, offset, glb);
 }
 
-int convertToGLB2(const struct TreeNode *d3dmesh, FILE *glb)
+struct CompressedSkeletonPoseKeys2Header
+{
+    float minDeltaV[3];
+    float scaleDeltaV[3];
+    float minDeltaQ[3];
+    float scaleDeltaQ[3];
+    float minVector[3];
+    float scaleVector[3];
+    float timeScale;
+    uint16_t boneSymbolCount;
+    uint16_t paddingMaybe;
+    int64_t sampleDataSize;
+    int64_t unknown2;
+};
+
+struct Nodes getSkeletonNodes(const struct TreeNode *skeleton)
+{
+    struct Nodes result = {calloc(skeleton->children[0]->childCount - 1, sizeof(struct Node)), skeleton->children[0]->childCount - 1};
+    for (uint32_t i = 0; i < result.nodeCount; ++i)
+    {
+        result.nodes[i].cameraIndex = -1;
+        result.nodes[i].meshIndex = -1;
+        result.nodes[i].skinIndex = -1;
+
+        result.nodes[i].rotation[3] = 1;
+        result.nodes[i].scale[0] = 1;
+        result.nodes[i].scale[1] = 1;
+        result.nodes[i].scale[2] = 1;
+
+        int32_t parentIndex = *(int32_t *)(skeleton->children[0]->children[i + 1]->children[2]->data.staticBuffer);
+        if (parentIndex >= 0) // Could check for out of range index, but I would rather it seg faults than me being unaware of the error
+        {
+            result.nodes[parentIndex].children = realloc(result.nodes[parentIndex].children, (++result.nodes[parentIndex].childCount) * sizeof(uint32_t));
+            result.nodes[parentIndex].children[result.nodes[parentIndex].childCount - 1] = i;
+        }
+    }
+    return result;
+}
+
+struct Animation convertAnimation(const struct TreeNode *animation, const struct TreeNode *skeleton, struct Accessors *accessors, struct BufferViews *bufferViews, struct Nodes *nodes, uint8_t **mbinBuffer)
+{
+    const uint8_t *animationBuffer = animation->children[6]->children[3]->data.dynamicBuffer;
+    uint32_t animationBufferSize = *(uint32_t *)animationBuffer;
+    animationBuffer += sizeof(animationBufferSize);
+    const uint8_t *endPtr = animationBuffer + animationBufferSize;
+    const struct CompressedSkeletonPoseKeys2Header *header = (struct CompressedSkeletonPoseKeys2Header *)(animationBuffer);
+    animationBuffer += sizeof(struct CompressedSkeletonPoseKeys2Header);
+
+    uint32_t headersSize = animationBufferSize - (sizeof(struct CompressedSkeletonPoseKeys2Header) + header->sampleDataSize + header->boneSymbolCount * sizeof(uint64_t));
+
+    // This is so stupid
+    struct Frames *vectorFrames = calloc(2 * sizeof(struct Frames), header->boneSymbolCount);
+    struct Frames *quaternionFrames = vectorFrames + header->boneSymbolCount;
+
+    uint32_t stagedDelQ = 4;
+    uint32_t stagedAbsQ = 4;
+    uint32_t stagedDelV = 4;
+    uint32_t stagedAbsV = 4;
+    struct Quaternion delQ[4];
+    struct Quaternion absQ[4];
+    struct Vector3 delV[4];
+    struct Vector3 absV[4];
+
+    for (const uint8_t *headerData = animationBuffer + header->sampleDataSize + header->boneSymbolCount * sizeof(uint64_t); headerData < endPtr; headerData += sizeof(uint32_t))
+    {
+        uint32_t currentHeader = *(uint32_t *)headerData;
+        if ((currentHeader & 0x40000000) == 0) // Vector
+        {
+            vectorFrames[(currentHeader >> 0x10) & 0xfff].frames = realloc(vectorFrames[(currentHeader >> 0x10) & 0xfff].frames, ++vectorFrames[(currentHeader >> 0x10) & 0xfff].frameCount * sizeof(struct Frame));
+            vectorFrames[(currentHeader >> 0x10) & 0xfff].frames[vectorFrames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform[3] = NAN;
+            vectorFrames[(currentHeader >> 0x10) & 0xfff].frames[vectorFrames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].time = (float)(currentHeader & 0xffff) * 1.525902e-05 * header->timeScale;
+            if ((int32_t)currentHeader < 0)
+            {
+                if (stagedDelV > 3)
+                {
+                    for (uint32_t i = 0; i < 4; ++i)
+                    {
+                        delV[i].x = (float)(((uint32_t *)animationBuffer)[i] & 0x3ff) * header->scaleDeltaV[0] + header->minDeltaV[0];
+                        delV[i].y = (float)(((uint32_t *)animationBuffer)[i] >> 10 & 0x7ff) * header->scaleDeltaV[1] + header->minDeltaV[1];
+                        delV[i].z = (float)(((uint32_t *)animationBuffer)[i] >> 21) * header->scaleDeltaV[2] + header->minDeltaV[2];
+                    }
+                    animationBuffer += 4 * sizeof(uint32_t);
+                    stagedDelV = 0;
+                }
+                memcpy(vectorFrames[(currentHeader >> 0x10) & 0xfff].frames[vectorFrames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform, delV + stagedDelV, sizeof(delV[stagedDelV]));
+                ++stagedDelV;
+            }
+            else
+            {
+                if (stagedAbsV > 3)
+                {
+                    for (uint32_t i = 0; i < 4; ++i)
+                    {
+                        absV[i].x = (float)(((((uint32_t *)animationBuffer)[4 + i] & 0x3ff) << 10) | (((uint32_t *)animationBuffer)[i] & 0x3ff)) * header->scaleVector[0] + header->minVector[0];
+                        absV[i].y = (float)(((((uint32_t *)animationBuffer)[4 + i] >> 10 & 0x7ff) << 11) | (((uint32_t *)animationBuffer)[i] >> 10 & 0x7ff)) * header->scaleVector[1] + header->minVector[1];
+                        absV[i].z = (float)(((((uint32_t *)animationBuffer)[4 + i] >> 11 & 0x7ff) << 11) | (((uint32_t *)animationBuffer)[i] >> 21)) * header->scaleVector[2] + header->minVector[2];
+                    }
+                    animationBuffer += 8 * sizeof(uint32_t);
+                    stagedAbsV = 0;
+                }
+                memcpy(vectorFrames[(currentHeader >> 0x10) & 0xfff].frames[vectorFrames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform, absV + stagedAbsV, sizeof(absV[stagedAbsV]));
+                ++stagedAbsV;
+            }
+        }
+        else // Quaternion
+        {
+            quaternionFrames[(currentHeader >> 0x10) & 0xfff].frames = realloc(quaternionFrames[(currentHeader >> 0x10) & 0xfff].frames, ++quaternionFrames[(currentHeader >> 0x10) & 0xfff].frameCount * sizeof(struct Frame));
+            quaternionFrames[(currentHeader >> 0x10) & 0xfff].frames[quaternionFrames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].time = (float)(currentHeader & 0xffff) * 1.525902e-05 * header->timeScale;
+            if ((int32_t)currentHeader < 0)
+            {
+                if (stagedDelQ > 3)
+                {
+                    for (uint32_t i = 0; i < 4; ++i)
+                    {
+                        delQ[i].x = (float)(((uint32_t *)animationBuffer)[i] & 0x3ff) * header->scaleDeltaQ[0] + header->minDeltaQ[0];
+                        delQ[i].y = (float)(((uint32_t *)animationBuffer)[i] >> 10 & 0x7ff) * header->scaleDeltaQ[1] + header->minDeltaQ[1];
+                        delQ[i].z = (float)(((uint32_t *)animationBuffer)[i] >> 21) * header->scaleDeltaQ[2] + header->minDeltaQ[2];
+                        delQ[i].w = ((1.0 - delQ[i].x * delQ[i].x) - delQ[i].y * delQ[i].y) - delQ[i].z * delQ[i].z;
+                        if (delQ[i].w > 0)
+                        {
+                            delQ[i].w = 1 / Q_rsqrt(delQ[i].w); // TODO: Stop being lazy
+                        }
+                        else
+                        {
+                            delQ[i].w = 0.0;
+                        }
+                        float inverseLength = Q_rsqrt(delQ[i].x * delQ[i].x + delQ[i].y * delQ[i].y + delQ[i].z * delQ[i].z + delQ[i].w * delQ[i].w);
+                        delQ[i].x = delQ[i].x * inverseLength;
+                        delQ[i].y = delQ[i].y * inverseLength;
+                        delQ[i].z = delQ[i].z * inverseLength;
+                    }
+                    animationBuffer += 4 * sizeof(uint32_t);
+                    stagedDelQ = 0;
+                }
+                memcpy(quaternionFrames[(currentHeader >> 0x10) & 0xfff].frames[quaternionFrames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform, delQ + stagedDelQ, sizeof(delQ[stagedDelQ]));
+                ++stagedDelQ;
+            }
+            else
+            {
+                if (stagedAbsQ > 3)
+                {
+                    for (uint32_t i = 0; i < 4; ++i)
+                    {
+                        absQ[i].x = (float)(((((uint32_t *)animationBuffer)[4 + i] & 0x3ff) << 10) | (((uint32_t *)animationBuffer)[i] & 0x3ff)) * 1.3487e-06 - 0.7071068;
+                        absQ[i].y = (float)(((((uint32_t *)animationBuffer)[4 + i] >> 10 & 0x7ff) << 11) | (((uint32_t *)animationBuffer)[i] >> 10 & 0x7ff)) * 3.371749e-07 - 0.7071068;
+                        absQ[i].z = (float)(((((uint32_t *)animationBuffer)[4 + i] >> 11 & 0x7ff) << 11) | (((uint32_t *)animationBuffer)[i] >> 21)) * 3.371749e-07 - 0.7071068;
+                        absQ[i].w = ((1.0 - absQ[i].x * absQ[i].x) - absQ[i].y * absQ[i].y) - absQ[i].z * absQ[i].z;
+                        if (absQ[i].w > 0)
+                        {
+                            absQ[i].w = 1 / Q_rsqrt(absQ[i].w); // TODO: Stop being lazy
+                        }
+                        else
+                        {
+                            absQ[i].w = 0.0;
+                        }
+                        float inverseLength = Q_rsqrt(absQ[i].x * absQ[i].x + absQ[i].y * absQ[i].y + absQ[i].z * absQ[i].z + absQ[i].w * absQ[i].w);
+                        absQ[i].x = absQ[i].x * inverseLength;
+                        absQ[i].y = absQ[i].y * inverseLength;
+                        absQ[i].z = absQ[i].z * inverseLength;
+                    }
+                    animationBuffer += 8 * sizeof(uint32_t);
+                    stagedAbsQ = 0;
+                }
+                memcpy(quaternionFrames[(currentHeader >> 0x10) & 0xfff].frames[quaternionFrames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform, absQ + stagedAbsQ, sizeof(absQ[stagedAbsQ]));
+                ++stagedAbsQ;
+            }
+        }
+
+        /*
+        for (uint32_t i = 0; i < 4; ++i)
+        {
+            uint32_t currentHeader = ((uint32_t *)headerData)[i];
+            if (*(uint32_t *)headerData & 0x40000000) // Quaternion
+            {
+                frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames = realloc(frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames, ++frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount * sizeof(struct Frame));
+                if (*(uint32_t *)headerData < 0) // Don't even bother trying to read this
+                {
+                    frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[0] = (float)(((uint32_t *)animationBuffer)[i] & 0x3ff) * header->scaleDeltaQ[0] + header->minDeltaQ[0];
+                    frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[1] = (float)(((uint32_t *)animationBuffer)[i] >> 10 & 0x7ff) * header->scaleDeltaQ[1] + header->minDeltaQ[1];
+                    frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[2] = (float)(((uint32_t *)animationBuffer)[i] >> 21) * header->scaleDeltaQ[2] + header->minDeltaQ[2];
+                }
+                else
+                {
+                    frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[0] = (float)(((((uint32_t *)animationBuffer)[4 + i] & 0x3ff) << 10) | (*(uint32_t *)animationBuffer & 0x3ff)) * 1.3487e-06 - 0.7071068;
+                    frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[1] = (float)(((((uint32_t *)animationBuffer)[4 + i] >> 10 & 0x7ff) << 11) | (*(uint32_t *)animationBuffer >> 10 & 0x7ff)) * 3.371749e-07 - 0.7071068;
+                    frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[2] = (float)(((((uint32_t *)animationBuffer)[4 + i] >> 11 & 0x7ff) << 11) | (*(uint32_t *)animationBuffer >> 21)) * 3.371749e-07 - 0.7071068;
+                }
+                // This line of code is impossible to read. I could tell you what it does, but I won't because I also do not understand what it is doing.
+                frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[3] = ((1.0 - frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[0] * frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[0]) - frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[1] * frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[1]) - frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[2] * frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].transform[2];
+                frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frames[frames[((currentHeader >> 0x10) & 0xfff) + header->boneSymbolCount].frameCount - 1].time = (float)(currentHeader & 0xffff) * 1.525902e-05 * header->timeScale;
+            }
+            else // Vector
+            {
+                frames[(currentHeader >> 0x10) & 0xfff].frames = realloc(frames[(currentHeader >> 0x10) & 0xfff].frames, ++frames[(currentHeader >> 0x10) & 0xfff].frameCount * sizeof(struct Frame));
+                if (*(uint32_t *)headerData < 0)
+                {
+                    frames[(currentHeader >> 0x10) & 0xfff].frames[frames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform[0] = (float)(((uint32_t *)animationBuffer)[i] & 0x3ff) * header->scaleDeltaV[0] + header->minDeltaV[0];
+                    frames[(currentHeader >> 0x10) & 0xfff].frames[frames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform[1] = (float)(((uint32_t *)animationBuffer)[i] >> 10 & 0x7ff) * header->scaleDeltaV[1] + header->minDeltaV[1];
+                    frames[(currentHeader >> 0x10) & 0xfff].frames[frames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform[2] = (float)(((uint32_t *)animationBuffer)[i] >> 21) * header->scaleDeltaV[2] + header->minDeltaV[2];
+                }
+                else
+                {
+                    frames[(currentHeader >> 0x10) & 0xfff].frames[frames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform[0] = (float)(((((uint32_t *)animationBuffer)[4 + i] & 0x3ff) << 10) | (*(uint32_t *)animationBuffer & 0x3ff)) * header->scaleVector[0] + header->minVector[0];
+                    frames[(currentHeader >> 0x10) & 0xfff].frames[frames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform[1] = (float)(((((uint32_t *)animationBuffer)[4 + i] >> 10 & 0x7ff) << 11) | (*(uint32_t *)animationBuffer >> 10 & 0x7ff)) * header->scaleVector[1] + header->minVector[1];
+                    frames[(currentHeader >> 0x10) & 0xfff].frames[frames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform[2] = (float)(((((uint32_t *)animationBuffer)[4 + i] >> 11 & 0x7ff) << 11) | (*(uint32_t *)animationBuffer >> 21)) * header->scaleVector[2] + header->minVector[2];
+                }
+                frames[(currentHeader >> 0x10) & 0xfff].frames[frames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].transform[3] = NAN;
+                frames[(currentHeader >> 0x10) & 0xfff].frames[frames[(currentHeader >> 0x10) & 0xfff].frameCount - 1].time = (float)(currentHeader & 0xffff) * 1.525902e-05 * header->timeScale;
+            }
+        }
+        uint32_t bufOffsetL = animationBuffer - animation->children[6]->children[3]->data.dynamicBuffer;
+        if (*(int32_t *)headerData < 0)
+        {
+            animationBuffer += 4 * sizeof(uint32_t);
+        }
+        else
+        {
+            animationBuffer += 8 * sizeof(uint32_t);
+        }
+        */
+    }
+
+    uint32_t bufOffset = animationBuffer - animation->children[6]->children[3]->data.dynamicBuffer;
+    uint32_t reqOffset = (4 + sizeof(struct CompressedSkeletonPoseKeys2Header) + header->sampleDataSize);
+
+    assert(bufOffset == reqOffset);
+
+    nodes->nodeCount += skeleton->children[0]->childCount - 1;
+    nodes->nodes = realloc(nodes->nodes, nodes->nodeCount * sizeof(struct Node));
+    memset(nodes->nodes + nodes->nodeCount - (skeleton->children[0]->childCount - 1), 0, (skeleton->children[0]->childCount - 1) * sizeof(struct Node));
+    struct Node *skeletonNodes = nodes->nodes + nodes->nodeCount - (skeleton->children[0]->childCount - 1);
+
+    for (uint32_t i = 0; i < skeleton->children[0]->childCount - 1; ++i)
+    {
+        skeletonNodes[i].cameraIndex = -1;
+        skeletonNodes[i].meshIndex = -1;
+        skeletonNodes[i].skinIndex = -1;
+
+        skeletonNodes[i].rotation[3] = 1;
+        skeletonNodes[i].scale[0] = 1;
+        skeletonNodes[i].scale[1] = 1;
+        skeletonNodes[i].scale[2] = 1;
+
+        int32_t parentIndex = *(int32_t *)(skeleton->children[0]->children[i + 1]->children[2]->data.staticBuffer);
+        if (parentIndex >= 0) // Could check for out of range index, but I would rather it seg faults than me being unaware of the error
+        {
+            assert(skeletonNodes[parentIndex].childCount < 1000);
+            skeletonNodes[parentIndex].children = realloc(skeletonNodes[parentIndex].children, (++skeletonNodes[parentIndex].childCount) * sizeof(uint32_t));
+            skeletonNodes[parentIndex].children[skeletonNodes[parentIndex].childCount - 1] = i - (skeleton->children[0]->childCount - 1) + nodes->nodeCount;
+        }
+
+        for (uint32_t j = 0; j < header->boneSymbolCount; ++j)
+        {
+            if (((uint64_t *)animationBuffer)[j] == *(uint64_t *)(skeleton->children[0]->children[i + 1]->children[0]->data.staticBuffer))
+            {
+                vectorFrames[j].skeletonBoneIndex = i;
+                quaternionFrames[j].skeletonBoneIndex = i;
+                break;
+            }
+        }
+    }
+
+    accessors->accessorCount += header->boneSymbolCount * 4;
+    accessors->accessors = realloc(accessors->accessors, accessors->accessorCount * sizeof(struct Accessor));
+    bufferViews->bufferViewCount += 3;
+    bufferViews->bufferViews = realloc(bufferViews->bufferViews, bufferViews->bufferViewCount * sizeof(struct BufferView));
+    struct BufferView *timeBufferView = bufferViews->bufferViews + bufferViews->bufferViewCount - 3;
+    struct BufferView *translationBufferView = bufferViews->bufferViews + bufferViews->bufferViewCount - 2;
+    struct BufferView *rotationBufferView = bufferViews->bufferViews + bufferViews->bufferViewCount - 1;
+
+    timeBufferView->byteLength = 0;
+    translationBufferView->byteLength = 0;
+    rotationBufferView->byteLength = 0;
+    for (uint32_t i = 0; i < header->boneSymbolCount; ++i)
+    {
+        timeBufferView->byteLength += vectorFrames[i].frameCount * sizeof(float);
+        timeBufferView->byteLength += quaternionFrames[i].frameCount * sizeof(float);
+
+        translationBufferView->byteLength += vectorFrames[i].frameCount * 3 * sizeof(float);
+        rotationBufferView->byteLength += quaternionFrames[i].frameCount * 4 * sizeof(float);
+    }
+
+    timeBufferView->bufferIndex = 0;
+    timeBufferView->byteOffset = 0;
+    for (uint32_t i = 0; i < bufferViews->bufferViewCount - 3; ++i)
+    {
+        timeBufferView->byteOffset += bufferViews->bufferViews[i].byteLength;
+    }
+    timeBufferView->byteStride = sizeof(float);
+    timeBufferView->target = 0;
+
+    translationBufferView->bufferIndex = 0;
+    translationBufferView->byteOffset = timeBufferView->byteOffset + timeBufferView->byteLength;
+    translationBufferView->byteStride = 3 * sizeof(float);
+    translationBufferView->target = 0;
+
+    rotationBufferView->bufferIndex = 0;
+    rotationBufferView->byteOffset = translationBufferView->byteOffset + translationBufferView->byteLength;
+    rotationBufferView->byteStride = 4 * sizeof(float);
+    rotationBufferView->target = 0;
+
+    uint32_t timeBufferOffset = 0;
+    uint32_t translationBufferOffset = 0;
+    uint32_t rotationBufferOffset = 0;
+
+    *mbinBuffer = realloc(*mbinBuffer, timeBufferView->byteOffset + timeBufferView->byteLength + translationBufferView->byteLength + rotationBufferView->byteLength);
+    uint8_t *gltfTimeBuffer = *mbinBuffer + timeBufferView->byteOffset;
+    uint8_t *gltfVectorBuffer = gltfTimeBuffer + timeBufferView->byteLength;
+    uint8_t *gltfQuaternionBuffer = gltfVectorBuffer + translationBufferView->byteLength;
+
+    struct Accessor *animationAccessors = accessors->accessors + accessors->accessorCount - header->boneSymbolCount * 4;
+
+    struct Animation result = {header->boneSymbolCount * 2, header->boneSymbolCount * 2, malloc(header->boneSymbolCount * 2 * sizeof(struct Channel)), malloc(header->boneSymbolCount * 2 * sizeof(struct Sampler))};
+
+    for (uint32_t i = 0; i < header->boneSymbolCount; ++i) // Iteration over vectors
+    {
+        result.samplers[i].input = (accessors->accessorCount - header->boneSymbolCount * 4) + i + 2 * header->boneSymbolCount;
+        result.samplers[i].output = (accessors->accessorCount - header->boneSymbolCount * 4) + i;
+        memcpy(result.samplers[i].interpolation, "LINEAR", sizeof("LINEAR"));
+
+        result.channels[i].samplerIndex = i;
+        result.channels[i].target.nodeIndex = vectorFrames[i].skeletonBoneIndex + nodes->nodeCount - (skeleton->children[0]->childCount - 1);
+        // printf("%u\n", vectorFrames[i].skeletonBoneIndex);
+        memcpy(result.channels[i].target.path, "translation", sizeof("translation"));
+
+        animationAccessors[i].isNormalized = 0;
+        animationAccessors[i].isLimited = 0;
+        animationAccessors[i].byteOffset = translationBufferOffset;
+        animationAccessors[i].count = vectorFrames[i].frameCount;
+        // printf("%u\n", vectorFrames[i].frameCount);
+        animationAccessors[i].componentType = eFLOAT;
+        animationAccessors[i].bufferViewIndex = bufferViews->bufferViewCount - 2;
+        memcpy(animationAccessors[i].type, "VEC3", sizeof("VEC3"));
+
+        animationAccessors[i + 2 * header->boneSymbolCount].byteOffset = timeBufferOffset;
+        animationAccessors[i + 2 * header->boneSymbolCount].componentType = eFLOAT;
+        animationAccessors[i + 2 * header->boneSymbolCount].count = vectorFrames[i].frameCount;
+        animationAccessors[i + 2 * header->boneSymbolCount].isNormalized = 0;
+        animationAccessors[i + 2 * header->boneSymbolCount].isLimited = 1;
+        animationAccessors[i + 2 * header->boneSymbolCount].minimum.floatComponent[0] = FLT_MAX;
+        animationAccessors[i + 2 * header->boneSymbolCount].maximum.floatComponent[0] = -FLT_MAX;
+        animationAccessors[i + 2 * header->boneSymbolCount].bufferViewIndex = bufferViews->bufferViewCount - 3;
+        memcpy(animationAccessors[i + 2 * header->boneSymbolCount].type, "SCALAR", sizeof("SCALAR"));
+
+        for (uint32_t framesPushed = 0; framesPushed < vectorFrames[i].frameCount; ++framesPushed)
+        {
+            uint32_t lowestTimeIndex = 0;
+            for (uint32_t j = 0; j < vectorFrames[i].frameCount; ++j)
+            {
+                if (vectorFrames[i].frames[j].time < vectorFrames[i].frames[lowestTimeIndex].time)
+                {
+                    lowestTimeIndex = j;
+                }
+            }
+
+            assert(vectorFrames[i].frames[lowestTimeIndex].time != FLT_MAX);
+
+            if (vectorFrames[i].frames[lowestTimeIndex].time < animationAccessors[i + 2 * header->boneSymbolCount].minimum.floatComponent[0])
+            {
+                animationAccessors[i + 2 * header->boneSymbolCount].minimum.floatComponent[0] = vectorFrames[i].frames[lowestTimeIndex].time;
+            }
+            if (vectorFrames[i].frames[lowestTimeIndex].time > animationAccessors[i + 2 * header->boneSymbolCount].maximum.floatComponent[0])
+            {
+                animationAccessors[i + 2 * header->boneSymbolCount].maximum.floatComponent[0] = vectorFrames[i].frames[lowestTimeIndex].time;
+            }
+
+            memcpy(gltfTimeBuffer + timeBufferOffset, &vectorFrames[i].frames[lowestTimeIndex].time, sizeof(vectorFrames[i].frames[lowestTimeIndex].time));
+            timeBufferOffset += sizeof(vectorFrames[i].frames[lowestTimeIndex].time);
+
+            memcpy(gltfVectorBuffer + translationBufferOffset, vectorFrames[i].frames[lowestTimeIndex].transform, sizeof(vectorFrames[i].frames[lowestTimeIndex].transform) - sizeof(float));
+            translationBufferOffset += sizeof(vectorFrames[i].frames[lowestTimeIndex].transform) - sizeof(float);
+
+            vectorFrames[i].frames[lowestTimeIndex].time = FLT_MAX;
+        }
+    }
+
+    for (uint32_t i = header->boneSymbolCount; i < header->boneSymbolCount * 2; ++i) // Iteration over quaternions
+    {
+        result.samplers[i].input = (accessors->accessorCount - header->boneSymbolCount * 4) + i + 2 * header->boneSymbolCount;
+        result.samplers[i].output = (accessors->accessorCount - header->boneSymbolCount * 4) + i;
+        memcpy(result.samplers[i].interpolation, "LINEAR", sizeof("LINEAR"));
+
+        result.channels[i].samplerIndex = i;
+        result.channels[i].target.nodeIndex = vectorFrames[i].skeletonBoneIndex + nodes->nodeCount - (skeleton->children[0]->childCount - 1);
+        memcpy(result.channels[i].target.path, "rotation", sizeof("rotation"));
+
+        animationAccessors[i].isNormalized = 0;
+        animationAccessors[i].byteOffset = rotationBufferOffset;
+        animationAccessors[i].count = vectorFrames[i].frameCount;
+        animationAccessors[i].componentType = eFLOAT;
+        animationAccessors[i].bufferViewIndex = bufferViews->bufferViewCount - 1;
+        animationAccessors[i].isLimited = 0;
+        memcpy(animationAccessors[i].type, "VEC4", sizeof("VEC4"));
+
+        animationAccessors[i + 2 * header->boneSymbolCount].byteOffset = timeBufferOffset;
+        animationAccessors[i + 2 * header->boneSymbolCount].componentType = eFLOAT;
+        animationAccessors[i + 2 * header->boneSymbolCount].count = vectorFrames[i].frameCount;
+        animationAccessors[i + 2 * header->boneSymbolCount].isNormalized = 0;
+        animationAccessors[i + 2 * header->boneSymbolCount].isLimited = 1;
+        animationAccessors[i + 2 * header->boneSymbolCount].minimum.floatComponent[0] = FLT_MAX;
+        animationAccessors[i + 2 * header->boneSymbolCount].maximum.floatComponent[0] = -FLT_MAX;
+        animationAccessors[i + 2 * header->boneSymbolCount].bufferViewIndex = bufferViews->bufferViewCount - 3;
+        memcpy(animationAccessors[i + 2 * header->boneSymbolCount].type, "SCALAR", sizeof("SCALAR"));
+
+        for (uint32_t framesPushed = 0; framesPushed < vectorFrames[i].frameCount; ++framesPushed)
+        {
+            uint32_t lowestTimeIndex = 0;
+            for (uint32_t j = 0; j < vectorFrames[i].frameCount; ++j)
+            {
+                if (vectorFrames[i].frames[j].time < vectorFrames[i].frames[lowestTimeIndex].time)
+                {
+                    lowestTimeIndex = j;
+                }
+            }
+            assert(vectorFrames[i].frames[lowestTimeIndex].time != FLT_MAX);
+
+            if (vectorFrames[i].frames[lowestTimeIndex].time < animationAccessors[i + 2 * header->boneSymbolCount].minimum.floatComponent[0])
+            {
+                animationAccessors[i + 2 * header->boneSymbolCount].minimum.floatComponent[0] = vectorFrames[i].frames[lowestTimeIndex].time;
+            }
+            if (vectorFrames[i].frames[lowestTimeIndex].time > animationAccessors[i + 2 * header->boneSymbolCount].maximum.floatComponent[0])
+            {
+                animationAccessors[i + 2 * header->boneSymbolCount].maximum.floatComponent[0] = vectorFrames[i].frames[lowestTimeIndex].time;
+            }
+
+            memcpy(gltfTimeBuffer + timeBufferOffset, &vectorFrames[i].frames[lowestTimeIndex].time, sizeof(vectorFrames[i].frames[lowestTimeIndex].time));
+            timeBufferOffset += sizeof(vectorFrames[i].frames[lowestTimeIndex].time);
+
+            memcpy(gltfQuaternionBuffer + rotationBufferOffset, vectorFrames[i].frames[lowestTimeIndex].transform, sizeof(vectorFrames[i].frames[lowestTimeIndex].transform));
+            rotationBufferOffset += sizeof(vectorFrames[i].frames[lowestTimeIndex].transform);
+
+            vectorFrames[i].frames[lowestTimeIndex].time = FLT_MAX;
+        }
+    }
+
+    for (uint32_t i = 0; i < 2 * header->boneSymbolCount; ++i)
+    {
+        if (vectorFrames[i].frames != NULL)
+        {
+            free(vectorFrames[i].frames);
+        }
+    }
+    free(vectorFrames);
+
+    return result;
+}
+
+int convertToGLB2(const struct TreeNode *d3dmesh, const struct TreeNode *animation, const struct TreeNode *skeleton, FILE *glb)
 {
     struct TreeNode *vertexState = d3dmesh->children[d3dmesh->childCount - 2]->children[21]->children[1];
     struct TreeNode **vertexBuffers = vertexState->children + 4 + *(uint32_t *)vertexState->children[3]->data.staticBuffer;
     uint32_t bufferCount = *(uint32_t *)vertexState->children[1]->data.staticBuffer + *(uint32_t *)vertexState->children[2]->data.staticBuffer;
 
-    struct Accessor *accessors = malloc(bufferCount * sizeof(struct Accessor));
-    struct BufferView *bufferViews = malloc(bufferCount * sizeof(struct BufferView));
+    struct Accessors accessors = {malloc(bufferCount * sizeof(struct Accessor)), bufferCount};
+    struct BufferViews bufferViews = {malloc(bufferCount * sizeof(struct BufferView)), bufferCount};
+    struct Nodes nodes = {malloc(sizeof(struct Node)), 1};
 
-    struct Node node = {NULL, 0, 0, {((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[13]->data.dynamicBuffer))[0], ((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[13]->data.dynamicBuffer))[1], ((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[13]->data.dynamicBuffer))[2]}, {0, 0, 0, 1}, {((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[11]->data.dynamicBuffer))[0], ((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[11]->data.dynamicBuffer))[1], ((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[11]->data.dynamicBuffer))[2]}};
+    nodes.nodes[0].translation[0] = ((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[13]->data.dynamicBuffer))[0];
+    nodes.nodes[0].translation[1] = ((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[13]->data.dynamicBuffer))[1];
+    nodes.nodes[0].translation[2] = ((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[13]->data.dynamicBuffer))[2];
+    nodes.nodes[0].rotation[0] = 0;
+    nodes.nodes[0].rotation[1] = 0;
+    nodes.nodes[0].rotation[2] = 0;
+    nodes.nodes[0].rotation[3] = 1;
+    nodes.nodes[0].scale[0] = ((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[11]->data.dynamicBuffer))[0];
+    nodes.nodes[0].scale[1] = ((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[11]->data.dynamicBuffer))[1];
+    nodes.nodes[0].scale[2] = ((float *)(d3dmesh->children[d3dmesh->childCount - 2]->children[11]->data.dynamicBuffer))[2];
+
+    nodes.nodes[0].cameraIndex = -1;
+    nodes.nodes[0].skinIndex = -1;
+    nodes.nodes[0].meshIndex = 0;
+    nodes.nodes[0].children = malloc(sizeof(uint32_t));
+    nodes.nodes[0].childCount = 1;
+    nodes.nodes[0].children[0] = 1;
+
     struct Primitive primitive = {{-1, -1, -1, -1, -1, -1, -1}, 1};
 
     uint32_t nodeIndex = 0;
@@ -345,94 +969,104 @@ int convertToGLB2(const struct TreeNode *d3dmesh, FILE *glb)
     {
         assert(((uint32_t *)(vertexBuffers[index]->data.dynamicBuffer))[1] == eGFXPlatformFormat_U16);
 
-        accessors[index].bufferViewIndex = index;
-        accessors[index].byteOffset = 0;
-        accessors[index].componentType = eUNSIGNED_SHORT;
-        accessors[index].count = ((uint32_t *)(vertexBuffers[index]->data.dynamicBuffer))[3];
-        accessors[index].isNormalized = 0;
-        memcpy(accessors[index].type, "SCALAR", sizeof("SCALAR"));
+        accessors.accessors[index].isLimited = 0;
+        accessors.accessors[index].bufferViewIndex = index;
+        accessors.accessors[index].byteOffset = 0;
+        accessors.accessors[index].componentType = eUNSIGNED_SHORT;
+        accessors.accessors[index].count = ((uint32_t *)(vertexBuffers[index]->data.dynamicBuffer))[3];
+        accessors.accessors[index].isNormalized = 0;
+        memcpy(accessors.accessors[index].type, "SCALAR", sizeof("SCALAR"));
 
-        bufferViews[index].bufferIndex = 0;
-        bufferViews[index].byteStride = ((uint32_t *)(vertexBuffers[index]->data.dynamicBuffer))[4];
-        bufferViews[index].byteLength = ((uint32_t *)(vertexBuffers[index]->data.dynamicBuffer))[3] * bufferViews[index].byteStride;
-        bufferViews[index].byteOffset = gltfDataOffset;
-        bufferViews[index].target = 34963;
+        bufferViews.bufferViews[index].bufferIndex = 0;
+        bufferViews.bufferViews[index].byteStride = ((uint32_t *)(vertexBuffers[index]->data.dynamicBuffer))[4];
+        bufferViews.bufferViews[index].byteLength = ((uint32_t *)(vertexBuffers[index]->data.dynamicBuffer))[3] * bufferViews.bufferViews[index].byteStride;
+        bufferViews.bufferViews[index].byteOffset = gltfDataOffset;
+        bufferViews.bufferViews[index].target = 34963;
 
-        gltfData = realloc(gltfData, gltfDataOffset + bufferViews[index].byteLength);
-        memcpy(gltfData + gltfDataOffset, d3dmeshData + d3dmeshDataOffset, bufferViews[index].byteLength);
+        gltfData = realloc(gltfData, gltfDataOffset + bufferViews.bufferViews[index].byteLength);
+        memcpy(gltfData + gltfDataOffset, d3dmeshData + d3dmeshDataOffset, bufferViews.bufferViews[index].byteLength);
 
-        gltfDataOffset += bufferViews[index].byteLength;
-        d3dmeshDataOffset += bufferViews[index].byteLength;
+        gltfDataOffset += bufferViews.bufferViews[index].byteLength;
+        d3dmeshDataOffset += bufferViews.bufferViews[index].byteLength;
     }
 
     for (; index < bufferCount; ++index)
     {
         struct TreeNode *attribute = vertexState->children[4 + index - *(uint32_t *)vertexState->children[1]->data.staticBuffer];
 
-        accessors[index].bufferViewIndex = index;
-        accessors[index].byteOffset = 0;
-        accessors[index].count = ((uint32_t *)(vertexBuffers[index]->data.dynamicBuffer))[3];
+        accessors.accessors[index].isLimited = 0;
+        accessors.accessors[index].bufferViewIndex = index;
+        accessors.accessors[index].byteOffset = 0;
+        accessors.accessors[index].count = ((uint32_t *)(vertexBuffers[index]->data.dynamicBuffer))[3];
 
-        bufferViews[index].byteOffset = gltfDataOffset;
+        bufferViews.bufferViews[index].byteOffset = gltfDataOffset;
 
         if (*(uint32_t *)attribute->data.dynamicBuffer == eGFXPlatformAttribute_Position) // TODO: Replace with switch case
         {
             assert(((uint32_t *)vertexBuffers[index]->data.dynamicBuffer)[1] == eGFXPlatformFormat_UN16x4);
 
-            accessors[index].componentType = eFLOAT;
-            accessors[index].isNormalized = 0;
-            memcpy(accessors[index].type, "VEC3", sizeof("VEC3"));
-            bufferViews[index].byteStride = 3 * sizeof(float);
+            accessors.accessors[index].componentType = eFLOAT;
+            accessors.accessors[index].isNormalized = 0;
+            memcpy(accessors.accessors[index].type, "VEC3", sizeof("VEC3"));
+            bufferViews.bufferViews[index].byteStride = 3 * sizeof(float);
 
-            accessors[index].minimum.floatComponent[0] = 1.0;
-            accessors[index].minimum.floatComponent[1] = 1.0;
-            accessors[index].minimum.floatComponent[2] = 1.0;
-            accessors[index].maximum.floatComponent[0] = -1.0;
-            accessors[index].maximum.floatComponent[1] = -1.0;
-            accessors[index].maximum.floatComponent[2] = -1.0;
+            accessors.accessors[index].isLimited = 1;
+            accessors.accessors[index].minimum.floatComponent[0] = 1.0;
+            accessors.accessors[index].minimum.floatComponent[1] = 1.0;
+            accessors.accessors[index].minimum.floatComponent[2] = 1.0;
+            accessors.accessors[index].maximum.floatComponent[0] = -1.0;
+            accessors.accessors[index].maximum.floatComponent[1] = -1.0;
+            accessors.accessors[index].maximum.floatComponent[2] = -1.0;
 
-            gltfData = realloc(gltfData, gltfDataOffset + bufferViews[index].byteStride * accessors[index].count);
-            for (uint32_t i = 0; i < accessors[index].count; ++i)
+            gltfData = realloc(gltfData, gltfDataOffset + bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count);
+            for (uint32_t i = 0; i < accessors.accessors[index].count; ++i)
             {
-                uint16_t d3dmeshVector[3];
+                uint16_t d3dmeshVector[4];
                 memcpy(d3dmeshVector, d3dmeshData + d3dmeshDataOffset, sizeof(d3dmeshVector));
                 float gltfVector[3] = {d3dmeshVector[0] / 65535.0f, d3dmeshVector[1] / 65535.0f, d3dmeshVector[2] / 65535.0f};
                 for (uint32_t j = 0; j < 3; ++j)
                 {
-                    if (gltfVector[j] < accessors[index].minimum.floatComponent[j])
+                    if (gltfVector[j] < accessors.accessors[index].minimum.floatComponent[j])
                     {
-                        accessors[index].minimum.floatComponent[j] = gltfVector[j];
+                        accessors.accessors[index].minimum.floatComponent[j] = gltfVector[j];
                     }
-                    if (gltfVector[j] > accessors[index].maximum.floatComponent[j])
+                    if (gltfVector[j] > accessors.accessors[index].maximum.floatComponent[j])
                     {
-                        accessors[index].maximum.floatComponent[j] = gltfVector[j];
+                        accessors.accessors[index].maximum.floatComponent[j] = gltfVector[j];
                     }
                 }
                 memcpy(gltfData + gltfDataOffset, gltfVector, sizeof(gltfVector));
 
+                if (d3dmeshVector[3] != 0)
+                {
+                    printf("found non zero vertex 4th element %d\n", d3dmeshVector[3]);
+                }
+
                 gltfDataOffset += sizeof(gltfVector);
-                d3dmeshDataOffset += sizeof(d3dmeshVector) + sizeof(uint16_t);
+                d3dmeshDataOffset += sizeof(d3dmeshVector);
             }
+
             primitive.attributes.position = index;
         }
         else if (*(uint32_t *)attribute->data.dynamicBuffer == eGFXPlatformAttribute_Normal)
         {
             assert(((uint32_t *)attribute->data.dynamicBuffer)[1] == eGFXPlatformFormat_SN8x4);
 
-            accessors[index].componentType = eFLOAT;
-            accessors[index].isNormalized = 0;
-            memcpy(accessors[index].type, "VEC3", sizeof("VEC3"));
-            bufferViews[index].byteStride = 3 * sizeof(float);
+            accessors.accessors[index].componentType = eFLOAT;
+            accessors.accessors[index].isNormalized = 0;
+            memcpy(accessors.accessors[index].type, "VEC3", sizeof("VEC3"));
+            bufferViews.bufferViews[index].byteStride = 3 * sizeof(float);
 
-            accessors[index].minimum.floatComponent[0] = 1.0;
-            accessors[index].minimum.floatComponent[1] = 1.0;
-            accessors[index].minimum.floatComponent[2] = 1.0;
-            accessors[index].maximum.floatComponent[0] = -1.0;
-            accessors[index].maximum.floatComponent[1] = -1.0;
-            accessors[index].maximum.floatComponent[2] = -1.0;
+            accessors.accessors[index].isLimited = 1;
+            accessors.accessors[index].minimum.floatComponent[0] = 1.0;
+            accessors.accessors[index].minimum.floatComponent[1] = 1.0;
+            accessors.accessors[index].minimum.floatComponent[2] = 1.0;
+            accessors.accessors[index].maximum.floatComponent[0] = -1.0;
+            accessors.accessors[index].maximum.floatComponent[1] = -1.0;
+            accessors.accessors[index].maximum.floatComponent[2] = -1.0;
 
-            gltfData = realloc(gltfData, gltfDataOffset + bufferViews[index].byteStride * accessors[index].count);
-            for (uint32_t i = 0; i < accessors[index].count; ++i)
+            gltfData = realloc(gltfData, gltfDataOffset + bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count);
+            for (uint32_t i = 0; i < accessors.accessors[index].count; ++i)
             {
                 int8_t d3dmeshVector[3];
                 memcpy(d3dmeshVector, d3dmeshData + d3dmeshDataOffset, sizeof(d3dmeshVector));
@@ -443,13 +1077,13 @@ int convertToGLB2(const struct TreeNode *d3dmesh, FILE *glb)
                 for (uint32_t j = 0; j < 3; ++j)
                 {
                     gltfVector[j] = gltfVector[j] * lengthInverse;
-                    if (gltfVector[j] < accessors[index].minimum.floatComponent[j])
+                    if (gltfVector[j] < accessors.accessors[index].minimum.floatComponent[j])
                     {
-                        accessors[index].minimum.floatComponent[j] = gltfVector[j];
+                        accessors.accessors[index].minimum.floatComponent[j] = gltfVector[j];
                     }
-                    if (gltfVector[j] > accessors[index].maximum.floatComponent[j])
+                    if (gltfVector[j] > accessors.accessors[index].maximum.floatComponent[j])
                     {
-                        accessors[index].maximum.floatComponent[j] = gltfVector[j];
+                        accessors.accessors[index].maximum.floatComponent[j] = gltfVector[j];
                     }
                 }
 
@@ -472,13 +1106,13 @@ int convertToGLB2(const struct TreeNode *d3dmesh, FILE *glb)
         {
             assert(((uint32_t *)attribute->data.dynamicBuffer)[1] == eGFXPlatformFormat_SN8x4);
 
-            accessors[index].componentType = eFLOAT;
-            accessors[index].isNormalized = 0;
-            memcpy(accessors[index].type, "VEC4", sizeof("VEC4"));
-            bufferViews[index].byteStride = 4 * sizeof(float);
+            accessors.accessors[index].componentType = eFLOAT;
+            accessors.accessors[index].isNormalized = 0;
+            memcpy(accessors.accessors[index].type, "VEC4", sizeof("VEC4"));
+            bufferViews.bufferViews[index].byteStride = 4 * sizeof(float);
 
-            gltfData = realloc(gltfData, gltfDataOffset + bufferViews[index].byteStride * accessors[index].count);
-            for (uint32_t i = 0; i < accessors[index].count; ++i)
+            gltfData = realloc(gltfData, gltfDataOffset + bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count);
+            for (uint32_t i = 0; i < accessors.accessors[index].count; ++i)
             {
                 int8_t d3dmeshVector[4];
                 memcpy(d3dmeshVector, d3dmeshData + d3dmeshDataOffset, sizeof(d3dmeshVector));
@@ -508,25 +1142,25 @@ int convertToGLB2(const struct TreeNode *d3dmesh, FILE *glb)
         {
             assert(((uint32_t *)attribute->data.dynamicBuffer)[1] == eGFXPlatformFormat_F32x2 || ((uint32_t *)attribute->data.dynamicBuffer)[1] == eGFXPlatformFormat_SN16x2);
 
-            memcpy(accessors[index].type, "VEC2", sizeof("VEC2"));
+            memcpy(accessors.accessors[index].type, "VEC2", sizeof("VEC2"));
             if (((uint32_t *)attribute->data.dynamicBuffer)[1] == eGFXPlatformFormat_F32x2)
             {
-                accessors[index].isNormalized = 0;
-                accessors[index].componentType = eFLOAT;
-                bufferViews[index].byteStride = 2 * sizeof(float);
+                accessors.accessors[index].isNormalized = 0;
+                accessors.accessors[index].componentType = eFLOAT;
+                bufferViews.bufferViews[index].byteStride = 2 * sizeof(float);
             }
             if (((uint32_t *)attribute->data.dynamicBuffer)[1] == eGFXPlatformFormat_SN16x2)
             {
-                accessors[index].isNormalized = 1;
-                accessors[index].componentType = eUNSIGNED_SHORT;
-                bufferViews[index].byteStride = 2 * sizeof(uint16_t);
+                accessors.accessors[index].isNormalized = 1;
+                accessors.accessors[index].componentType = eUNSIGNED_SHORT;
+                bufferViews.bufferViews[index].byteStride = 2 * sizeof(uint16_t);
             }
 
-            gltfData = realloc(gltfData, gltfDataOffset + bufferViews[index].byteStride * accessors[index].count);
-            memcpy(gltfData + gltfDataOffset, d3dmeshData + d3dmeshDataOffset, bufferViews[index].byteStride * accessors[index].count);
+            gltfData = realloc(gltfData, gltfDataOffset + bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count);
+            memcpy(gltfData + gltfDataOffset, d3dmeshData + d3dmeshDataOffset, bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count);
 
-            gltfDataOffset += bufferViews[index].byteStride * accessors[index].count;
-            d3dmeshDataOffset += bufferViews[index].byteStride * accessors[index].count;
+            gltfDataOffset += bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count;
+            d3dmeshDataOffset += bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count;
 
             primitive.attributes.texCoord = index;
         }
@@ -534,16 +1168,16 @@ int convertToGLB2(const struct TreeNode *d3dmesh, FILE *glb)
         {
             assert(((uint32_t *)attribute->data.dynamicBuffer)[1] == eGFXPlatformFormat_UN8x4);
 
-            accessors[index].componentType = eUNSIGNED_BYTE;
-            accessors[index].isNormalized = 1;
-            memcpy(accessors[index].type, "VEC4", sizeof("VEC4"));
-            bufferViews[index].byteStride = 4 * sizeof(uint8_t);
+            accessors.accessors[index].componentType = eUNSIGNED_BYTE;
+            accessors.accessors[index].isNormalized = 1;
+            memcpy(accessors.accessors[index].type, "VEC4", sizeof("VEC4"));
+            bufferViews.bufferViews[index].byteStride = 4 * sizeof(uint8_t);
 
-            gltfData = realloc(gltfData, gltfDataOffset + bufferViews[index].byteStride * accessors[index].count);
-            memcpy(gltfData + gltfDataOffset, d3dmeshData + d3dmeshDataOffset, bufferViews[index].byteStride * accessors[index].count);
+            gltfData = realloc(gltfData, gltfDataOffset + bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count);
+            memcpy(gltfData + gltfDataOffset, d3dmeshData + d3dmeshDataOffset, bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count);
 
-            gltfDataOffset += bufferViews[index].byteStride * accessors[index].count;
-            d3dmeshDataOffset += bufferViews[index].byteStride * accessors[index].count;
+            gltfDataOffset += bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count;
+            d3dmeshDataOffset += bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count;
 
             primitive.attributes.color = index;
         }
@@ -551,36 +1185,48 @@ int convertToGLB2(const struct TreeNode *d3dmesh, FILE *glb)
         {
             assert(((uint32_t *)attribute->data.dynamicBuffer)[1] == eGFXPlatformFormat_U8x4);
 
-            accessors[index].componentType = eBYTE;
-            accessors[index].isNormalized = 0;
-            memcpy(accessors[index].type, "VEC4", sizeof("VEC4"));
-            bufferViews[index].byteStride = 4 * sizeof(int8_t);
+            accessors.accessors[index].componentType = eUNSIGNED_BYTE;
+            accessors.accessors[index].isNormalized = 0;
+            memcpy(accessors.accessors[index].type, "VEC4", sizeof("VEC4"));
+            bufferViews.bufferViews[index].byteStride = 4 * sizeof(uint8_t);
 
-            gltfData = realloc(gltfData, gltfDataOffset + bufferViews[index].byteStride * accessors[index].count);
-            memcpy(gltfData + gltfDataOffset, d3dmeshData + d3dmeshDataOffset, bufferViews[index].byteStride * accessors[index].count);
+            gltfData = realloc(gltfData, gltfDataOffset + bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count);
+            memcpy(gltfData + gltfDataOffset, d3dmeshData + d3dmeshDataOffset, bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count);
 
-            gltfDataOffset += bufferViews[index].byteStride * accessors[index].count;
-            d3dmeshDataOffset += bufferViews[index].byteStride * accessors[index].count;
+            gltfDataOffset += bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count;
+            d3dmeshDataOffset += bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count;
+
+            primitive.attributes.joints = index;
         }
         else if (*(uint32_t *)attribute->data.dynamicBuffer == eGFXPlatformAttribute_BlendWeight) // TODO: Actually implement it correctly
         {
             assert(((uint32_t *)attribute->data.dynamicBuffer)[1] == eGFXPlatformFormat_UN10x3_UN2);
 
-            accessors[index].componentType = eUNSIGNED_SHORT;
-            accessors[index].isNormalized = 0;
-            memcpy(accessors[index].type, "VEC2", sizeof("VEC2"));
-            bufferViews[index].byteStride = 2 * sizeof(uint16_t);
+            accessors.accessors[index].componentType = eFLOAT;
+            accessors.accessors[index].isNormalized = 0;
+            memcpy(accessors.accessors[index].type, "VEC4", sizeof("VEC4"));
+            bufferViews.bufferViews[index].byteStride = 4 * sizeof(float);
 
-            gltfData = realloc(gltfData, gltfDataOffset + bufferViews[index].byteStride * accessors[index].count);
-            memcpy(gltfData + gltfDataOffset, d3dmeshData + d3dmeshDataOffset, bufferViews[index].byteStride * accessors[index].count);
+            gltfData = realloc(gltfData, gltfDataOffset + bufferViews.bufferViews[index].byteStride * accessors.accessors[index].count);
 
-            gltfDataOffset += bufferViews[index].byteStride * accessors[index].count;
-            d3dmeshDataOffset += bufferViews[index].byteStride * accessors[index].count;
+            for (uint32_t i = 0; i < accessors.accessors[index].count; ++i)
+            {
+                uint32_t d3dBlendData = *(uint32_t *)(d3dmeshData + d3dmeshDataOffset);
+                // I do not know what the heck is going on anymore
+                float gltfBlendData[4] = {0.0, (d3dBlendData & 0x3ff) / 1023.0f / 8.0 + (d3dBlendData >> 30) / 8.0, (d3dBlendData >> 10 & 0x3ff) / 1023.0f / 3.0, (d3dBlendData >> 20 & 0x3ff) / 1023.0f / 4.0};
+                gltfBlendData[0] = 1.0 - gltfBlendData[3] - gltfBlendData[2] - gltfBlendData[1];
+
+                memcpy(gltfData + gltfDataOffset, gltfBlendData, sizeof(gltfBlendData));
+
+                gltfDataOffset += sizeof(gltfBlendData);
+                d3dmeshDataOffset += sizeof(d3dBlendData);
+            }
+            primitive.attributes.weights = index;
         }
 
-        bufferViews[index].bufferIndex = 0;
-        bufferViews[index].byteLength = ((uint32_t *)(vertexBuffers[index]->data.dynamicBuffer))[3] * bufferViews[index].byteStride;
-        bufferViews[index].target = 34962;
+        bufferViews.bufferViews[index].bufferIndex = 0;
+        bufferViews.bufferViews[index].byteLength = ((uint32_t *)(vertexBuffers[index]->data.dynamicBuffer))[3] * bufferViews.bufferViews[index].byteStride;
+        bufferViews.bufferViews[index].target = 34962;
     }
 
     struct HeaderGLTF header = {*(uint32_t *)("glTF"), 2, 0};
@@ -596,19 +1242,60 @@ int convertToGLB2(const struct TreeNode *d3dmesh, FILE *glb)
 
     chunkHeader.chunkLength += fwrite("\"scenes\":[", 1, 10, glb);
     chunkHeader.chunkLength += writeScene(scene, glb);
+    chunkHeader.chunkLength += fwrite("],", 1, 2, glb);
 
-    chunkHeader.chunkLength += fwrite("],\"nodes\":[", 1, 11, glb);
-    chunkHeader.chunkLength += writeNode(&node, glb);
+    /* Animation and skeleton conversion */
+    if (animation != NULL && skeleton != NULL)
+    {
+        struct Animation gltfAnimation = convertAnimation(animation, skeleton, &accessors, &bufferViews, &nodes, &gltfData);
+        gltfDataOffset += bufferViews.bufferViews[bufferViews.bufferViewCount - 3].byteLength + bufferViews.bufferViews[bufferViews.bufferViewCount - 2].byteLength + bufferViews.bufferViews[bufferViews.bufferViewCount - 1].byteLength;
+        struct Skin skin = {-1, d3dmesh->children[d3dmesh->childCount - 2]->children[4]->childCount - 1, malloc((d3dmesh->children[d3dmesh->childCount - 2]->children[4]->childCount - 1) * sizeof(uint32_t))};
+
+        for (uint32_t i = 0; i < d3dmesh->children[d3dmesh->childCount - 2]->children[4]->childCount - 1; ++i)
+        {
+            for (uint32_t j = 1; j < skeleton->children[0]->childCount; ++j)
+            {
+                if (*(uint64_t *)(skeleton->children[0]->children[j]->children[0]->data.staticBuffer) == *(uint64_t *)d3dmesh->children[d3dmesh->childCount - 2]->children[4]->children[i + 1]->children[0]->data.staticBuffer)
+                {
+                    skin.jointIndices[i] = j;
+                    break;
+                }
+            }
+        }
+
+        chunkHeader.chunkLength += fwrite("\"animations\":[", 1, 14, glb);
+        chunkHeader.chunkLength += writeAnimation(&gltfAnimation, glb);
+        free(gltfAnimation.channels);
+        free(gltfAnimation.samplers);
+        chunkHeader.chunkLength += fwrite("],\"skins\":[", 1, 11, glb);
+        chunkHeader.chunkLength += writeSkin(&skin, glb);
+        free(skin.jointIndices);
+
+        nodes.nodes[0].skinIndex = 0;
+
+        chunkHeader.chunkLength += fwrite("],", 1, 2, glb);
+    }
+
+    chunkHeader.chunkLength += fwrite("\"nodes\":[", 1, 9, glb);
+    for (uint32_t i = 0; i < nodes.nodeCount; ++i)
+    {
+        chunkHeader.chunkLength += writeNode(nodes.nodes + i, glb);
+        if (i != nodes.nodeCount - 1)
+        {
+            fputc(',', glb);
+            ++chunkHeader.chunkLength;
+        }
+    }
     chunkHeader.chunkLength += fwrite("],\"meshes\":[", 1, 12, glb);
     fputc('{', glb);
     chunkHeader.chunkLength += writeMesh(&primitive, 1, glb) + 2;
     fputc('}', glb);
     chunkHeader.chunkLength += fwrite("],\"accessors\":[", 1, 15, glb);
 
-    for (uint32_t i = 0; i < bufferCount; ++i)
+    for (uint32_t i = 0; i < accessors.accessorCount; ++i)
     {
-        chunkHeader.chunkLength += writeAccessor(accessors + i, glb);
-        if (i != bufferCount - 1)
+        chunkHeader.chunkLength += writeAccessor(accessors.accessors + i, glb);
+        if (i != accessors.accessorCount - 1)
         {
             fputc(',', glb);
             ++chunkHeader.chunkLength;
@@ -616,10 +1303,10 @@ int convertToGLB2(const struct TreeNode *d3dmesh, FILE *glb)
     }
 
     chunkHeader.chunkLength += fwrite("],\"bufferViews\":[", 1, 17, glb);
-    for (uint32_t i = 0; i < bufferCount; ++i)
+    for (uint32_t i = 0; i < bufferViews.bufferViewCount; ++i)
     {
-        chunkHeader.chunkLength += writeBufferView(bufferViews + i, glb);
-        if (i != bufferCount - 1)
+        chunkHeader.chunkLength += writeBufferView(bufferViews.bufferViews + i, glb);
+        if (i != bufferViews.bufferViewCount - 1)
         {
             fputc(',', glb);
             ++chunkHeader.chunkLength;
@@ -648,8 +1335,31 @@ int convertToGLB2(const struct TreeNode *d3dmesh, FILE *glb)
     rewind(glb);
     fwrite(&header, 1, sizeof(header), glb);
 
-    free(accessors);
-    free(bufferViews);
+    free(accessors.accessors);
+    free(bufferViews.bufferViews);
+    for (uint32_t i = 0; i < nodes.nodeCount; ++i)
+    {
+        if (nodes.nodes[i].children != NULL)
+        {
+            free(nodes.nodes[i].children);
+        }
+    }
+    free(nodes.nodes);
+
+    return 0;
+}
+
+int convertToD3DMesh(struct TreeNode *d3dmesh, FILE *glb)
+{
+    struct HeaderGLTF header;
+    fread(&header, sizeof(header), 1, glb);
+    assert(header.magic == *(uint32_t *)"glTF" && header.version == 2);
+
+    struct ChunkHeader chunkHeader;
+    fread(&chunkHeader, sizeof(chunkHeader), 1, glb);
+    assert(chunkHeader.chunkType == *(uint32_t *)"JSON");
+
+    uint32_t chunkOffset = 0;
 
     return 0;
 }
