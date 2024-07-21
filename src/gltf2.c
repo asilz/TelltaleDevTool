@@ -791,12 +791,19 @@ struct Animation convertAnimation(const struct TreeNode *d3dmesh, const struct T
                 // printf("%u\n", i);
                 for (uint32_t k = 0; k < vectorFrames[j].frameCount; ++k) // TODO: Potentially remove. I do not know if this is necessary
                 {
-                    // vectorFrames[j].frames[k].transform[0] *= ((float *)(skeleton->children[0]->children[i + 1]->children[9]->data.dynamicBuffer))[0];
-                    // vectorFrames[j].frames[k].transform[1] *= ((float *)(skeleton->children[0]->children[i + 1]->children[9]->data.dynamicBuffer))[1];
-                    // vectorFrames[j].frames[k].transform[2] *= ((float *)(skeleton->children[0]->children[i + 1]->children[9]->data.dynamicBuffer))[2];
-                    // vectorFrames[j].frames[k].transform[0] -= ((float *)(skeleton->children[0]->children[i + 1]->children[5]->data.dynamicBuffer))[0];
-                    // vectorFrames[j].frames[k].transform[1] -= ((float *)(skeleton->children[0]->children[i + 1]->children[5]->data.dynamicBuffer))[1];
-                    // vectorFrames[j].frames[k].transform[2] -= ((float *)(skeleton->children[0]->children[i + 1]->children[5]->data.dynamicBuffer))[2];
+                    // vectorFrames[j].frames[k].transform.vector.x *= ((float *)(skeleton->children[0]->children[i + 1]->children[9]->data.dynamicBuffer))[0];
+                    // vectorFrames[j].frames[k].transform.vector.y *= ((float *)(skeleton->children[0]->children[i + 1]->children[9]->data.dynamicBuffer))[1];
+                    // vectorFrames[j].frames[k].transform.vector.z *= ((float *)(skeleton->children[0]->children[i + 1]->children[9]->data.dynamicBuffer))[2];
+                    /*
+                    int32_t currentIndex = i;
+                    while (currentIndex >= 0)
+                    {
+                        vectorFrames[j].frames[k].transform.vector.x -= ((float *)(skeleton->children[0]->children[currentIndex + 1]->children[5]->data.dynamicBuffer))[0];
+                        vectorFrames[j].frames[k].transform.vector.y -= ((float *)(skeleton->children[0]->children[currentIndex + 1]->children[5]->data.dynamicBuffer))[1];
+                        vectorFrames[j].frames[k].transform.vector.z -= ((float *)(skeleton->children[0]->children[currentIndex + 1]->children[5]->data.dynamicBuffer))[2];
+                        currentIndex = *(int32_t *)skeleton->children[0]->children[currentIndex + 1]->children[2]->data.staticBuffer;
+                    }
+                    */
                 }
                 break;
             }
@@ -880,43 +887,40 @@ struct Animation convertAnimation(const struct TreeNode *d3dmesh, const struct T
         struct Vector3 vecOffset;
         for (uint32_t framesPushed = 0; framesPushed < vectorFrames[i].frameCount; ++framesPushed)
         {
-            uint32_t lowestTimeIndex = 0;
-            for (uint32_t j = 0; j < vectorFrames[i].frameCount; ++j)
-            {
-                if (vectorFrames[i].frames[j].time < vectorFrames[i].frames[lowestTimeIndex].time)
-                {
-                    lowestTimeIndex = j;
-                }
-            }
-            assert(vectorFrames[i].frames[lowestTimeIndex].time != FLT_MAX);
+            assert(vectorFrames[i].frames[framesPushed].time != FLT_MAX);
 
-            if (vectorFrames[i].frames[lowestTimeIndex].time < animationAccessors[i + 2 * header.boneSymbolCount].minimum.floatComponent[0])
+            if (vectorFrames[i].frames[framesPushed].time < animationAccessors[i + 2 * header.boneSymbolCount].minimum.floatComponent[0])
             {
-                animationAccessors[i + 2 * header.boneSymbolCount].minimum.floatComponent[0] = vectorFrames[i].frames[lowestTimeIndex].time;
+                animationAccessors[i + 2 * header.boneSymbolCount].minimum.floatComponent[0] = vectorFrames[i].frames[framesPushed].time;
             }
-            if (vectorFrames[i].frames[lowestTimeIndex].time > animationAccessors[i + 2 * header.boneSymbolCount].maximum.floatComponent[0])
+            if (vectorFrames[i].frames[framesPushed].time > animationAccessors[i + 2 * header.boneSymbolCount].maximum.floatComponent[0])
             {
-                animationAccessors[i + 2 * header.boneSymbolCount].maximum.floatComponent[0] = vectorFrames[i].frames[lowestTimeIndex].time;
+                animationAccessors[i + 2 * header.boneSymbolCount].maximum.floatComponent[0] = vectorFrames[i].frames[framesPushed].time;
             }
 
-            gltfTimeBuffer[timeBufferOffset++] = vectorFrames[i].frames[lowestTimeIndex].time;
+            gltfTimeBuffer[timeBufferOffset++] = vectorFrames[i].frames[framesPushed].time;
 
-            currentVector = vectorFrames[i].frames[lowestTimeIndex].transform.vector;
+            currentVector = vectorFrames[i].frames[framesPushed].transform.vector;
+            // currentVector.x += ((float *)(skeleton->children[0]->children[i + 1]->children[5]->data.dynamicBuffer))[0];
+            // currentVector.y += ((float *)(skeleton->children[0]->children[i + 1]->children[5]->data.dynamicBuffer))[1];
+            // currentVector.z += ((float *)(skeleton->children[0]->children[i + 1]->children[5]->data.dynamicBuffer))[2];
 
-            if (lowestTimeIndex < vectorFrames[i].frameCount - 1)
+            if (framesPushed > 0)
             {
-                // currentVector.x *= vectorFrames[i].frames[lowestTimeIndex + 1].time - vectorFrames[i].frames[lowestTimeIndex].time;
-                // currentVector.y *= vectorFrames[i].frames[lowestTimeIndex + 1].time - vectorFrames[i].frames[lowestTimeIndex].time;
-                // currentVector.z *= vectorFrames[i].frames[lowestTimeIndex + 1].time - vectorFrames[i].frames[lowestTimeIndex].time;
-                float floatVar = (vectorFrames[i].frames[vectorFrames[i].frameCount - 1].time - vectorFrames[i].frames[lowestTimeIndex].time) / (vectorFrames[i].frames[lowestTimeIndex + 1].time - vectorFrames[i].frames[lowestTimeIndex].time);
-                // currentVector.x = (currentVector.x + floatVar * (vectorFrames[i].frames[lowestTimeIndex + 1].transform.vector.x - currentVector.x)) * -1.0f;
-                // currentVector.y = (currentVector.y + floatVar * (vectorFrames[i].frames[lowestTimeIndex + 1].transform.vector.y - currentVector.y)) * -1.0f;
-                // currentVector.z = (currentVector.z + floatVar * (vectorFrames[i].frames[lowestTimeIndex + 1].transform.vector.z - currentVector.z)) * -1.0f;
+                float floatVar = (1.0f - vectorFrames[i].frames[framesPushed - 1].time) / (vectorFrames[i].frames[framesPushed].time - vectorFrames[i].frames[framesPushed - 1].time);
+
+                float maybeNegative1 = 1.0f;
+
+                // currentVector.x = (currentVector.x + floatVar * (vectorFrames[i].frames[framesPushed].transform.vector.x - vectorFrames[i].frames[framesPushed - 1].transform.vector.x)) * maybeNegative1;
+                // currentVector.y = (currentVector.y + floatVar * (vectorFrames[i].frames[framesPushed].transform.vector.y - vectorFrames[i].frames[framesPushed - 1].transform.vector.y));
+                // currentVector.z = (currentVector.z + floatVar * (vectorFrames[i].frames[framesPushed].transform.vector.z - vectorFrames[i].frames[framesPushed - 1].transform.vector.z));
+                // currentVector.x *= vectorFrames[i].frames[framesPushed].time - vectorFrames[i].frames[framesPushed - 1].time;
+                // currentVector.y *= vectorFrames[i].frames[framesPushed].time - vectorFrames[i].frames[framesPushed - 1].time;
+                // currentVector.z *= vectorFrames[i].frames[framesPushed].time - vectorFrames[i].frames[framesPushed - 1].time;
             }
+            printf("%u, %f, %f, %f, %f\n", i, currentVector.x, currentVector.y, currentVector.z, 1 / Q_rsqrt(currentVector.x * currentVector.x + currentVector.y * currentVector.y + currentVector.z * currentVector.z));
 
             gltfVectorBuffer[translationBufferOffset++] = currentVector;
-
-            vectorFrames[i].frames[lowestTimeIndex].time = FLT_MAX;
         }
         if (vectorFrames[i].frames != NULL)
         {
@@ -956,60 +960,52 @@ struct Animation convertAnimation(const struct TreeNode *d3dmesh, const struct T
         struct Quaternion quaternionOffset;
         for (uint32_t framesPushed = 0; framesPushed < vectorFrames[i].frameCount; ++framesPushed)
         {
-            uint32_t lowestTimeIndex = 0;
-            for (uint32_t j = 0; j < vectorFrames[i].frameCount; ++j)
+            assert(vectorFrames[i].frames[framesPushed].time != FLT_MAX);
+
+            if (vectorFrames[i].frames[framesPushed].time < animationAccessors[i + 2 * header.boneSymbolCount].minimum.floatComponent[0])
             {
-                if (vectorFrames[i].frames[j].time < vectorFrames[i].frames[lowestTimeIndex].time)
+                animationAccessors[i + 2 * header.boneSymbolCount].minimum.floatComponent[0] = vectorFrames[i].frames[framesPushed].time;
+            }
+            if (vectorFrames[i].frames[framesPushed].time > animationAccessors[i + 2 * header.boneSymbolCount].maximum.floatComponent[0])
+            {
+                animationAccessors[i + 2 * header.boneSymbolCount].maximum.floatComponent[0] = vectorFrames[i].frames[framesPushed].time;
+            }
+
+            gltfTimeBuffer[timeBufferOffset++] = vectorFrames[i].frames[framesPushed].time;
+
+            currentQuaternion = vectorFrames[i].frames[framesPushed].transform.quaternion;
+
+            if (framesPushed > 0)
+            {
+                float timeDifferenceThing = (1.0f - vectorFrames[i].frames[framesPushed - 1].time) / (vectorFrames[i].frames[framesPushed].time - vectorFrames[i].frames[framesPushed - 1].time);
+                float floatVar = timeDifferenceThing;
+                if (0.0 <= vectorFrames[i].frames[framesPushed - 1].transform.quaternion.x * vectorFrames[i].frames[framesPushed].transform.quaternion.x + vectorFrames[i].frames[framesPushed - 1].transform.quaternion.y * vectorFrames[i].frames[framesPushed].transform.quaternion.y + vectorFrames[i].frames[framesPushed - 1].transform.quaternion.z * vectorFrames[i].frames[framesPushed].transform.quaternion.z + vectorFrames[i].frames[framesPushed - 1].transform.quaternion.w * vectorFrames[i].frames[framesPushed].transform.quaternion.w)
                 {
-                    lowestTimeIndex = j;
-                }
-            }
-            assert(vectorFrames[i].frames[lowestTimeIndex].time != FLT_MAX);
-
-            if (vectorFrames[i].frames[lowestTimeIndex].time < animationAccessors[i + 2 * header.boneSymbolCount].minimum.floatComponent[0])
-            {
-                animationAccessors[i + 2 * header.boneSymbolCount].minimum.floatComponent[0] = vectorFrames[i].frames[lowestTimeIndex].time;
-            }
-            if (vectorFrames[i].frames[lowestTimeIndex].time > animationAccessors[i + 2 * header.boneSymbolCount].maximum.floatComponent[0])
-            {
-                animationAccessors[i + 2 * header.boneSymbolCount].maximum.floatComponent[0] = vectorFrames[i].frames[lowestTimeIndex].time;
-            }
-
-            gltfTimeBuffer[timeBufferOffset++] = vectorFrames[i].frames[lowestTimeIndex].time;
-
-            currentQuaternion = vectorFrames[i].frames[lowestTimeIndex].transform.quaternion;
-
-            if (lowestTimeIndex < vectorFrames[i].frameCount - 1)
-            {
-                float timeDifferenceThing = 1.0f - ((1.0f - vectorFrames[i].frames[lowestTimeIndex].time) / (vectorFrames[i].frames[lowestTimeIndex + 1].time - vectorFrames[i].frames[lowestTimeIndex].time));
-                float floatVar;
-                if (0.0 <= vectorFrames[i].frames[lowestTimeIndex].transform.quaternion.x * vectorFrames[i].frames[lowestTimeIndex + 1].transform.quaternion.x + vectorFrames[i].frames[lowestTimeIndex].transform.quaternion.y * vectorFrames[i].frames[lowestTimeIndex + 1].transform.quaternion.y + vectorFrames[i].frames[lowestTimeIndex].transform.quaternion.z * vectorFrames[i].frames[lowestTimeIndex + 1].transform.quaternion.z + vectorFrames[i].frames[lowestTimeIndex].transform.quaternion.w * vectorFrames[i].frames[lowestTimeIndex + 1].transform.quaternion.w)
-                {
-                    floatVar = 1.0;
+                    floatVar *= 1.0;
                 }
                 else
                 {
-                    floatVar = -1.0;
+                    floatVar *= -1.0;
                 }
-                float x = vectorFrames[i].frames[lowestTimeIndex].transform.quaternion.x * timeDifferenceThing + floatVar * vectorFrames[i].frames[lowestTimeIndex + 1].transform.quaternion.x;
-                float y = vectorFrames[i].frames[lowestTimeIndex].transform.quaternion.y * timeDifferenceThing + floatVar * vectorFrames[i].frames[lowestTimeIndex + 1].transform.quaternion.y;
-                float z = vectorFrames[i].frames[lowestTimeIndex].transform.quaternion.z * timeDifferenceThing + floatVar * vectorFrames[i].frames[lowestTimeIndex + 1].transform.quaternion.z;
-                float w = vectorFrames[i].frames[lowestTimeIndex].transform.quaternion.w * timeDifferenceThing + floatVar * vectorFrames[i].frames[lowestTimeIndex + 1].transform.quaternion.w;
+                timeDifferenceThing = 1.0f - timeDifferenceThing;
+                float x = vectorFrames[i].frames[framesPushed - 1].transform.quaternion.x * timeDifferenceThing + floatVar * vectorFrames[i].frames[framesPushed].transform.quaternion.x;
+                float y = vectorFrames[i].frames[framesPushed - 1].transform.quaternion.y * timeDifferenceThing + floatVar * vectorFrames[i].frames[framesPushed].transform.quaternion.y;
+                float z = vectorFrames[i].frames[framesPushed - 1].transform.quaternion.z * timeDifferenceThing + floatVar * vectorFrames[i].frames[framesPushed].transform.quaternion.z;
+                float w = vectorFrames[i].frames[framesPushed - 1].transform.quaternion.w * timeDifferenceThing + floatVar * vectorFrames[i].frames[framesPushed].transform.quaternion.w;
                 float lengthInverse = Q_rsqrt(x * x + y * y + z * z + w * w);
-                float maybeNegative1 = -1.0f;
                 x *= lengthInverse;
-                y *= lengthInverse * maybeNegative1; // wait, what?
-                z *= lengthInverse * maybeNegative1;
+                y *= lengthInverse;
+                z *= lengthInverse;
                 w *= lengthInverse;
                 // currentQuaternion.x = x;
                 // currentQuaternion.y = y;
                 // currentQuaternion.z = z;
-                //  currentQuaternion.w = w;
+                // currentQuaternion.w = w;
             }
 
             gltfQuaternionBuffer[rotationBufferOffset++] = currentQuaternion;
 
-            vectorFrames[i].frames[lowestTimeIndex].time = FLT_MAX;
+            // vectorFrames[i].frames[lowestTimeIndex].time = FLT_MAX;
         }
         if (vectorFrames[i].frames != NULL)
         {
