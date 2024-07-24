@@ -10,10 +10,6 @@ int ChoreResourceRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int ChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int ChoreAgentAttachmentRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int AutoActStatusRead(FILE *stream, struct TreeNode *node, uint32_t flags);
-int KeyframedValue_unsigned__int64_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
-int DCArray_KeyframedValue_unsigned__int64___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
-int AnimatedValueInterface_unsigned__int64_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
-int AnimationValueInterfaceBaseRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 
 int PerAgentClipResourceFilterRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int Set_StringStringCompareCaseInsensitive_Read(FILE *stream, struct TreeNode *node, uint32_t flags);

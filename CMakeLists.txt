@@ -29,6 +29,10 @@ set(SOURCES
     src/wbox.c
     src/sprite.c
     src/d3dmesh.c
+    src/gltf2.c
+    src/animation.c
+    src/linalg.c
+    src/keyframe.c
 )
 
 if(UNIX)
