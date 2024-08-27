@@ -5,6 +5,28 @@
 #include <string.h>
 #include <stdlib.h>
 #include <meta.h>
+#include <assert.h>
+
+int isCharacter(char byte)
+{
+    if (byte >= 'A' && byte <= 'Z')
+    {
+        return 1;
+    }
+    if (byte >= 'a' && byte <= 'z')
+    {
+        return 1;
+    }
+    if (byte >= '0' && byte <= '9')
+    {
+        return 1;
+    }
+    if (byte == '_' || byte == '.' || byte == '<' || byte == '>' || byte == ' ' || byte == '-')
+    {
+        return 1;
+    }
+    return 0;
+}
 
 const uint64_t crc64_table[] = {
     0x0000000000000000, 0x42F0E1EBA9EA3693, 0x85E1C3D753D46D26, 0xC711223CFA3E5BB5,
@@ -79,8 +101,8 @@ uint64_t CRC64_CaseInsensitive(uint64_t crc, uint8_t *buf)
     while (*cur)
     {
         unsigned char ch = cur[0];
-        if (ch >= 0b01000001 && ch <= 0b01011010)
-            ch |= 0b00100000;
+        if (ch >= 0x41 && ch <= 0x5A)
+            ch |= 0x20;
         crc = crc64_table[((int)(crc >> 56) ^ ch) & 0xFF] ^ (crc << 8);
         cur++;
     }
@@ -201,19 +223,117 @@ struct HashName
     char *name;
 };
 
-#define FILE_NAME_COUNT 410430
+uint32_t partition(struct HashName *array, uint32_t low, uint32_t high)
+{
+    uint64_t pivot = array[high].hash;
+    uint32_t i = low - 1;
+    struct HashName tmp;
+    for (uint32_t j = low; j < high; ++j)
+    {
+        if (array[j].hash <= pivot)
+        {
+            ++i;
+            tmp = array[i];
+            array[i] = array[j];
+            array[j] = tmp;
+        }
+    }
+    tmp = array[i + 1];
+    array[i + 1] = array[high];
+    array[high] = tmp;
+    return i + 1;
+}
+
+void quickSort(struct HashName *array, uint32_t low, uint32_t high)
+{
+    if (low < high)
+    {
+        uint32_t q = partition(array, low, high);
+        quickSort(array, low, q - 1);
+        quickSort(array, q + 1, high);
+    }
+}
+
+uint64_t getMax(struct HashName *array, uint32_t size)
+{
+    uint64_t max = array[0].hash;
+    for (uint32_t i = 1; i < size; ++i)
+    {
+        if (array[i].hash > max)
+        {
+            max = array[i].hash;
+        }
+    }
+    return max;
+}
+
+void countSort(struct HashName *array, uint32_t size, uint64_t place)
+{
+    struct HashName *output = malloc(sizeof(struct HashName) * (size + 1));
+    uint64_t max = (array[0].hash / place) % 10;
+
+    for (uint32_t i = 1; i < size; ++i)
+    {
+        if (((array[i].hash / place) % 10) > max)
+        {
+            max = array[i].hash;
+        }
+    }
+    uint32_t *count = calloc(sizeof(uint32_t), (max + 1));
+    if (count == NULL)
+    {
+        printf("memory allocation failed\n");
+    }
+
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        ++count[(array[i].hash / place) % 10];
+    }
+    for (uint32_t i = 1; i < 10; ++i)
+    {
+        count[i] += count[i - 1];
+    }
+
+    for (uint32_t i = size - 1; (int32_t)i >= 0; --i)
+    {
+        output[count[(array[i].hash / place) % 10] - 1] = array[i];
+        --count[(array[i].hash / place) % 10];
+    }
+
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        array[i] = output[i];
+    }
+}
+
+void radixSort(struct HashName *array, uint32_t size)
+{
+    uint64_t max = getMax(array, size);
+    for (uint64_t place = 1; max / place > 0; place *= 10)
+    {
+        countSort(array, size, place);
+    }
+}
+
+#define FILE_NAME_COUNT 2589674
 
 void writeConstStruct()
 {
     struct HashName *hashNames = malloc(sizeof(struct HashName) * FILE_NAME_COUNT);
 
-    FILE *typeFile = fopen("./fileNames.txt", "rb");
+    FILE *typeFile = fopen("./hashFile.txt", "rb");
+    if (typeFile == NULL)
+    {
+        printf("typeFile path incorrect\n");
+        return;
+    }
 
     for (uint32_t i = 0; i < FILE_NAME_COUNT; ++i)
     {
         uint8_t buffer[256];
         for (int j = 0; j < 256; ++j)
         {
+            // uint64_t ftel = cftell(typeFile);
             uint8_t byte;
             if (fread(&byte, 1, 1, typeFile) == 0)
             {
@@ -236,6 +356,7 @@ void writeConstStruct()
     while (1)
     {
         uint8_t complete = 1;
+
         for (uint32_t i = 1; i < FILE_NAME_COUNT; ++i)
         {
             if (hashNames[i - 1].hash > hashNames[i].hash)
@@ -250,17 +371,27 @@ void writeConstStruct()
         {
             break;
         }
+        else
+        {
+            printf("quickSort not functional\n");
+            return;
+        }
+
+        break;
     }
     printf("sorted\n");
-    FILE *database = fopen("./result_sorted.txt", "wb");
+    FILE *database = fopen("./resultHash_sorted.txt", "wb");
 
     for (uint32_t i = 0; i < FILE_NAME_COUNT; ++i)
     {
         if (i != 0 && hashNames[i - 1].hash == hashNames[i].hash)
         {
+            if (strcmp(hashNames[i - 1].name, hashNames[i].name))
+            {
+                printf("Hash collision: %s, %s\n", hashNames[i - 1].name, hashNames[i].name);
+            }
             continue;
         }
-        printf("%d\n", i);
         char textBuffer[19];
         sprintf(textBuffer, "0x%016lX", hashNames[i].hash);
         fputc('{', database);
@@ -310,6 +441,153 @@ void writeConstStruct()
     */
 }
 
+int compare(const void *a, const void *b)
+{
+    return (((struct HashName *)a)->hash > ((struct HashName *)b)->hash) - (((struct HashName *)a)->hash < ((struct HashName *)b)->hash);
+}
+
+#define HASH_COUNT (7145686)
+#define DATABASE_COUNT 130527
+
+void writeConstStruct2()
+{
+    struct HashName *hashNamesDataBase = malloc(sizeof(struct HashName) * (HASH_COUNT + DATABASE_COUNT));
+    struct HashName *hashNames = hashNamesDataBase + DATABASE_COUNT;
+    memcpy(hashNamesDataBase, getDatabase(), DATABASE_COUNT * sizeof(struct HashName));
+
+    FILE *typeFile = fopen("./tempFile.txt", "rb");
+    if (typeFile == NULL)
+    {
+        printf("typeFile path incorrect\n");
+        return;
+    }
+
+    cfseek(typeFile, 1, SEEK_CUR);
+
+    for (uint32_t i = 0; i < HASH_COUNT; ++i)
+    {
+
+        uint8_t buffer[256];
+        for (int j = 0; j < 256; ++j)
+        {
+            // uint64_t ftel = cftell(typeFile);
+            uint8_t byte;
+            if (fread(&byte, 1, 1, typeFile) == 0)
+            {
+                fclose(typeFile);
+                break;
+            }
+            if (byte == '\n')
+            {
+                buffer[j] = '\0';
+                hashNames[i].name = malloc(j + 1);
+                memcpy(hashNames[i].name, buffer, j + 1);
+                hashNames[i].hash = CRC64_CaseInsensitive(0, buffer);
+                // printf("%s\n", hashNames[i].name);
+                break;
+            }
+            else if (!isCharacter(byte))
+            {
+                j += snprintf((char *)(buffer + j), sizeof(buffer) - j, "\\x%02X\"\"", byte) - 1;
+                continue;
+            }
+            buffer[j] = byte;
+        }
+    }
+    qsort(hashNamesDataBase, DATABASE_COUNT + HASH_COUNT, sizeof(struct HashName), compare);
+    // quickSort(hashNamesDataBase, 0, HASH_COUNT + DATABASE_COUNT - 1);
+    //  radixSort(hashNamesDataBase, HASH_COUNT + DATABASE_COUNT);
+    while (1)
+    {
+        uint8_t complete = 1;
+
+        for (uint32_t i = 1; i < HASH_COUNT + DATABASE_COUNT; ++i)
+        {
+            if (hashNamesDataBase[i - 1].hash > hashNamesDataBase[i].hash)
+            {
+                struct HashName temp = hashNamesDataBase[i];
+                hashNamesDataBase[i] = hashNamesDataBase[i - 1];
+                hashNamesDataBase[i - 1] = temp;
+                complete = 0;
+            }
+        }
+        if (complete)
+        {
+            break;
+        }
+        else
+        {
+            printf("quicksort failed\n");
+            return;
+        }
+    }
+    printf("sorted\n");
+    FILE *database = fopen("./resultHash_sorted.txt", "wb");
+
+    for (uint32_t i = 0; i < HASH_COUNT + DATABASE_COUNT; ++i)
+    {
+        if (i != 0 && hashNamesDataBase[i - 1].hash == hashNamesDataBase[i].hash)
+        {
+            if (strcmp(hashNamesDataBase[i - 1].name, hashNamesDataBase[i].name))
+            {
+                printf("Hash collision: %s, %s\n", hashNamesDataBase[i - 1].name, hashNamesDataBase[i].name);
+            }
+            continue;
+        }
+
+        char textBuffer[19];
+        sprintf(textBuffer, "0x%016lX", hashNamesDataBase[i].hash);
+        fputc('{', database);
+        fwrite(textBuffer, 18, 1, database);
+        fputc(',', database);
+        fputc('"', database);
+        fwrite(hashNamesDataBase[i].name, strlen(hashNamesDataBase[i].name), 1, database);
+        fputc('"', database);
+        fputc('}', database);
+        fputc(',', database);
+        fputc('\n', database);
+        if (i > DATABASE_COUNT)
+        {
+            // free(hashNamesDataBase[i].name);
+        }
+
+        /*
+         for (size_t j = 0; j < strlen(hashNames[i].name); ++j)
+         {
+             if (hashNames[i].name[j] == ',')
+             {
+                 continue;
+             }
+             if (hashNames[i].name[j] == '<' || hashNames[i].name[j] == '>' || hashNames[i].name[j] == ':' || hashNames[i].name[j] == '*')
+             {
+                 hashNames[i].name[j] = '_';
+             }
+             fputc(hashNames[i].name[j], database);
+         }
+
+         fputc(',', database);
+         fputc('\n', database);
+         */
+    }
+
+    free(hashNamesDataBase);
+    fclose(database);
+
+    /*
+    char textBuffer[19];
+    uint64_t crc = CRC64_CaseInsensitive(0, buffer);
+    sprintf(textBuffer, "0x%016lX", crc);
+    fputc('{', database);
+    fwrite(textBuffer, 18, 1, database);
+    fputc(',', database);
+    fputc('"', database);
+    fwrite(buffer, strlen(buffer), 1, database);
+    fputc('"', database);
+    fputc('}', database);
+    fputc(',', database);
+    */
+}
+
 void binWalk(FILE *stream)
 {
     printf("Looking for patterns\n");
@@ -321,10 +599,10 @@ void binWalk(FILE *stream)
         buffer = buffer >> 8;
         buffer = buffer | (((uint64_t)i) << 56);
 
-        const struct MetaClassDescription *description = getMetaClassDescriptionBySymbol(buffer);
-        if (description != NULL)
+        const char *name = getFileName(buffer);
+        if (name != NULL)
         {
-            printf("Type = %s at 0x%lx\n", description->name, cftell(stream));
+            printf("Type = %s at 0x%lx\n", name, cftell(stream));
         }
     }
 }
@@ -340,12 +618,91 @@ int streamsAreEqual(FILE *stream1, FILE *stream2)
         b = fgetc(stream2);
         if (a != b)
         {
-            if ((count++) == 9)
+            if ((count++) == 0)
             {
-                printf("ftell = %lx\n", cftell(stream1));
+                printf("ftell = 0x%lx\n", cftell(stream1));
                 return 0;
             }
         }
     }
     return 1;
+}
+
+int generateHashFile(FILE *exe, FILE *output)
+{
+    char buf[0x100000];
+    int character;
+    uint32_t offset = 0;
+    while ((character = fgetc(exe)) != EOF)
+    {
+        buf[offset] = character;
+        if (offset > 3 && buf[offset] == '\0')
+        {
+            fwrite(buf, offset, 1, output);
+            fputc('\n', output);
+        }
+        if (!isCharacter(buf[offset++]))
+        {
+            offset = 0;
+        }
+    }
+
+    return 0;
+}
+
+uint64_t searchForValue(FILE *stream, uint32_t value)
+{
+    uint32_t currentValue;
+    do
+    {
+        fread(&currentValue, sizeof(currentValue), 1, stream);
+        cfseek(stream, -3, SEEK_CUR);
+    } while (currentValue != value);
+    return cftell(stream);
+}
+
+int generateHashFile2(FILE *exe, FILE *output)
+{
+    char buf[0x100000];
+    int character;
+    uint32_t offset = 0;
+    while ((character = fgetc(exe)) != EOF)
+    {
+        buf[offset++] = character;
+        if (offset > 7)
+        {
+            cfseek(exe, -((int64_t)offset) - 4, SEEK_CUR);
+            uint32_t block;
+            fread(&block, sizeof(block), 1, exe);
+
+            if (block < 0x100)
+            {
+                block = fread(buf, 1, block, exe);
+                for (uint32_t i = 0; i < block; ++i)
+                {
+                    if (!isCharacter(buf[i]))
+                    {
+                        block = 0;
+                    }
+                }
+                if (fwrite(buf, block, 1, output))
+                {
+                    fputc('\n', output);
+                }
+                else
+                {
+                    cfseek(exe, offset, SEEK_CUR);
+                }
+                offset = 0;
+                continue;
+            }
+            cfseek(exe, offset, SEEK_CUR);
+            offset = 0;
+        }
+        else if (!isCharacter(buf[offset - 1]))
+        {
+            offset = 0;
+        }
+    }
+    return 0;
 }

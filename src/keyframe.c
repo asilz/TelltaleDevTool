@@ -108,7 +108,7 @@ static int DCArray_KeyframedValue_Generic___Sample_Read(FILE *stream, struct Tre
     for (uint32_t i = 1; i < node->childCount; ++i)
     {
         node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->description;
+        // node->children[i]->description; TODO: Set description
         node->children[i]->parent = node;
         KeyframedValueGenericSampleRead(stream, node->children[i], flags, description);
     }
@@ -130,7 +130,7 @@ static int DCArray_KeyframedValue_GenericBlocked___Sample_Read(FILE *stream, str
     for (uint32_t i = 1; i < node->childCount; ++i)
     {
         node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->description;
+        // node->children[i]->description; TODO: Set description
         node->children[i]->parent = node;
         KeyframedValueGenericBlockedSampleRead(stream, node->children[i], flags, description);
     }

@@ -9,6 +9,42 @@
 #include <container.h>
 #include <stream.h>
 #include <string.h>
+#include <stdarg.h>
+
+enum ChoreFlags
+{
+    eResetNavCamsOnExit = 0x1,
+    eBackgroundFade = 0x2,
+    eBackgroundLoop = 0x4,
+    eEndPause = 0x8,
+    eAdditive_Depreciated = 0x10,
+    eEmbedded = 0x20,
+    eChoreCut = 0x40
+};
+
+enum ChoreResourceFlags
+{
+    eFilterMoverAnimation = 0x1,
+    eFilterLipSyncAnimation = 0x2,
+    ePlayAsMusic = 0x4,
+    eAgentPropertiesResource = 0x8,
+    eAgentBlockingResource = 0x10,
+    eBlockingFilterXlate = 0x20,
+    eBlockingFilterRotate = 0x40,
+    eDisableTimeSync = 0x80,
+    eFirstSubtitledResource = 0x100,
+    eLastSubtitledResource = 0x200,
+    eOverrideLipSyncAnimation = 0x400,
+    eAgentPathBlockingResource = 0x800,
+    eChoreCutResource = 0x1000,
+    eChoreClipResource = 0x2000,
+    eChoreMasterCutResource = 0x4000,
+    eExtendEmbeddedGuides = 0x8000,
+    eMirrorAnimation = 0x10000,
+    eForceRelativeAnimation = 0x20000,
+    eAddAgentPosKeyAtTime0 = 0x40000,
+    eFilterPropertyAnimation = 0x80000
+};
 
 int Map_StringClipResourceFilterStringCompareCaseInsensitive_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
@@ -32,29 +68,9 @@ int Map_SymbolWalkPathless_Symbol__Read(FILE *stream, struct TreeNode *node, uin
 
 int PerAgentClipResourceFilterRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(Map_StringClipResourceFilterStringCompareCaseInsensitive_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(Set_StringStringCompareCaseInsensitive_);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(bool_type);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    return 0;
+    uint16_t typeList[] = {Map_StringClipResourceFilterStringCompareCaseInsensitive_, Set_StringStringCompareCaseInsensitive_, bool_type};
+    uint8_t blockList[] = {1, 1, 0};
+    return genericRead(stream, node, flags, 3, typeList, blockList);
 }
 
 int WalkPathRead(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -113,6 +129,7 @@ int AutoActStatusRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int HandleBaseRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = sizeof(uint64_t);
     fread(node->data.staticBuffer, sizeof(uint64_t), 1, stream);
 
@@ -220,6 +237,7 @@ int ChoreAgentRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int ChoreResourceBlockRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = sizeof(float) * 3 + sizeof(uint8_t);
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);

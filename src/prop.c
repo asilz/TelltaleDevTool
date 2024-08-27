@@ -6,7 +6,36 @@
 #include <stream.h>
 #include <types.h>
 
-#define EMBEDDED_PROP_FLAG 0x0400
+enum PropertyFlags
+{
+    eSceneProperties = 0x1,
+    eChoreAgentProperties = 0x2,
+    eChoreResourceProperties = 0x4,
+    ePlaybackControllerProperties = 0x8,
+    eRuntimeProperties = 0x10,
+    eRuleProperty = 0x20,
+    eActorAgentProperties = 0x40,
+    eAgentProperties = 0x80,
+    eScriptChangedAtRuntime = 0x100,
+    eExcludeFromSaveGames = 0x200,
+    eHasEditorProps = 0x400,
+    eInDelayPostLoadQueue = 0x1000,
+    eInDelayPostLoadQueueLocked = 0x2000,
+    eInDelayPostLoadQueueDeleted = 0x4000,
+    eReadOnly = 0x8000,
+    ePropertyInterface = 0x10000,
+    ePropertyCallbacksOnly = 0x20000,
+    eCreateKeysInAlt = 0x40000,
+    eTransientProperties = 0x80000,
+    eDontValidate = 0x100000,
+    eReferencedByLuaFunc = 0x200000,
+    eLockedInCache = 0x400000,
+    eEmbedded = 0x800000,
+    eSynchronousCallbacks = 0x1000000,
+    eOwnsHandleToSelf = 0x2000000,
+    eMaterialProperties = 0x4000000,
+    eMaterialRuntimeProperties = 0x8000000
+};
 
 struct TypeGroup
 {
@@ -90,7 +119,7 @@ static int PropCoreRead(FILE *stream, struct TreeNode *prop, uint32_t flags) // 
     // TODO: set description
     genericArrayRead(stream, prop->children[1], flags, getMetaClassDescriptionByIndex(Map_SymbolPropertySetless_Symbol__)); // Array of TypeGroup
 
-    if ((*(uint32_t *)prop->parent->children[1]->data.staticBuffer & EMBEDDED_PROP_FLAG) != 0)
+    if ((*(uint32_t *)prop->parent->children[1]->data.staticBuffer & eHasEditorProps) != 0)
     {
         prop->children = realloc(prop->children, ++prop->childCount * sizeof(struct TreeNode *));
         prop->children[2] = calloc(1, sizeof(struct TreeNode));
@@ -130,4 +159,9 @@ int PropRead(FILE *stream, struct TreeNode *prop, uint32_t flags)
 int DCArray_Handle_PropertySet__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(Handle_PropertySet_));
+}
+
+int Map_StringPropertySetless_String__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
+{
+    return genericMapRead(stream, node, flags, getMetaClassDescriptionByIndex(String), getMetaClassDescriptionByIndex(PropertySet));
 }

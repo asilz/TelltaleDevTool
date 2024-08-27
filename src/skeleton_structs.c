@@ -1,5 +1,13 @@
 #include <inttypes.h>
 
+/*
+sk62_clementine.skl
+bone scale adjust of node 0 (root node) is {0,0,0}
+bone scale adjust of node 1 is {0.0168612f,0.0168612f,0.0168612f}
+bone scale adjust of node 2 is {0.0904154f,0.0904154f,0.0904154f}
+bone scale adjust of node 3 is {0.0812204f,0.0812204f,0.0812204f}
+bone scale adjust of node 4 is {0.0812204f,0.0812204f,0.0812204f}
+*/
 int fun()
 {
     sizeof(struct Transform);
@@ -51,7 +59,7 @@ struct Skeleton__Entry
     struct Vector3 localPos;
     struct Quaternion localQuaternion;
     uint32_t transformBlock;
-    struct Transform transform;
+    struct Transform restXForm;
     struct Vector3 globalTranslationScale;
     struct Vector3 localTranslationScale;
     struct Vector3 animationTranslationScale;

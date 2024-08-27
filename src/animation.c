@@ -8,6 +8,7 @@
 
 static int AnimationValueRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = sizeof(uint64_t) + 2 * sizeof(uint16_t);
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
@@ -30,7 +31,7 @@ static int AnimationValueArrayRead(FILE *stream, struct TreeNode *node, uint32_t
     for (uint32_t i = 1; i < node->childCount; ++i)
     {
         node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->description;
+        // node->children[i]->description; //TODO: Set description
         node->children[i]->parent = node;
         AnimationValueRead(stream, node->children[i], flags);
     }
@@ -58,15 +59,14 @@ static int AnimationCoreRead(FILE *stream, struct TreeNode *node, uint32_t flags
     node->children[1]->description = getMetaClassDescriptionByIndex(long_type);
     node->children[1]->description->read(stream, node->children[1], flags);
 
-    node->children[2]->description;
+    // node->children[2]->description; // TODO: Set description
     AnimationValueArrayRead(stream, node->children[2], flags);
 
-    uint32_t childIndex = 2;
+    uint16_t childIndex = 2;
     for (uint32_t i = 1; i < node->children[2]->childCount; ++i)
     {
         for (uint32_t j = 0; j < ((uint16_t *)node->children[2]->children[i]->data.dynamicBuffer)[4]; ++j)
         {
-            uint64_t symbol = *(uint64_t *)node->children[2]->children[i]->data.dynamicBuffer;
             node->children[++childIndex]->description = getMetaClassDescriptionBySymbol(*(uint64_t *)node->children[2]->children[i]->data.dynamicBuffer);
             node->children[childIndex]->description->read(stream, node->children[childIndex], flags);
         }
@@ -130,7 +130,7 @@ int AnimationRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[6]->isBlocked = 1;
-    node->children[6]->description;
+    // node->children[6]->description; TODO: Set description
     AnimationCoreRead(stream, node->children[6], flags);
 
     return 0;

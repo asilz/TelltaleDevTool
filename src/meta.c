@@ -25,10 +25,13 @@
 #include <d3dmesh.h>
 #include <animation.h>
 #include <keyframe.h>
+#include <bankwavemap.h>
+#include <stdarg.h>
+#include <stdlib.h>
 
-#define META_CLASS_DESCRIPTIONS_COUNT 978
+#define META_CLASS_DESCRIPTIONS_COUNT (sizeof(descriptions) / sizeof(*descriptions))
 
-static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_COUNT] = {
+static const struct MetaClassDescription descriptions[] = {
     {0x004F023463D89FB0, "Symbol", intrinsic8Read, NULL},
     {0x00A87B9875C485DB, "DCArray<LanguageResLocal>", DCArray_LanguageResLocal_Read, NULL},
     {0x00ACFF947A409DDB, "Mover", NULL, NULL},
@@ -588,7 +591,7 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0x8D1A8F0E83A1E29D, "LanguageDB", NULL, NULL},
     {0x8D25F96848DE1765, "SkeletonPoseValue", NULL, NULL},
     {0x8D53D2745D07232B, "DlgObjIDOwner", NULL, NULL},
-    {0x8D76811F807928A2, "SoundBankWaveMap", NULL, NULL},
+    {0x8D76811F807928A2, "SoundBankWaveMap", bankwavemapRead, NULL},
     {0x8D953B4CE053F7AC, "DCArray<int>", DCArray_int_Read, NULL},
     {0x8E0C950E1D3BF60C, "Map<String,int,less<String>>", Map_Stringintless_String__Read, NULL},
     {0x8E4726F9B542D02F, "bundle", NULL, NULL},
@@ -629,7 +632,7 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0x984C0D6D48F69A9D, "DCArray<Vector2>", DCArray_Vector2_Read, NULL},
     {0x98A19836CF4CCB7D, "D3DMesh", D3DMeshRead, NULL},
     {0x98A19836CF4CCB7D, "d3dmesh", D3DMeshRead, NULL},
-    {0x98A7496918F17715, "bankwavemap", NULL, NULL},
+    {0x98A7496918F17715, "bankwavemap", bankwavemapRead, NULL},
     {0x995FC5C3CB87E5F8, "PhysicsObject::EnumePhysicsBoundingVolumeType", intrinsic4Read, NULL},
     {0x998E73C393F6A122, "PhonemeTable::PhonemeEntry", PhonemeTable__PhonemeEntryRead, NULL},
     {0x99B7E7B82012690C, "EnlightenModule::EnumeProbeResolution", intrinsic4Read, NULL},
@@ -704,7 +707,7 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0xABA164D5AAB73489, "Map<int,DlgLine,less<int>>", Map_intDlgLineless_int__Read, NULL},
     {0xABB6151861AA76C7, "Scene::AgentInfo", SceneAgentInfoRead, NULL},
     {0xABD836B706872262, "Handle<DialogResource>", intrinsic8Read, NULL},
-    {0xAC389286CDE5A182, "Map<Symbol,SoundBankWaveMapEntry,less<Symbol>>", NULL, NULL},
+    {0xAC389286CDE5A182, "Map<Symbol,SoundBankWaveMapEntry,less<Symbol>>", Map_SymbolSoundBankWaveMapEntryless_Symbol__Read, NULL},
     {0xAD15A7FE0904AE6A, "EnumT3LightEnvGroup", intrinsic4Read, NULL},
     {0xAD550479D1324785, "DlgDownstreamVisibilityConditions", NULL, NULL},
     {0xADABE93EAA87F7DB, "Camera", NULL, NULL},
@@ -1009,8 +1012,6 @@ static const struct MetaClassDescription descriptions[META_CLASS_DESCRIPTIONS_CO
     {0xFFECC5B70AD06BE6, "PhysicsObject::EnumePhysicsCollisionType", intrinsic4Read, NULL},
 };
 
-// static struct MetaClassDescription metaClassDescriptions[META_CLASS_DESCRIPTIONS_COUNT] = {{0}};
-
 void readMetaStreamHeader(FILE *stream, struct MetaStreamHeader *header)
 {
     fread(&(header->version), sizeof(header->version), 1, stream);
@@ -1107,4 +1108,24 @@ const struct MetaClassDescription *getMetaClassDescriptionBySymbol(uint64_t symb
 const struct MetaClassDescription *getMetaClassDescriptionByIndex(uint16_t index)
 {
     return descriptions + index;
+}
+
+int genericRead(FILE *stream, struct TreeNode *node, uint32_t flags, uint16_t childCount, uint16_t *typeList, uint8_t *blockList)
+{
+    node->childCount = childCount;
+    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    for (uint16_t i = 0; i < node->childCount; ++i)
+    {
+        node->children[i] = calloc(1, sizeof(struct TreeNode));
+        node->children[i]->parent = node;
+        node->children[i]->isBlocked = blockList[i];
+
+        if (node->children[i]->isBlocked)
+        {
+            cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+        }
+        node->children[i]->description = getMetaClassDescriptionByIndex(typeList[i]);
+        node->children[i]->description->read(stream, node->children[i], flags);
+    }
+    return 0;
 }

@@ -7,6 +7,7 @@
 
 static int WalkBoxes__EdgeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = 5 * sizeof(int32_t) + sizeof(float);
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream); // TODO: Maybe change to children
@@ -71,7 +72,7 @@ static int SArray_WalkBoxes__Edge3_Read(FILE *stream, struct TreeNode *node, uin
     {
         node->children[i] = calloc(1, sizeof(struct TreeNode));
         node->children[i]->parent = node;
-        node->children[i]->description; // TODO: set description
+        // node->children[i]->description; // TODO: set description
         WalkBoxes__EdgeRead(stream, node->children[i], flags);
     }
 
@@ -108,22 +109,22 @@ static int WalkBoxes__TriRead(FILE *stream, struct TreeNode *node, uint32_t flag
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[5]->isBlocked = 1;
-    node->children[5]->description; // TODO: Set description
+    // node->children[5]->description; // TODO: Set description
     SArray_int3_Read(stream, node->children[5], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[6]->isBlocked = 1;
-    node->children[6]->description; // TODO: Set description
+    // node->children[6]->description; // TODO: Set description
     SArray_WalkBoxes__Edge3_Read(stream, node->children[6], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[7]->isBlocked = 1;
-    node->children[7]->description; // TODO: Set description
+    // node->children[7]->description; // TODO: Set description
     SArray_int3_Read(stream, node->children[7], flags);
 
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[8]->isBlocked = 1;
-    node->children[8]->description; // TODO: Set description
+    // node->children[8]->description; // TODO: Set description
     SArray_float3_Read(stream, node->children[8], flags);
 
     return 0;
@@ -158,7 +159,7 @@ static int WalkBoxes__QuadRead(FILE *stream, struct TreeNode *node, uint32_t fla
     node->children[0]->parent = node;
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[0]->isBlocked = 1;
-    node->children[0]->description; // TODO: Set description
+    // node->children[0]->description; // TODO: Set description
     SArray_int4_Read(stream, node->children[0], flags);
 
     return 0;

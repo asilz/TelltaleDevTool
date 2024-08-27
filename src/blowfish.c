@@ -75,7 +75,7 @@ void decryptBlock(uint64_t *block)
 
 inline void encryptData(uint64_t *data, size_t dataLength)
 {
-    for (int i = 0; i < dataLength; ++i)
+    for (size_t i = 0; i < dataLength; ++i)
     {
         encryptBlock(data + i);
     }
@@ -83,7 +83,7 @@ inline void encryptData(uint64_t *data, size_t dataLength)
 
 inline void decryptData(uint64_t *data, size_t dataLength)
 {
-    for (int i = 0; i < dataLength; ++i)
+    for (size_t i = 0; i < dataLength; ++i)
     {
         decryptBlock(data + i);
     }
@@ -91,16 +91,16 @@ inline void decryptData(uint64_t *data, size_t dataLength)
 
 void initBlowfish(uint8_t *key, size_t keyLength)
 {
-    int keyIndex = 0;
-    for (int i = 0; i < pArrayLength; ++i)
+    size_t keyIndex = 0;
+    for (uint32_t i = 0; i < pArrayLength; ++i)
     {
-        for (int j = 0; j < sizeof(uint32_t); ++j)
+        for (uint32_t j = 0; j < sizeof(uint32_t); ++j)
         {
             if (keyIndex >= keyLength)
             {
                 keyIndex = 0;
             }
-            pArray[i] = (pArray[i] & (uint32_t)(0xFFFFFFFF00FFFFFF >> (8 * j))) | ((uint32_t)((uint8_t)(pArray[i] >> (24 - (8 * j))) ^ key[keyIndex++]) << 24 - (8 * j));
+            pArray[i] = (pArray[i] & (uint32_t)(0xFFFFFFFF00FFFFFF >> (8 * j))) | ((uint32_t)((uint8_t)(pArray[i] >> (24 - (8 * j))) ^ key[keyIndex++]) << (24 - (8 * j)));
         }
     }
     uint64_t block = 0x0000000000000000;
@@ -127,7 +127,7 @@ void initBlowfish(uint8_t *key, size_t keyLength)
 
 void printData(uint64_t *data, size_t length)
 {
-    for (int i = 0; i < length; ++i)
+    for (size_t i = 0; i < length; ++i)
     {
         printf("%0lX\n", data[i]);
     }
@@ -135,9 +135,9 @@ void printData(uint64_t *data, size_t length)
 
 void printText(uint64_t *data, size_t length)
 {
-    for (int i = 0; i < length; ++i)
+    for (size_t i = 0; i < length; ++i)
     {
-        for (int j = 0; j < sizeof(uint64_t); ++j)
+        for (size_t j = 0; j < sizeof(uint64_t); ++j)
             printf("%c", (uint8_t)(data[i] >> 8 * j));
     }
 }
@@ -148,7 +148,7 @@ void decryptBlock7(uint64_t *block)
     uint32_t rightHalf = (uint32_t)(*block >> 32);
     uint32_t temp;
 
-    for (int i = pArrayLength - 1; i > 1; --i)
+    for (uint32_t i = pArrayLength - 1; i > 1; --i)
     {
         switch (i)
         { // version7
@@ -236,7 +236,7 @@ void encryptBlock7(uint64_t *block)
 
 void encryptData7(uint64_t *data, size_t dataLength)
 {
-    for (int i = 0; i < dataLength; ++i)
+    for (size_t i = 0; i < dataLength; ++i)
     {
         encryptBlock7(data + i);
     }
@@ -245,7 +245,7 @@ void encryptData7(uint64_t *data, size_t dataLength)
 void decryptData7(uint64_t *data, size_t dataLength)
 {
 
-    for (int i = 0; i < dataLength; ++i)
+    for (size_t i = 0; i < dataLength; ++i)
     {
         // printf("Decryptdata7 %d\n", i);
         decryptBlock7(data + i);
@@ -263,16 +263,16 @@ static inline uint32_t bswap(uint32_t num)
 void initBlowfish7(uint8_t *key, size_t keyLength)
 {
     sbox[0][118] = bswap(sbox[0][118]);
-    int keyIndex = 0;
-    for (int i = 0; i < pArrayLength; ++i)
+    size_t keyIndex = 0;
+    for (uint32_t i = 0; i < pArrayLength; ++i)
     {
-        for (int j = 0; j < sizeof(uint32_t); ++j)
+        for (uint32_t j = 0; j < sizeof(uint32_t); ++j)
         {
             if (keyIndex >= keyLength)
             {
                 keyIndex = 0;
             }
-            pArray[i] = (pArray[i] & (uint32_t)(0xFFFFFFFF00FFFFFF >> (8 * j))) | ((uint32_t)((uint8_t)(pArray[i] >> (24 - (8 * j))) ^ key[keyIndex++]) << 24 - (8 * j));
+            pArray[i] = (pArray[i] & (uint32_t)(0xFFFFFFFF00FFFFFF >> (8 * j))) | ((uint32_t)((uint8_t)(pArray[i] >> (24 - (8 * j))) ^ key[keyIndex++]) << (24 - (8 * j)));
         }
     }
     uint64_t block = 0x0000000000000000;

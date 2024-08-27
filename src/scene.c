@@ -52,6 +52,7 @@ int DCArray_Handle_SoundData__Read(FILE *stream, struct TreeNode *node, uint32_t
 
 int Vector2Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = 2 * sizeof(float);
     fread(node->data.staticBuffer, node->dataSize, 1, stream);
 
@@ -367,6 +368,7 @@ int DCArray_Handle_D3DMesh__Read(FILE *stream, struct TreeNode *node, uint32_t f
 
 int T3LightEnvInternalData__QualityEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = 2 * sizeof(uint32_t);
     fread(node->data.staticBuffer, node->dataSize, 1, stream); // TODO: Change to children?
 

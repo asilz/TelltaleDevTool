@@ -172,7 +172,7 @@ int streamDecrypt(FILE **compressedStreamPtr)
     return 0;
 }
 
-int archiveSplit(FILE *stream, uint8_t *folderPath)
+int archiveSplit(FILE *stream, const char *folderPath)
 {
     struct ArchiveHeader header;
     fread(&header, sizeof(struct ArchiveHeader), 1, stream);
@@ -180,7 +180,7 @@ int archiveSplit(FILE *stream, uint8_t *folderPath)
     printf("fileCount = %" PRIu32 " \n", header.fileCount);
 
     uint64_t nameTableOffset = 28 * header.fileCount + sizeof(struct ArchiveHeader); // 28 is the size of all the FileHeader members. Using sizeof(struct FileHeader) will return the size including the 4 byte trailing padding.
-    uint8_t filePath[512];
+    char filePath[512];
     size_t outPathLength = strlen(folderPath);
     memcpy(filePath, folderPath, outPathLength);
     for (uint32_t i = 0; i < header.fileCount; ++i)
@@ -192,7 +192,7 @@ int archiveSplit(FILE *stream, uint8_t *folderPath)
 
         cfseek(stream, nameTableOffset + entry.nameTableChunkIndex * 0x10000 + entry.nameTableOffset, SEEK_SET);
 
-        for (int j = 0; j < 512 - outPathLength; ++j)
+        for (size_t j = 0; j < 512 - outPathLength; ++j)
         {
             filePath[outPathLength + j] = fgetc(stream);
             if (filePath[outPathLength + j] == '\0')
@@ -200,7 +200,7 @@ int archiveSplit(FILE *stream, uint8_t *folderPath)
                 break;
             }
         }
-        if (entry.crcName != CRC64_CaseInsensitive(0, filePath + outPathLength))
+        if (entry.crcName != CRC64_CaseInsensitive(0, (uint8_t *)(filePath + outPathLength)))
         {
             printf("Warning: Name does not match crc Name = %s\n", filePath + outPathLength);
         }
@@ -268,9 +268,8 @@ int writeFileNames(FILE *stream, FILE *fileNames)
     return 0;
 }
 
-int streamToFile(FILE *stream, uint8_t *outputPath)
+int streamToFile(FILE *stream, const char *outputPath)
 {
-    int err;
 
     FILE *outputStream = cfopen(outputPath, "wb");
     if (outputStream == NULL)
@@ -283,4 +282,5 @@ int streamToFile(FILE *stream, uint8_t *outputPath)
     {
         fputc(i, outputStream);
     }
+    return 0;
 }

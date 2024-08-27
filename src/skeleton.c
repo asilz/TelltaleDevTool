@@ -26,6 +26,7 @@ int TransformRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int TRange_float_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = 2 * sizeof(float);
     fread(node->data.staticBuffer, node->dataSize, 1, stream);
 

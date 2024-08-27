@@ -12,6 +12,7 @@
 
 int Vector3Read(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Move this function to a different file
 {
+    (void)flags;
     node->dataSize = sizeof(float) * 3;
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
@@ -48,6 +49,7 @@ int Set_Colorless_Color__Read(FILE *stream, struct TreeNode *node, uint32_t flag
 
 int Vector4Read(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Move to different file
 {
+    (void)flags;
     node->dataSize = sizeof(float) * 4;
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
@@ -179,15 +181,6 @@ uint64_t *DlgGetID(struct TreeNode *node)
     }
     printf("Error: DlgGetID: TreeNode is not a DlgNode/DlgChild %lx\n", node->description->crc);
     return NULL;
-}
-
-static size_t blockRead(FILE *stream, uint8_t *buffer)
-{
-    size_t bytesRead = 0;
-    bytesRead += fread(buffer, sizeof(uint32_t), 1, stream);
-    buffer += bytesRead;
-    bytesRead += fread(buffer, (*(uint32_t *)(buffer - sizeof(uint32_t)) - 4), 1, stream);
-    return bytesRead;
 }
 
 int DlgFolderRead(FILE *stream, struct TreeNode *folder, uint32_t flags)
@@ -616,6 +609,7 @@ int DlgObjectPropsOwnerRead(FILE *stream, struct TreeNode *objectProps, uint32_t
 
 int DlgObjectIDRead(FILE *stream, struct TreeNode *id, uint32_t flags)
 {
+    (void)flags;
     id->dataSize = sizeof(uint64_t);
     fread(id->data.staticBuffer, id->dataSize, 1, stream);
     return 0;
@@ -953,7 +947,7 @@ int DlgNodeMarkerRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeExitRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    DlgNodeMarkerRead(stream, node, flags);
+    return DlgNodeMarkerRead(stream, node, flags);
 }
 
 int DlgLineRead(FILE *stream, struct TreeNode *line, uint32_t flags)

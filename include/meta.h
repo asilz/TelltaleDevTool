@@ -23,3 +23,5 @@ const struct MetaClassDescription *getMetaClassDescriptionBySymbol(uint64_t symb
 const struct MetaClassDescription *getMetaClassDescriptionByIndex(uint16_t index);
 const char *getFileName(uint64_t symbol);
 const char *getString(uint64_t symbol);
+const struct HashName *getDatabase();
+int genericRead(FILE *stream, struct TreeNode *node, uint32_t flags, uint16_t childCount, uint16_t *typeList, uint8_t *blockList);

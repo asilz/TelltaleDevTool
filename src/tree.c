@@ -4,7 +4,7 @@
 #include <stream.h>
 #include <string.h>
 
-void treeFree(struct TreeNode *root)
+void treeFree(struct TreeNode *restrict root)
 {
     if (root->dataSize > sizeof(root->data))
     {
@@ -30,9 +30,10 @@ void treeFree(struct TreeNode *root)
     }
 }
 
-uint32_t writeTree(FILE *stream, struct TreeNode *root)
+uint32_t writeTree(FILE *stream, struct TreeNode *restrict root)
 {
     // printf("ftell = %lx\n", cftell(stream));
+    // int64_t ftel = cftell(stream);
     uint32_t ret = 0;
 
     for (uint16_t i = 0; i < root->childCount; ++i)
@@ -67,14 +68,14 @@ uint32_t writeTree(FILE *stream, struct TreeNode *root)
     return ret;
 }
 
-void treePushBack(struct TreeNode *tree, struct TreeNode *child)
+void treePushBack(struct TreeNode *restrict tree, struct TreeNode *restrict child) // tree and child should never point to the same node.
 {
     tree->children = realloc(tree->children, (++tree->childCount) * sizeof(struct TreeNode *));
     tree->children[tree->childCount - 1] = child;
     child->parent = tree; // TODO: Maybe remove this and let the user do this manually since this requires that memory is allocated for the child which I might not always be able to garantuee.
 }
 
-struct TreeNode *copyTree(struct TreeNode *tree)
+struct TreeNode *copyTree(struct TreeNode *restrict tree)
 {
     struct TreeNode *copy = malloc(sizeof(struct TreeNode));
 
@@ -83,6 +84,7 @@ struct TreeNode *copyTree(struct TreeNode *tree)
     copy->isBlocked = tree->isBlocked;
     copy->description = tree->description;
     copy->serializeType = tree->serializeType;
+    copy->parent = NULL;
 
     if (copy->dataSize > sizeof(tree->data))
     {
@@ -107,7 +109,7 @@ void treeErase(struct TreeNode *tree, uint16_t childIndex)
 {
     if (tree->childCount <= childIndex)
     {
-        printf("Warning: treeErase: Index out of range");
+        printf("Warning: treeErase: Index out of range\n");
         return;
     }
     treeFree(tree->children[childIndex]);

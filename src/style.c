@@ -133,7 +133,7 @@ static int ActingPaletteRead(FILE *stream, struct TreeNode *node, uint32_t flags
     node->children[11]->description = getMetaClassDescriptionByIndex(Flags);
     node->children[11]->description->read(stream, node->children[11], flags);
 
-    node->children[12]->description; // TODO: Set description and fix stupid problem
+    // TODO: Set description and fix stupid problem
     const struct MetaClassDescription actingResourceDescription = {0, "ActingResource", ActingResourceRead, NULL};
     genericArrayRead(stream, node->children[12], flags, &actingResourceDescription);
 
@@ -198,7 +198,7 @@ static int ActingAccentPaletteRead(FILE *stream, struct TreeNode *node, uint32_t
     node->children[12]->description = getMetaClassDescriptionByIndex(long_type);
     node->children[12]->description->read(stream, node->children[12], flags);
 
-    node->children[13]->description; // TODO: Fix
+    // TODO: Set description
     const struct MetaClassDescription actingResourceDescription = {0, "ActingResource", ActingResourceRead, NULL};
     genericArrayRead(stream, node->children[13], flags, &actingResourceDescription);
 

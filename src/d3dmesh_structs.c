@@ -93,12 +93,6 @@ struct T3MeshBatch
     unsigned int mAdjacencyStartIndex;
 };
 
-struct T3MeshLOD
-{
-    uint32_t meshBatchCount;
-    struct T3MeshBatch *batches[2];
-};
-
 struct T3MaterialRequirements
 {
     struct BitSetBase_1_ passes;
@@ -190,7 +184,7 @@ struct T3MeshTexture
 
 struct T3MeshMaterial
 {
-    uint64_t mateiral;                    // Handle<PropertySet>
+    uint64_t material;                    // Handle<PropertySet> // Note to self: this is the symbol of one of the symbols in the map at the start of d3dmesh
     uint64_t baseMaterialName;            // Symbol
     uint64_t legacyRenderTextureProperty; // Symbol
     struct BoundingBox boundingBox;
@@ -234,6 +228,17 @@ struct BinaryBuffer
 {
     uint32_t dataSize;
     uint8_t *data;
+};
+
+struct T3MeshCPUSkinningDataBuffer
+{
+    struct srcEntry
+    {
+        float row0Scale;
+        float row1Scale;
+        float row2Scale;
+        int8_t boneMatrixIndex[4]; // -1 if no bone matrix
+    };
 };
 
 struct T3MeshCPUSkinningData

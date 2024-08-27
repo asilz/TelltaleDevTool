@@ -25,6 +25,15 @@ CompressedSkeletonPoseKeys2
 KeyframedValue<Transform>
 
 0x14030 is end of data
+-----------------------------
+sk62_clementine_walk (See sk62_clementine.skl for corrosponding bones)
+0x74 is start
+0x8c is toolProps
+3 interfaces, 2 animValueTypes (1 compressedSkeletonPoseKeys, 2 keyframedValue<Transform>)
+0xb9 is start of mystery buffer
+boneCount = 142 (0x8E), symbolOffset = 26800
+0x69C9 is start of bone symbols, 0x6E39 is end of bone symbols
+0xA7B0 is end of mystery buffer
 
 
 */
@@ -58,7 +67,7 @@ struct AnimatedValueInterface_Transform_UNKOWN
     struct Transform maxValue;
     uint32_t samplesBlock;
     uint32_t samplesCount;
-    struct KeyFramedValue_Transform_ *samples; // DCArray<KeyFramedValue<Transform>
+    struct KeyframedValue_Transform_ *samples; // DCArray<KeyFramedValue<Transform>
 };
 
 struct AnimatedValueInterface_Transform_
@@ -88,7 +97,7 @@ struct Transform
     struct Vector3 translation;
 };
 
-struct KeyFramedValue_Transform__Sample
+struct KeyframedValue_Transform__Sample
 {
     float time;
     uint8_t interpolateToNextKey;
@@ -108,7 +117,7 @@ struct KeyframedValue_Transform_
     struct Transform maxValue;
     uint32_t samplesBlock;
     uint32_t samplesCount;
-    struct KeyFramedValue_Transform__Sample *samples; // DCArray<KeyFramedValue<Transform>::Sample>
+    struct KeyframedValue_Transform__Sample *samples; // DCArray<KeyFramedValue<Transform>::Sample>
 };
 
 struct DependencyLoader
@@ -138,6 +147,22 @@ struct HandleBase
 
 struct __attribute__((__packed__)) DataBuffer
 {
+    struct SampleHeader
+    {
+        _Float16 timeScale;
+        // 2 bits determine which vector in active sample is being modified
+        // 10 bits activeSampleIndex
+        //
+    };
+    struct SampleData
+    {
+        union SampleDataUnion
+        {
+            uint32_t abs[8];   // If(SampleHeader > 0) // First 4 uint32_t are the LSB where the first 10 bits are x, 11 next bits are y and next 11 bits are z. The next 4 uint32_t are used to add 10 extra bits to x, 11 extra bits to y, and 11 extra bits to z. So in total we have 20 x bits, 22 y bits, 22 z bits
+            uint32_t delta[4]; // If(SampleHeader < 0) // The least significant 10 bits are x, 11 next bits are y and 11 next bits are z of each int32_t
+        };
+    };
+
     float xMinDeltaV;
     float yMinDeltaV;
     float zMinDeltaV;
@@ -153,21 +178,20 @@ struct __attribute__((__packed__)) DataBuffer
     float xMinVector;
     float yMinVector;
     float zMinVector;
-    float xScaleVector; // mScaleVector.x = xScale * 9.536752e-07
-    float yScaleVector; //  mScaleVector.y = yScale * 2.384186e-07
-    float zScaleVector; //  mScaleVector.z = zScale * 2.384186e-07
-    float unknown;
+    float xScaleVector;       // mScaleVector.x = xScale * 9.536752e-07
+    float yScaleVector;       //  mScaleVector.y = yScale * 2.384186e-07
+    float zScaleVector;       //  mScaleVector.z = zScale * 2.384186e-07
+    float unknown;            // Used in the time vector of active sample
     uint16_t boneSymbolCount; // 0x13 (float) //
     uint16_t paddingMaybe;
-    int64_t symbolOffset;
+    int64_t symbolOffset; // Offset of boneSymbols after 0x60 // Maybe a better name would be sampleDataSize
     int64_t unknown2;
-
-    // 0x60  // Here is where mpSampleDataBuffer points
-    uint32_t flagsMaybe;
-
+    // 0x60 starts here  // Here is where mpSampleDataBuffer points
+    struct SampleData *data;
     // symbolOffset
-    uint64_t *boneSymbols; // The count is equal to boneSymbolCount .The bytes of the left and right half of these symbols seem to be swapped. mpSampleHeaderBuffer points to after these symbols
-    uint16_t CSPKMinTime;  // Multiply by unknown and 1.525902e-05 to get time
+    uint64_t *boneSymbols; // The count is equal to boneSymbolCount . mpSampleHeaderBuffer points to after these symbols
+    // uint16_t CSPKMinTime;  // Multiply by unknown and 1.525902e-05 to get time. Maybe this variable is wrong. I am confused
+    struct SampleHeader *headers;
 };
 
 int func()
@@ -264,7 +288,7 @@ struct KeyFramedValue_unsigend__int64___Sample
     float time;
     uint8_t interpolateToNextKey;
     int32_t tangentMode; // TangentUnkown, TangentStepped, TangentKnot, TangentSmooth, TangentFlat
-    int32_t value;
+    int64_t value;
     float recipeTimeToNextSample;
 };
 

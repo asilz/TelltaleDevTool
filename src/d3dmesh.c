@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <types.h>
 #include <meta.h>
+#include <assert.h>
 
 int BoundingBoxRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
@@ -95,6 +96,7 @@ int BitSetBase_3_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int T3MeshTextureIndicesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     uint32_t buffer;
     do
     {
@@ -442,6 +444,7 @@ static int T3MeshCPUSkinningDataRead(FILE *stream, struct TreeNode *node, uint32
 
 int GFXPlatformAttributeParamsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = sizeof(int32_t) * 5; // TODO: maybe change to children
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
@@ -498,6 +501,7 @@ int T3GFXVertexStateRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int T3GFXBufferRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = sizeof(int32_t) * 5; // TODO: maybe change to children
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
@@ -724,6 +728,14 @@ int T3MeshDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children[4]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshBoneEntry_);
     node->children[4]->description->read(stream, node->children[4], flags);
 
+    uint64_t boneNumVerts = 0;
+    for (uint32_t i = 1; i < node->children[4]->childCount; ++i) // TODO: Remove
+    {
+        assert(*(int32_t *)(node->children[4]->children[i]->children[3]->data.staticBuffer) >= 0);
+        boneNumVerts += *(int32_t *)(node->children[4]->children[i]->children[3]->data.staticBuffer);
+    }
+    printf("%ld\n", boneNumVerts);
+
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
     node->children[5]->isBlocked = 1;
     node->children[5]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshLocalTransformEntry_);
@@ -796,18 +808,18 @@ int T3MeshDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
         }
         else
         {
-            node->children[19]->children[i]->description; // TODO: set description
+            // node->children[19]->children[i]->description; // TODO: set description
             T3MeshTexCoordTransformRead(stream, node->children[19]->children[i], flags);
         }
     }
 
-    if ((((*(uint32_t *)node->children[17]->data.staticBuffer) >> 4) & 1) != 0)
+    if ((((*(uint32_t *)node->children[17]->data.staticBuffer) >> 4) & 1) != 0) // if there are no T3MeshCPUSkinningData, then T3SkinningStartegy will be eSkinningGPU_Vertex I think. Don't quote me on this since I did not completely look over the code in ghidra. I am partially making assumptions
     {
-        node->children[20]->description; // TODO: Set description
+        // node->children[20]->description; // TODO: Set description
         T3MeshCPUSkinningDataRead(stream, node->children[20], flags);
     }
 
-    node->children[21]->description; // TODO: Set description
+    // node->children[21]->description; // TODO: Set description
     genericArrayRead(stream, node->children[21], flags, getMetaClassDescriptionByIndex(T3GFXVertexState));
 
     return 0;
@@ -815,6 +827,7 @@ int T3MeshDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 static int T3OcclusionMeshBatchRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = sizeof(uint32_t) * 3;
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
@@ -971,7 +984,7 @@ int D3DMeshRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     node->children[node->childCount - 2]->description = getMetaClassDescriptionByIndex(T3MeshData);
     node->children[node->childCount - 2]->description->read(stream, node->children[node->childCount - 2], flags);
 
-    node->children[node->childCount - 1]->description;
+    // node->children[node->childCount - 1]->description; TODO: Set description
     int64_t startOfAsync = ftell(stream);
     cfseek(stream, 0, SEEK_END);
     node->children[node->childCount - 1]->dataSize = cftell(stream) - startOfAsync;
@@ -1005,6 +1018,7 @@ int DCArray_T3MaterialRuntimeProperty_Read(FILE *stream, struct TreeNode *node, 
 
 int T3MaterialParameterRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = sizeof(uint64_t) + 6 * sizeof(int32_t); // TODO: Maybe change to children
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
@@ -1070,6 +1084,7 @@ int DCArray_T3MaterialTexture_Read(FILE *stream, struct TreeNode *node, uint32_t
 
 int T3MaterialTransform2DRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = sizeof(uint64_t) + 6 * sizeof(int32_t); // TODO: Maybe change to children
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
@@ -1120,6 +1135,7 @@ int DCArray_T3MaterialNestedMaterial_Read(FILE *stream, struct TreeNode *node, u
 
 int T3MaterialPreShaderRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = 4 * sizeof(int32_t); // TODO: Maybe change to children
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
@@ -1134,6 +1150,7 @@ int DCArray_T3MaterialPreShader_Read(FILE *stream, struct TreeNode *node, uint32
 
 int T3MaterialStaticParameterRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = sizeof(uint64_t) + sizeof(int32_t); // TODO: Maybe change to children
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
@@ -1148,6 +1165,7 @@ int DCArray_T3MaterialStaticParameter_Read(FILE *stream, struct TreeNode *node, 
 
 static int T3MaterialTextureParamRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = 4 * sizeof(int32_t); // TODO: Maybe change to children
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
@@ -1178,6 +1196,7 @@ int DCArray_T3MaterialTextureParam_Read(FILE *stream, struct TreeNode *node, uin
 
 int T3MaterialPassDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = 2 * sizeof(int32_t) + sizeof(uint64_t); // TODO: Maybe change to children
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);

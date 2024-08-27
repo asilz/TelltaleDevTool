@@ -7,6 +7,7 @@
 
 int ParticleSprite__AnimationRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    (void)flags;
     node->dataSize = sizeof(uint64_t) + 2 * sizeof(int32_t); // TODO: Maybe change these to children
     node->data.dynamicBuffer = malloc(node->dataSize);
     fread(node->data.dynamicBuffer, node->dataSize, 1, stream);

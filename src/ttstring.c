@@ -14,7 +14,7 @@ struct String
 
 int StringRead(FILE *stream, struct TreeNode *string, uint32_t flags)
 {
-
+    (void)flags;
     uint32_t stringSize;
     fread(&stringSize, 1, sizeof(stringSize), stream);
     string->dataSize = stringSize + sizeof(stringSize);

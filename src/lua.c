@@ -2,7 +2,7 @@
 #include <lua.h>
 #include <stream.h>
 
-int decryptLua(uint8_t *encryptedFilePath, uint8_t *decryptedFilePath)
+int decryptLua(const char *encryptedFilePath, const char *decryptedFilePath)
 {
     uint64_t buffer;
     FILE *encryptedFile = cfopen(encryptedFilePath, "rb");
@@ -45,7 +45,7 @@ int decryptLua(uint8_t *encryptedFilePath, uint8_t *decryptedFilePath)
     return 0;
 }
 
-int encryptLua(uint8_t *decryptedFilePath, uint8_t *encryptedFilePath)
+int encryptLua(const char *decryptedFilePath, const char *encryptedFilePath)
 {
     uint64_t buffer;
     FILE *decryptedFile = cfopen(decryptedFilePath, "rb");
