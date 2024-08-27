@@ -3,6 +3,7 @@ project(TelltaleDevTool)
 
 set(CMAKE_BUILD_TYPE Debug)
 
+
 find_package(ZLIB REQUIRED)
 
 # find_package(PkgConfig REQUIRED)
@@ -33,21 +34,23 @@ set(SOURCES
     src/animation.c
     src/linalg.c
     src/keyframe.c
+    src/bankwavemap.c
 )
-
-if(UNIX)
-    list(APPEND SOURCES src/stream_unix.c)
-endif(UNIX)
-
-if(MSVC)
-    list(APPEND SOURCES src/stream_windows.c)
-endif(MSVC)
 
 # Create the executable
 add_executable(devtool ${SOURCES})
 target_link_libraries(devtool PRIVATE ZLIB::ZLIB)
+target_link_libraries(devtool PRIVATE m)
 
 # target_link_libraries(devtool PRIVATE PkgConfig::GTK4)
 
 # Add includes
 target_include_directories(devtool PRIVATE include)
+
+if(UNIX)
+    add_subdirectory(src/unix)
+endif(UNIX)
+
+if(MSVC)
+    add_subdirectory(src/msvc)
+endif(MSVC)
