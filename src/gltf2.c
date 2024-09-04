@@ -10,13 +10,6 @@
 #include <math.h>
 #include <linalg.h>
 
-struct Transform
-{
-    struct Quaternion quaternion;
-    struct Vector3 vector;
-    float padding;
-};
-
 struct SklNodeData
 {
     struct Transform currentTransform;
@@ -676,7 +669,7 @@ struct Animation convertAnimation(const struct TreeNode *d3dmesh, const struct T
                         absQ[i].w = ((1.0 - absQ[i].x * absQ[i].x) - absQ[i].y * absQ[i].y) - absQ[i].z * absQ[i].z;
                         if (absQ[i].w > 0.0f)
                         {
-                            absQ[i].w = sqrtf(absQ[i].w); // TODO: Stop being lazy
+                            absQ[i].w = sqrtf(absQ[i].w);
                         }
                         else
                         {
@@ -768,16 +761,17 @@ struct Animation convertAnimation(const struct TreeNode *d3dmesh, const struct T
     skin->skeletonIndex = -1;
     skin->jointCount = d3dmesh->children[d3dmesh->childCount - 2]->children[4]->childCount - 1;
     skin->jointIndices = malloc(skin->jointCount * sizeof(uint32_t));
+
     for (uint16_t i = 0; i < skeleton->children[0]->childCount - 1; ++i)
     {
         skeletonNodes[i].cameraIndex = -1;
         skeletonNodes[i].meshIndex = -1;
         skeletonNodes[i].skinIndex = -1;
 
-        // memcpy(skeletonNodes[i].translation, skeleton->children[0]->children[i + 1]->children[5]->data.dynamicBuffer, sizeof(skeletonNodes[i].translation));
-        // memcpy(skeletonNodes[i].rotation, skeleton->children[0]->children[i + 1]->children[6]->data.dynamicBuffer, sizeof(skeletonNodes[i].rotation));
-        //*(struct Quaternion *)skeletonNodes[i].rotation = normalizeQuaternion(*(struct Quaternion *)skeletonNodes[i].rotation);
         skeletonNodes[i].rotation[3] = 1.0f;
+        memcpy(skeletonNodes[i].translation, skeleton->children[0]->children[i + 1]->children[5]->data.dynamicBuffer, sizeof(skeletonNodes[i].translation));
+        memcpy(skeletonNodes[i].rotation, skeleton->children[0]->children[i + 1]->children[6]->data.dynamicBuffer, sizeof(skeletonNodes[i].rotation));
+        //*(struct Quaternion *)skeletonNodes[i].rotation = normalizeQuaternion(*(struct Quaternion *)skeletonNodes[i].rotation);
 
         // Telltale Engine does not support scaling. How can I scale myself up to 6 feet then?
         skeletonNodes[i].scale[0] = 1.0f;
@@ -801,13 +795,12 @@ struct Animation convertAnimation(const struct TreeNode *d3dmesh, const struct T
 
                 struct Quaternion boneRotationAdjust = sklNodeData[vectorFrames[j].skeletonBoneIndex].boneRotationAdjust;
                 struct Quaternion localQuaternion = *(struct Quaternion *)skeleton->children[0]->children[i + 1]->children[6]->data.dynamicBuffer;
-                localQuaternion.x /= localQuaternion.w;
-                localQuaternion.y /= localQuaternion.w;
-                localQuaternion.z /= localQuaternion.w;
-                localQuaternion.w = 1.0f;
 
                 struct Vector3 *localPos = (struct Vector3 *)skeleton->children[0]->children[i + 1]->children[5]->data.dynamicBuffer;
                 float boneScaleAdjust = sqrtf(localPos->x * localPos->x + localPos->y * localPos->y + localPos->z * localPos->z);
+
+                // struct Vector3 *restXForm = (struct Vector3 *)skeleton->children[0]->children[i+1]->children[7]->children[1]->data.dynamicBuffer;
+                // printf("restXFormDebug = {%f,%f,%f}, restXForm = {%f,%f,%f}\n", sklNodeData[i].restXForm.vector.x, sklNodeData[i].restXForm.vector.y, sklNodeData[i].restXForm.vector.z, restXForm->x, restXForm->y, restXForm->z);
                 // printf("i = %u, boneScaleAdjust = {%f,%f,%f}, boneRotationAdjust = {%f,%f,%f,%f}{%f,%f,%f,%f}\n", i, boneScaleAdjust, boneScaleAdjust, boneScaleAdjust, boneRotationAdjust.x, boneRotationAdjust.y, boneRotationAdjust.z, boneRotationAdjust.w, localQuaternion.x, localQuaternion.y, localQuaternion.z, localQuaternion.w);
 
                 // struct Transform localXform = sklNodeData[vectorFrames[j].skeletonBoneIndex].node.localXForm;
@@ -828,9 +821,15 @@ struct Animation convertAnimation(const struct TreeNode *d3dmesh, const struct T
                     vectorFrames[j].frames[k].transform.vector.z *= boneScaleAdjust;
 
                     vectorFrames[j].frames[k].transform.vector = rotateVector(vectorFrames[j].frames[k].transform.vector, boneRotationAdjust);
-                    if (k == 0)
+
+                    // struct Transform restXFormInverse = {.vector = {-sklNodeData[i].restXForm.vector.x, -sklNodeData[i].restXForm.vector.y, -sklNodeData[i].restXForm.vector.z},.quaternion = invertQuaternion(sklNodeData[i].restXForm.quaternion)};
+                    // vectorFrames[j].frames[k].transform.vector.x -= localPos->x;
+                    // vectorFrames[j].frames[k].transform.vector.y -= localPos->y;
+                    // vectorFrames[j].frames[k].transform.vector.z -= localPos->z;
+
+                    if (k == 10)
                     {
-                        printf("%u,{%f,%f,%f},{%f,%f,%f}\n", i, vectorFrames[j].frames[k].transform.vector.x, vectorFrames[j].frames[k].transform.vector.y, vectorFrames[j].frames[k].transform.vector.z, localPos->x, localPos->y, localPos->z);
+                        // printf("%u,{%f,%f,%f},{%f,%f,%f}\n", i, vectorFrames[j].frames[k].transform.vector.x, vectorFrames[j].frames[k].transform.vector.y, vectorFrames[j].frames[k].transform.vector.z, localPos->x, localPos->y, localPos->z);
                     }
 
                     // vectorFrames[j].frames[k].transform.vector.x *= ((float *)(skeleton->children[0]->children[i + 1]->children[10]->data.dynamicBuffer))[0];
@@ -847,10 +846,18 @@ struct Animation convertAnimation(const struct TreeNode *d3dmesh, const struct T
                     }
                     */
                 }
+                for (uint32_t k = 0; k < quaternionFrames[j].frameCount; ++k)
+                {
+                    // quaternionFrames[j].frames[k].transform.quaternion = normalizeQuaternion(quaternionFrames[j].frames[k].transform.quaternion);
+                    // quaternionFrames[j].frames[k].transform.quaternion = multiplyQuaternion( invertQuaternion(localQuaternion),quaternionFrames[j].frames[k].transform.quaternion);
+                    if (k == 0)
+                    {
+                        // printf("%u,{%f,%f,%f,%f},{%f,%f,%f,%f}, {%f,%f,%f,%f}\n", i, quaternionFrames[j].frames[k].transform.quaternion.x, quaternionFrames[j].frames[k].transform.quaternion.y, quaternionFrames[j].frames[k].transform.quaternion.z,quaternionFrames[j].frames[k].transform.quaternion.w, localQuaternion.x, localQuaternion.y, localQuaternion.z,localQuaternion.w, sklNodeData[i].node.localXForm.quaternion.x,sklNodeData[i].node.localXForm.quaternion.y,sklNodeData[i].node.localXForm.quaternion.z,sklNodeData[i].node.localXForm.quaternion.w);
+                    }
+                }
                 break;
             }
         }
-
         for (uint32_t j = 0; j < skin->jointCount; ++j)
         {
             if (*(uint64_t *)(skeleton->children[0]->children[i + 1]->children[0]->data.staticBuffer) == *(uint64_t *)d3dmesh->children[d3dmesh->childCount - 2]->children[4]->children[j + 1]->children[0]->data.staticBuffer)
@@ -862,13 +869,34 @@ struct Animation convertAnimation(const struct TreeNode *d3dmesh, const struct T
                 struct Matrix globalTransform = getIdentityMatrix();
                 while (currentBoneIndex >= 1) // This is correct now I think. Stop changing it
                 {
-                    struct Vector3 *localTranslation = (struct Vector3 *)(skeleton->children[0]->children[currentBoneIndex]->children[7]->children[1]->data.dynamicBuffer);
-                    struct Quaternion *localQuaternion = (struct Quaternion *)(skeleton->children[0]->children[currentBoneIndex]->children[7]->children[0]->data.dynamicBuffer);
-                    // printf("%f,%f,%f,%f,%f,%f,%f\n", localTranslation->x, localTranslation->y, localTranslation->z, localQuaternion->x, localQuaternion->y, localQuaternion->z, localQuaternion->w);
-                    globalTransform = matrixMultiply(globalTransform, matrixMultiply(getTranslationMatrix(*localTranslation), getRotationMatrix(*localQuaternion)));
-                    currentBoneIndex = *(int32_t *)(skeleton->children[0]->children[currentBoneIndex]->children[2]->data.staticBuffer) + 1;
+                    struct Vector3 *localTranslation = (struct Vector3 *)(skeleton->children[0]->children[currentBoneIndex]->children[5]->data.dynamicBuffer);
+                    struct Quaternion *localQuaternion = (struct Quaternion *)(skeleton->children[0]->children[currentBoneIndex]->children[6]->data.dynamicBuffer);
+                    // printf("%f,%f,%f,%f,%f,%f\n", localTranslation->x, localTranslation->y, localTranslation->z, firstFrameTranslation.x, firstFrameTranslation.y, firstFrameTranslation.z);
+                    globalTransform = matrixMultiply(globalTransform, getTranslationMatrix(sklNodeData[i].restXForm.vector));
+                    globalTransform = matrixMultiply(globalTransform, getRotationMatrix(sklNodeData[i].restXForm.quaternion));
+                    break;
+                    uint32_t boneParentIndex = *(int32_t *)(skeleton->children[0]->children[currentBoneIndex]->children[2]->data.staticBuffer) + 1;
+                    currentBoneIndex = boneParentIndex;
+
+                    /*
+                    -0.087265 -0.434327 -0.0239742 173
+                    -0.087265 -0.093938 0.018274 174
+                    -0.087265 -0.022309 -0.075702 176
+                    0.087265 -0.797294 0.0139137 177
+                    0.087265 -0.434327 -0.0239742 178
+                    0.087265 -0.093938 0.018274 179
+                    0.087265 -0.022309 -0.075702 181
+                    */
                 }
                 inverseBindMatricesBuffer[j] = matrixInvert(globalTransform); // Matrix invert lacks accuracy. TODO: Fix that
+                for (uint32_t col = 3; col < 4; ++col)
+                {
+                    for (uint32_t row = 0; row < 3; ++row)
+                    {
+                        printf("%f", inverseBindMatricesBuffer[j].data[col][row]);
+                    }
+                    printf(" %u\n", i);
+                }
                 break;
             }
         }
@@ -954,11 +982,11 @@ struct Animation convertAnimation(const struct TreeNode *d3dmesh, const struct T
             //    currentVector.y *= 0.1f;
             //    currentVector.z *= 0.1f;
 
-            if (framesPushed > 0)
+            if (0)
             {
-                currentVector.x += vectorFrames[i].frames[framesPushed - 1].transform.vector.x;
-                currentVector.y += vectorFrames[i].frames[framesPushed - 1].transform.vector.y;
-                currentVector.z += vectorFrames[i].frames[framesPushed - 1].transform.vector.z;
+                // vectorFrames[i].frames[framesPushed].transform.vector.x += vectorFrames[i].frames[framesPushed - 1].transform.vector.x;
+                // vectorFrames[i].frames[framesPushed].transform.vector.y += vectorFrames[i].frames[framesPushed - 1].transform.vector.y;
+                // vectorFrames[i].frames[framesPushed].transform.vector.z += vectorFrames[i].frames[framesPushed - 1].transform.vector.z;
 
                 /*
                  for (uint32_t k = 0; k < animation->children[6]->children[4]->children[3]->childCount - 2; ++k)
@@ -993,15 +1021,15 @@ struct Animation convertAnimation(const struct TreeNode *d3dmesh, const struct T
             }
             else
             {
-                currentVector.x += ((float *)(skeleton->children[0]->children[vectorFrames[i].skeletonBoneIndex + 1]->children[5]->data.dynamicBuffer))[0];
-                currentVector.y += ((float *)(skeleton->children[0]->children[vectorFrames[i].skeletonBoneIndex + 1]->children[5]->data.dynamicBuffer))[1];
-                currentVector.z += ((float *)(skeleton->children[0]->children[vectorFrames[i].skeletonBoneIndex + 1]->children[5]->data.dynamicBuffer))[2];
+                // vectorFrames[i].frames[framesPushed].transform.vector.x += ((float *)(skeleton->children[0]->children[vectorFrames[i].skeletonBoneIndex + 1]->children[5]->data.dynamicBuffer))[0];
+                // vectorFrames[i].frames[framesPushed].transform.vector.y += ((float *)(skeleton->children[0]->children[vectorFrames[i].skeletonBoneIndex + 1]->children[5]->data.dynamicBuffer))[1];
+                // vectorFrames[i].frames[framesPushed].transform.vector.z += ((float *)(skeleton->children[0]->children[vectorFrames[i].skeletonBoneIndex + 1]->children[5]->data.dynamicBuffer))[2];
             }
 
             // printf("%u, %u, %f, %f, %f, %f\n", framesPushed, i, vectorFrames[i].currentPosition.x, vectorFrames[i].currentPosition.y, vectorFrames[i].currentPosition.z, sqrtf(currentVector.x * currentVector.x + currentVector.y * currentVector.y + currentVector.z * currentVector.z));
-            if (framesPushed == 0)
+            if (0 && i == 0)
             {
-                // printf("i = %u,%f, %f, %f, %f\n", i, currentVector.x, currentVector.y, currentVector.z, sqrtf(currentVector.x * currentVector.x + currentVector.y * currentVector.y + currentVector.z * currentVector.z));
+                printf("frame = %u,time = %f,%f, %f, %f, %f\n", framesPushed, vectorFrames[i].frames[framesPushed].time, currentVector.x, currentVector.y, currentVector.z, sqrtf(currentVector.x * currentVector.x + currentVector.y * currentVector.y + currentVector.z * currentVector.z));
             }
             gltfVectorBuffer[translationBufferOffset++] = currentVector;
         }
