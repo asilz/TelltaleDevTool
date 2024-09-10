@@ -18,17 +18,17 @@ int StringRead(FILE *stream, struct TreeNode *string, uint32_t flags)
     uint32_t stringSize;
     fread(&stringSize, 1, sizeof(stringSize), stream);
     string->dataSize = stringSize + sizeof(stringSize);
-    if (string->dataSize > sizeof(string->data))
+    if (string->dataSize > sizeof(string->staticBuffer))
     {
-        string->data.dynamicBuffer = malloc(string->dataSize);
-        memcpy(string->data.dynamicBuffer, &stringSize, sizeof(stringSize));
-        fread(string->data.dynamicBuffer + sizeof(stringSize), stringSize, 1, stream);
+        string->dynamicBuffer = malloc(string->dataSize);
+        memcpy(string->dynamicBuffer, &stringSize, sizeof(stringSize));
+        fread(string->dynamicBuffer + sizeof(stringSize), stringSize, 1, stream);
     }
     else
     {
         // I think this could be done better, but not completely sure how
-        memcpy(string->data.staticBuffer, &stringSize, sizeof(stringSize));
-        fread(string->data.staticBuffer + sizeof(stringSize), stringSize, 1, stream);
+        memcpy(string->staticBuffer, &stringSize, sizeof(stringSize));
+        fread(string->staticBuffer + sizeof(stringSize), stringSize, 1, stream);
     }
     return 0;
 }

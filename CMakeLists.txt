@@ -25,16 +25,16 @@ set(SOURCES
     src/skeleton.c
     src/chore.c
     src/scene.c
-    src/style.c
-    src/ptable.c
-    src/wbox.c
-    src/sprite.c
     src/d3dmesh.c
-    src/gltf2.c
     src/animation.c
     src/linalg.c
     src/keyframe.c
     src/bankwavemap.c
+    src/wbox.c
+    src/sprite.c
+    src/style.c
+    src/ptable.c
+    src/gltf2.c
 )
 
 # Create the executable
@@ -49,8 +49,8 @@ target_include_directories(devtool PRIVATE include)
 
 if(UNIX)
     add_subdirectory(src/unix)
-endif(UNIX)
-
-if(MSVC)
-    add_subdirectory(src/msvc)
-endif(MSVC)
+elseif(WIN32)
+    add_subdirectory(src/win32)
+else()
+    message( FATAL_ERROR "Your platform is not supported" )
+endif()

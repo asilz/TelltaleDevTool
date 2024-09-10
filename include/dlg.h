@@ -33,18 +33,26 @@ int DlgConditionInputRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgConditionTimeRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgConditionRuleRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgLineRead(FILE *stream, struct TreeNode *line, uint32_t flags);
+int DlgChildRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DlgChildSetRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DlgChildSetChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DlgConditionSetRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DlgChainHeadRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DlgConditionRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DlgChildSetElementRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DlgNodeCriteriaRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 
 int DependencyLoaderRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int LogicItemRead(FILE *stream, struct TreeNode *logicItem, uint32_t flags);
 int LogicGroupRead(FILE *stream, struct TreeNode *logicGroup, uint32_t flags);
 int RuleRead(FILE *stream, struct TreeNode *rule, uint32_t flags);
-int DlgDownStreamVisibilityConditionsRead(FILE *stream, struct TreeNode *visCond, uint32_t flags);
+int DlgDownstreamVisibilityConditionsRead(FILE *stream, struct TreeNode *visCond, uint32_t flags);
+int DlgLineCollectionRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgVisibilityConditionsRead(FILE *stream, struct TreeNode *visCond, uint32_t flags);
 int DlgVisibilityConditionsOwnerRead(FILE *stream, struct TreeNode *visCond, uint32_t flags);
 int DlgObjectPropsRead(FILE *stream, struct TreeNode *objectProps, uint32_t flags);
 int DlgObjectPropsOwnerRead(FILE *stream, struct TreeNode *objectProps, uint32_t flags);
-int DlgObjectIDRead(FILE *stream, struct TreeNode *id, uint32_t flags);
-int DlgObjectIDOwnerRead(FILE *stream, struct TreeNode *IDOwner, uint32_t flags);
+int DlgObjIDOwnerRead(FILE *stream, struct TreeNode *IDOwner, uint32_t flags);
 int DlgNodeLinkRead(FILE *stream, struct TreeNode *link, uint32_t flags);
 int DlgNodeRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DlgChildSetRead(FILE *stream, struct TreeNode *node, uint32_t flags);
@@ -58,6 +66,9 @@ int Map_Symbolintless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t
 int Map_Symbolboolless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
 int Map_StringLogicGroup__LogicItemless_String__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DCArray_LogicGroup_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_DlgNodeExchange__Entry_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_Ptr_DlgChild__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
 int Map_intDlgLineless_int__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int JiraRecordManagerRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 
 #endif

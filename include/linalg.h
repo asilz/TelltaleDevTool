@@ -18,6 +18,13 @@ struct Vector3
     float z;
 };
 
+struct Transform
+{
+    struct Quaternion quaternion;
+    struct Vector3 vector;
+    float padding;
+};
+
 struct Matrix matrixInvert(struct Matrix mat);
 struct Matrix getRotationMatrix(struct Quaternion quat);
 struct Matrix getTranslationMatrix(struct Vector3 translation);
@@ -31,3 +38,4 @@ struct Quaternion getShortestRotation(struct Vector3 v1, struct Vector3 v2);
 struct Quaternion normalizeQuaternion(struct Quaternion q);
 struct Quaternion rotationMatrixToQuaternion(struct Matrix mat);
 struct Matrix matrixRotation(struct Matrix mat, struct Quaternion q);
+struct Transform multiplyTransform(struct Transform t1, struct Transform t2);

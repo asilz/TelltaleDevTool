@@ -59,99 +59,93 @@ struct PropertySet
     struct TypeGroup *groups; // Number of groups is equal to numTypes
 };
 
-int TypeGroupRead(FILE *stream, struct TreeNode *group, uint32_t flags)
+int TypeGroupRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    group->childCount = 2;
-    group->children = malloc(group->childCount * sizeof(struct TreeNode *));
+    node->child = calloc(1, sizeof(struct TreeNode));
+    struct TreeNode *currentNode = node->child;
+    currentNode->parent = node;
+    currentNode->description = getMetaClassDescriptionByIndex(Symbol);
+    currentNode->description->read(stream, currentNode, flags);
 
-    group->children[0] = calloc(1, sizeof(struct TreeNode));
-    group->children[0]->parent = group;
-    group->children[0]->description = getMetaClassDescriptionByIndex(Symbol);
-    intrinsic8Read(stream, group->children[0], flags);
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
 
-    group->children[1] = calloc(1, sizeof(struct TreeNode));
-    group->children[1]->parent = group;
-    // group->children[1]->typeSymbol = 0xc810fa560d267d67; // TODO: Set symbol
-    group->children[1]->childCount = 1;
-    group->children[1]->children = malloc(group->children[1]->childCount * sizeof(struct TreeNode *));
+    currentNode->child = calloc(1, sizeof(struct TreeNode));
+    currentNode->child->parent = currentNode;
+    currentNode = currentNode->child;
+    currentNode->description = getMetaClassDescriptionByIndex(int_type);
+    currentNode->description->read(stream, currentNode, flags);
+    uint32_t valueCount = *(uint32_t *)currentNode->staticBuffer * 2;
 
-    group->children[1]->children[0] = calloc(1, sizeof(struct TreeNode));
-    group->children[1]->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    intrinsic4Read(stream, group->children[1]->children[0], flags);
-    group->children[1]->children[0]->parent = group->children[1];
+    const struct MetaClassDescription *metaClassDescription = getMetaClassDescriptionBySymbol(*(uint64_t *)(node->child->staticBuffer));
 
-    group->children[1]->childCount += *(uint32_t *)(group->children[1]->children[0]->data.staticBuffer) * 2;
-    group->children[1]->children = realloc(group->children[1]->children, group->children[1]->childCount * sizeof(struct TreeNode *));
-
-    const struct MetaClassDescription *metaClassDescription = getMetaClassDescriptionBySymbol(*(uint64_t *)(group->children[0]->data.staticBuffer));
-
-    for (uint16_t i = 1; i < group->children[1]->childCount; ++i)
+    for (uint32_t i = 0; i < valueCount; ++i)
     {
-        group->children[1]->children[i] = calloc(1, sizeof(struct TreeNode));
-        group->children[1]->children[i]->parent = group->children[1];
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
         if (i % 2)
         {
-            group->children[1]->children[i]->description = getMetaClassDescriptionByIndex(Symbol);
-            intrinsic8Read(stream, group->children[1]->children[i], flags);
+            currentNode->description = metaClassDescription;
+            metaClassDescription->read(stream, currentNode, flags);
         }
         else
         {
-            group->children[1]->children[i]->description = metaClassDescription;
-            metaClassDescription->read(stream, group->children[1]->children[i], flags);
+            currentNode->description = getMetaClassDescriptionByIndex(Symbol);
+            currentNode->description->read(stream, currentNode, flags);
         }
     }
 
     return 0;
 }
 
-static int PropCoreRead(FILE *stream, struct TreeNode *prop, uint32_t flags) // Don't know what to name it
+static int PropCoreRead(FILE *stream, struct TreeNode *node, uint32_t flags) // Don't know what to name it
 {
-    prop->childCount = 2;
-    prop->children = malloc(prop->childCount * sizeof(struct TreeNode *));
+    node->child = calloc(1, sizeof(struct TreeNode));
+    struct TreeNode *currentNode = node->child;
+    currentNode->parent = node;
+    currentNode->description = getMetaClassDescriptionByIndex(DCArray_Handle_PropertySet__);
+    currentNode->description->read(stream, currentNode, flags);
 
-    prop->children[0] = calloc(1, sizeof(struct TreeNode));
-    prop->children[0]->parent = prop;
-    prop->children[0]->description = getMetaClassDescriptionByIndex(DCArray_Handle_PropertySet__);
-    prop->children[0]->description->read(stream, prop->children[0], flags);
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    genericArrayRead(stream, currentNode, flags, getMetaClassDescriptionByIndex(Map_SymbolPropertySetless_Symbol__)); // Array of typeGroup
 
-    prop->children[1] = calloc(1, sizeof(struct TreeNode));
-    prop->children[1]->parent = prop;
-    // TODO: set description
-    genericArrayRead(stream, prop->children[1], flags, getMetaClassDescriptionByIndex(Map_SymbolPropertySetless_Symbol__)); // Array of TypeGroup
-
-    if ((*(uint32_t *)prop->parent->children[1]->data.staticBuffer & eHasEditorProps) != 0)
+    if (*(uint32_t *)(currentNode->parent->parent->child->sibling->staticBuffer) & eHasEditorProps)
     {
-        prop->children = realloc(prop->children, ++prop->childCount * sizeof(struct TreeNode *));
-        prop->children[2] = calloc(1, sizeof(struct TreeNode));
-        prop->children[2]->parent = prop;
-        prop->children[2]->description = getMetaClassDescriptionByIndex(PropertySet);
-        PropRead(stream, prop->children[2], flags);
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
+        currentNode->description = getMetaClassDescriptionByIndex(PropertySet);
+        currentNode->description->read(stream, currentNode, flags);
     }
 
     return 0;
 }
 
-int PropRead(FILE *stream, struct TreeNode *prop, uint32_t flags)
+int PropRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    prop->childCount = 3;
-    prop->children = malloc(prop->childCount * sizeof(struct TreeNode *));
+    node->child = calloc(1, sizeof(struct TreeNode));
+    struct TreeNode *currentNode = node->child;
+    currentNode->parent = node;
+    currentNode->description = getMetaClassDescriptionByIndex(int_type);
+    currentNode->description->read(stream, currentNode, flags);
 
-    for (uint16_t i = 0; i < prop->childCount; ++i)
-    {
-        prop->children[i] = calloc(1, sizeof(struct TreeNode));
-        prop->children[i]->parent = prop;
-    }
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->description = getMetaClassDescriptionByIndex(Flags);
+    currentNode->description->read(stream, currentNode, flags);
 
-    prop->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    intrinsic4Read(stream, prop->children[0], flags);
-
-    prop->children[1]->description = getMetaClassDescriptionByIndex(Flags);
-    intrinsic4Read(stream, prop->children[1], flags);
-
-    prop->children[2]->isBlocked = 1;
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->isBlocked = 1;
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    // prop->children[2]->typeSymbol = 0xe908072c98443ada; // TODO: Set value
-    PropCoreRead(stream, prop->children[2], flags);
+    // // TODO: Set metaClassDescription
+    PropCoreRead(stream, currentNode, flags);
 
     return 0;
 }

@@ -8,66 +8,47 @@
 
 int bankwavemapRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->parent = node;
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(Map_SymbolSoundBankWaveMapEntryless_Symbol__);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mWaveMap", .metaClassDescriptionIndex = Map_SymbolSoundBankWaveMapEntryless_Symbol__},
+    };
+    return genericRead(stream, node, flags, 1, descriptions);
 }
 
 static int SoundBankWaveMapEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(String);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "fLengthSeconds", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 1, .memberName = "strFileName", .metaClassDescriptionIndex = String},
+    };
+    return genericRead(stream, node, flags, 1, descriptions);
 }
 
 int Map_SymbolSoundBankWaveMapEntryless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->parent = node;
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "pairCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += (*(uint32_t *)(node->children[0]->data.staticBuffer)) * 2;
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer) * 2; ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
         if (i % 2) // if odd
         {
-            node->children[i]->description = getMetaClassDescriptionByIndex(Symbol);
-            node->children[i]->description->read(stream, node->children[i], flags);
+            SoundBankWaveMapEntryRead(stream, currentNode, flags);
         }
         else
         {
-            SoundBankWaveMapEntryRead(stream, node->children[i], flags);
+            currentNode->description = getMetaClassDescriptionByIndex(Symbol);
+            currentNode->description->read(stream, currentNode, flags);
         }
     }
     return 0;

@@ -35,8 +35,8 @@ static const struct MetaClassDescription descriptions[] = {
     {0x004F023463D89FB0, "Symbol", intrinsic8Read, NULL},
     {0x00A87B9875C485DB, "DCArray<LanguageResLocal>", DCArray_LanguageResLocal_Read, NULL},
     {0x00ACFF947A409DDB, "Mover", NULL, NULL},
-    {0x011F7E31FB297D7D, "DCArray<DlgNodeExchange::Entry>", NULL, NULL},
-    {0x01C9A459992D55F3, "DlgLineCollection", NULL, NULL},
+    {0x011F7E31FB297D7D, "DCArray<DlgNodeExchange::Entry>", DCArray_DlgNodeExchange__Entry_Read, NULL},
+    {0x01C9A459992D55F3, "DlgLineCollection", DlgLineCollectionRead, NULL},
     {0x02167D60A7BF23E6, "SingleValue<LocationInfo>", NULL, NULL},
     {0x026495DD43D2BE66, "KeyframedValue<Handle<Chore>>", NULL, NULL},
     {0x02A9ACE31B9DB46D, "DCArray<KeyframedValue<Color>::Sample>", NULL, NULL},
@@ -63,7 +63,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x07A995E0FEEEDA3E, "Handle<ResourceBundle>", intrinsic8Read, NULL},
     {0x08222B402EF42B3E, "Footsteps2::FootstepBank", Footsteps2__FootstepBankRead, NULL},
     {0x089A910EC95E5128, "AnimatedValueInterface<Handle<Font>>", AnimatedValueInterfaceGenericRead, NULL},
-    {0x096F88556B81A6AF, "DlgObjectPropsOwner", NULL, NULL},
+    {0x096F88556B81A6AF, "DlgObjectPropsOwner", DlgObjectPropsOwnerRead, NULL},
     {0x09C26EAAD53BEC47, "List<Handle<PropertySet>>", NULL, NULL},
     {0x0A034C9344F17FCE, "KeyframedValue<ScriptEnum>", NULL, NULL},
     {0x0A09E83894C80579, "Map<String,Handle<PropertySet>,less<String>>", NULL, NULL},
@@ -77,7 +77,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x0C6B16504DB34467, "DCArray<Ptr<AnimationValueInterfaceBase>>", NULL, NULL},
     {0x0CA5396FBDF99B4D, "save", NULL, NULL},
     {0x0CBCC5585D066C26, "DCArray<KeyframedValue<Handle<Font>>::Sample>", NULL, NULL},
-    {0x0D4BF6E9059B7ABD, "DlgChildSetChoice", NULL, NULL},
+    {0x0D4BF6E9059B7ABD, "DlgChildSetChoice", DlgChildSetChoiceRead, NULL},
     {0x0D5642485492311F, "ChoreAgent::Attachment", ChoreAgentAttachmentRead, NULL},
     {0x0DC7D8AA2CCF1332, "T3OverlayObjectData_Sprite", NULL, NULL},
     {0x0E030A302425D453, "EnlightenModule::EnlightenCubemapSettings", NULL, NULL},
@@ -152,10 +152,10 @@ static const struct MetaClassDescription descriptions[] = {
     {0x200159CE1F32968E, "T3MaterialRequirements", T3MaterialRequirementsRead, NULL},
     {0x20D348E9BF150EC0, "ParticleInverseKinematics", NULL, NULL},
     {0x2118E867B2A12F9B, "t3bullet", NULL, NULL},
-    {0x21436B2755503C3B, "DlgNodeCriteria", NULL, NULL},
+    {0x21436B2755503C3B, "DlgNodeCriteria", DlgNodeCriteriaRead, NULL},
     {0x222F4DE92A59200C, "Map<String,Set<Symbol,less<Symbol>>,StringCompareCaseInsensitive>", NULL, NULL},
     {0x2247C0C4758DF684, "AnimationConstraintParameters", NULL, NULL},
-    {0x227F68CE26A32BDE, "landb", NULL, NULL},
+    {0x227F68CE26A32BDE, "landb", LanguageDBRead, NULL},
     {0x228199A2E37BD10E, "Map<String,ClipResourceFilter,StringCompareCaseInsensitive>", Map_StringClipResourceFilterStringCompareCaseInsensitive_Read, NULL},
     {0x22889D9245104640, "DCArray<KeyframedValue<Handle<SoundReverbDefinition>>::Sample>", NULL, NULL},
     {0x229EF3B04212AEDC, "HandleLock<Scene>", HandleBaseRead, NULL},
@@ -178,7 +178,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x254EDC517B59BB47, "BlendMode", intrinsic4Read, NULL},
     {0x255105CE38A142D8, "SingleValue<AnimOrChore>", NULL, NULL},
     {0x25D9654A81DC862E, "DCArray<SaveGame::AgentInfo>", NULL, NULL},
-    {0x26591AF0C98AD8F6, "DlgCondition", NULL, NULL},
+    {0x26591AF0C98AD8F6, "DlgCondition", DlgConditionRead, NULL},
     {0x267B345697B6BB64, "BGM_HeadTurn_Value", NULL, NULL},
     {0x268E0B3FC19A48AE, "int64", intrinsic8Read, NULL},
     {0x26D936F7FF759D39, "Skeleton", SkeletonRead, NULL},
@@ -219,7 +219,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x3007758840388E30, "DlgNodeExit", DlgNodeExitRead, NULL},
     {0x3057C880E751D8C5, "Handle<Animation>", intrinsic8Read, NULL},
     {0x30694ADB68E78E3D, "DCArray<ProjectDatabaseIDPair>", DCArray_ProjectDatabaseIDPair_Read, NULL},
-    {0x30732A2C440A6C8A, "DlgChildSetChoicesChildPre", NULL, NULL},
+    {0x30732A2C440A6C8A, "DlgChildSetChoicesChildPre", DlgChildSetChoiceRead, NULL},
     {0x3091E66640DF1B17, "DlgChoicesChildPost", DlgChoicesChildPostRead, NULL},
     {0x31D14C7B4F174A77, "SoundBusSystem::BusHolder", NULL, NULL},
     {0x321F5964C733F819, "LightInstance", NULL, NULL},
@@ -245,7 +245,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x3593E489074C37F6, "Map<String,ChorecorderParameters,less<String>>", NULL, NULL},
     {0x35C40A55D80F186B, "DCArray<KeyframedValue<unsigned__int64>::Sample>", DCArray_KeyframedValue_unsigned__int64___Sample_Read, NULL},
     {0x36050B3A56AE750F, "HandleLock<Skeleton>", NULL, NULL},
-    {0x365952B07C0CE60D, "DlgNodeCriteria::EnumTestT", NULL, NULL},
+    {0x365952B07C0CE60D, "DlgNodeCriteria::EnumTestT", intrinsic4Read, NULL},
     {0x36D2E9352E9EED3E, "DCArray<LogicGroup>", DCArray_LogicGroup_Read, NULL},
     {0x36E367B48AD63274, "DlgNodeSequence", DlgNodeSequenceRead, NULL},
     {0x36FC875F02FC9118, "DCArray<SoundAmbience::EventContext>", NULL, NULL},
@@ -378,7 +378,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x585829C336CB2FA5, "CompressedSkeletonPoseKeys", NULL, NULL},
     {0x586DF4E458014768, "AnimatedValueInterface<int>", AnimatedValueInterfaceGenericRead, NULL},
     {0x5896A6FD1866FD93, "Handle<Rules>", intrinsic8Read, NULL},
-    {0x58FFE612BE51E727, "ptable", NULL, NULL},
+    {0x58FFE612BE51E727, "ptable", PhonemeTableRead, NULL},
     {0x593F9647E67E405D, "EnlightenModule::EnlightenSystemSettings", EnlightenModule__EnlightenSystemSettingsRead, NULL},
     {0x599C62C7A01A35E3, "Procedural_LookAt::Constraint", NULL, NULL},
     {0x59A72EC50742FCD0, "Map<String,PropertySet,less<String>>", Map_StringPropertySetless_String__Read, NULL},
@@ -404,13 +404,13 @@ static const struct MetaClassDescription descriptions[] = {
     {0x5D4EFA69722CE03A, "AnimatedValueInterface<Polar>", AnimatedValueInterfaceGenericRead, NULL},
     {0x5DAEEE1F30D32952, "DCArray<T3ToonGradientRegion>", NULL, NULL},
     {0x5DBB10F7184DA54B, "EnumT3LightEnvType", intrinsic4Read, NULL},
-    {0x5DC78F79FC4B8DF7, "double", NULL, NULL},
-    {0x5E61265E357AFC4C, "sprite", NULL, NULL},
+    {0x5DC78F79FC4B8DF7, "double", intrinsic8Read, NULL},
+    {0x5E61265E357AFC4C, "sprite", ParticleSpriteRead, NULL},
     {0x5E68A39907A4BE48, "CinematicLightRig", NULL, NULL},
     {0x5E94AE2504A2DA08, "EnumeTangentModes", intrinsic4Read, NULL},
     {0x5EEA36B36DB856E9, "AnimatedValueInterface<Handle<SoundReverbDefinition>>", AnimatedValueInterfaceGenericRead, NULL},
     {0x5F247AEF6E83EF25, "AgentMap", NULL, NULL},
-    {0x5F637A07408DBC60, "LanguageResLocal", NULL, NULL},
+    {0x5F637A07408DBC60, "LanguageResLocal", LanguageResLocalRead, NULL},
     {0x5F76C68DB5A05134, "BlendGraphManager", NULL, NULL},
     {0x5F92F79D3FDCAC13, "SingleVector3Value", NULL, NULL},
     {0x5FA519AB4F3689E7, "DCArray<T3MaterialTransform2D>", DCArray_T3MaterialTransform2D_Read, NULL},
@@ -447,7 +447,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x673D28039395A91A, "SArray<TRange<float>,3>", SArray_TRange_float_3_Read, NULL},
     {0x673D6BC4E630EA46, "Handle<PhonemeTable>", intrinsic8Read, NULL},
     {0x67600F19A2762290, "EnumMeshDebugRenderType", intrinsic4Read, NULL},
-    {0x681AF06EDA9AF05D, "DlgChildSetChoicesChildPost", NULL, NULL},
+    {0x681AF06EDA9AF05D, "DlgChildSetChoicesChildPost", DlgChildSetChoiceRead, NULL},
     {0x68CD2023740B9FB6, "Handle<SoundEventSnapshotData>", intrinsic8Read, NULL},
     {0x68FCF5B6A0D4663A, "CompressedKeys<Handle<PropertySet>>", NULL, NULL},
     {0x691645DFF205619A, "BitSetBase<4>", NULL, NULL},
@@ -526,7 +526,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x7E3D4347720BF477, "ResourceGroups", ResourceGroupsRead, NULL},
     {0x7E69BFAB6FFA19EC, "T3MeshEffectPreload", T3MeshEffectPreloadRead, NULL},
     {0x7ED5149ED891D304, "LipSync2", NULL, NULL},
-    {0x7EDCD6DB33A5DC53, "RecordingUtils::EnumRecordingStatus", NULL, NULL},
+    {0x7EDCD6DB33A5DC53, "RecordingUtils::EnumRecordingStatus", intrinsic4Read, NULL},
     {0x7F7A0E1D5BB715F4, "CompressedKeys<int>", NULL, NULL},
     {0x7FC56832C53FD39C, "DCArray<KeyframedValue<T3VertexBufferSample<T3NormalSampleData,T3HeapAllocator>>::Sample>", NULL, NULL},
     {0x807F39F9A39D8998, "Map<PreloadPackage::ResourceKey,PreloadPackage::ResourceSeenTimes,less<PreloadPackage::ResourceKey>>", NULL, NULL},
@@ -590,7 +590,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x8C0CD13A87BA8D95, "BitSetBase<9>", NULL, NULL},
     {0x8D1A8F0E83A1E29D, "LanguageDB", NULL, NULL},
     {0x8D25F96848DE1765, "SkeletonPoseValue", NULL, NULL},
-    {0x8D53D2745D07232B, "DlgObjIDOwner", NULL, NULL},
+    {0x8D53D2745D07232B, "DlgObjIDOwner", DlgObjIDOwnerRead, NULL},
     {0x8D76811F807928A2, "SoundBankWaveMap", bankwavemapRead, NULL},
     {0x8D953B4CE053F7AC, "DCArray<int>", DCArray_int_Read, NULL},
     {0x8E0C950E1D3BF60C, "Map<String,int,less<String>>", Map_Stringintless_String__Read, NULL},
@@ -605,7 +605,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x900DB52347B506E5, "Agent", NULL, NULL},
     {0x90AECEC9208A96B6, "Map<String,DCArray<String>,less<String>>", NULL, NULL},
     {0x91220203C6648B2A, "DlgNodeStart", DlgNodeStartRead, NULL},
-    {0x915709E72A07B3ED, "DlgChildSet", NULL, NULL},
+    {0x915709E72A07B3ED, "DlgChildSet", DlgChildSetRead, NULL},
     {0x918069BEE7BDA403, "AnimatedValueInterface<Quaternion>", AnimatedValueInterfaceGenericRead, NULL},
     {0x91E8421A820D689C, "Meta::AgentResourceContext", NULL, NULL},
     {0x93008E1D006FB6E0, "ScriptEnum:AIPatrolType", ScriptEnumRead, NULL},
@@ -649,14 +649,14 @@ static const struct MetaClassDescription descriptions[] = {
     {0x9CEAD8A38E5C4258, "T3MeshLocalTransformEntry", T3MeshLocalTransformEntryRead, NULL},
     {0x9CFA106A1AD61711, "DCArray<T3MaterialTexture>", DCArray_T3MaterialTexture_Read, NULL},
     {0x9D25F5E686CCDF56, "SingleValue<Handle<D3DMesh>>", NULL, NULL},
-    {0x9D2D91124150CFFB, "JiraRecordManager", NULL, NULL},
+    {0x9D2D91124150CFFB, "JiraRecordManager", JiraRecordManagerRead, NULL},
     {0x9D52A3E9C5186D6F, "EnumBokehQualityLevel", intrinsic4Read, NULL},
     {0x9DEC4BBA95CEDB28, "DCArray<ChoreResource::Block>", DCArray_ChoreResource__Block_Read, NULL},
     {0x9E2BF42C54C646B1, "DCArray<KeyframedValue<LocationInfo>::Sample>", NULL, NULL},
     {0x9EB1467F36B078EB, "Map<Symbol,Map<Symbol,Set<Symbol,less<Symbol>>,less<Symbol>>,less<Symbol>>", NULL, NULL},
     {0x9EE5E31EF2F71F0E, "Handle<Scene>", intrinsic8Read, NULL},
     {0x9F60B383C5B65967, "ScriptEnum:DialogMode", ScriptEnumRead, NULL},
-    {0x9FAB8543532BE4A7, "DlgNodeSequence::DlgChildSetElement", NULL, NULL},
+    {0x9FAB8543532BE4A7, "DlgNodeSequence::DlgChildSetElement", DlgChildSetElementRead, NULL},
     {0x9FC197BAD88CCF6D, "DlgObjectPropsMap::GroupDefinition", NULL, NULL},
     {0x9FD30C6E5D0260E5, "llm", NULL, NULL},
     {0xA000ECC5490A2A94, "EnumT3LightEnvMobility", intrinsic4Read, NULL},
@@ -705,13 +705,13 @@ static const struct MetaClassDescription descriptions[] = {
     {0xAB4BFA2304C2292C, "Font::GlyphInfo", NULL, NULL},
     {0xAB929FC5155636EF, "RootKey", NULL, NULL},
     {0xABA164D5AAB73489, "Map<int,DlgLine,less<int>>", Map_intDlgLineless_int__Read, NULL},
-    {0xABB6151861AA76C7, "Scene::AgentInfo", SceneAgentInfoRead, NULL},
+    {0xABB6151861AA76C7, "Scene::AgentInfo", Scene__AgentInfoRead, NULL},
     {0xABD836B706872262, "Handle<DialogResource>", intrinsic8Read, NULL},
     {0xAC389286CDE5A182, "Map<Symbol,SoundBankWaveMapEntry,less<Symbol>>", Map_SymbolSoundBankWaveMapEntryless_Symbol__Read, NULL},
     {0xAD15A7FE0904AE6A, "EnumT3LightEnvGroup", intrinsic4Read, NULL},
-    {0xAD550479D1324785, "DlgDownstreamVisibilityConditions", NULL, NULL},
+    {0xAD550479D1324785, "DlgDownstreamVisibilityConditions", DlgDownstreamVisibilityConditionsRead, NULL},
     {0xADABE93EAA87F7DB, "Camera", NULL, NULL},
-    {0xAF292B29059F879B, "LocalizationRegistry", NULL, NULL},
+    {0xAF292B29059F879B, "LocalizationRegistry", LocalizationRegistryRead, NULL},
     {0xAFB5DB7305E23480, "int8", intrinsic1Read, NULL},
     {0xB02BC4AD45C96F0E, "FootSteps", NULL, NULL},
     {0xB038C6742811D7FA, "DCArray<CorrespondencePoint>", NULL, NULL},
@@ -720,13 +720,13 @@ static const struct MetaClassDescription descriptions[] = {
     {0xB060A66E8CD67299, "DCArray<SklNodeData>", NULL, NULL},
     {0xB0F644BC42B51B0B, "KeyframedValue<Handle<Scene>>", NULL, NULL},
     {0xB1F4EDB8750E7BFA, "Procedural_LookAt_Value", NULL, NULL},
-    {0xB32B46B47690925E, "DlgNodeCriteria::EnumDefaultResultT", NULL, NULL},
+    {0xB32B46B47690925E, "DlgNodeCriteria::EnumDefaultResultT", intrinsic4Read, NULL},
     {0xB36577F91D1BF28C, "CompressedQuaternionKeys2", NULL, NULL},
     {0xB3740F5DEE93334A, "PivotJointKey", NULL, NULL},
     {0xB4292F0DA0DEA9EB, "Map<unsignedint,Set<Symbol,less<Symbol>>,less<unsignedint>>", NULL, NULL},
     {0xB45FAE180770628C, "EnlightenModule", NULL, NULL},
     {0xB4C683CEFE185EA1, "DlgNodeStoryBoard", NULL, NULL},
-    {0xB54642189B1237CA, "DlgVisibilityConditions", NULL, NULL},
+    {0xB54642189B1237CA, "DlgVisibilityConditions", DlgVisibilityConditionsRead, NULL},
     {0xB5A80428425E68E0, "AnimatedValueInterface<SoundEventName<1>>", AnimatedValueInterfaceGenericRead, NULL},
     {0xB5D28DB9AA796F18, "DCArray<Procedural_LookAt::Constraint>", NULL, NULL},
     {0xB64F1AE3E7BBC58F, "EnlightenModule::EnumeQualityWithDefault", intrinsic4Read, NULL},
@@ -756,7 +756,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0xBB86B36D253B1EC8, "ColorHDR", NULL, NULL},
     {0xBBC6633C9F6B2537, "PerAgentClipResourceFilter", PerAgentClipResourceFilterRead, NULL},
     {0xBC2BBAEBB7DD049B, "AnimationManager", NULL, NULL},
-    {0xBC62744AC9114C72, "Set<int,less<int>>", NULL, NULL},
+    {0xBC62744AC9114C72, "Set<int,less<int>>", DCArray_int_Read, NULL},
     {0xBC6B9F28CC33A947, "Procedural_LookAt", NULL, NULL},
     {0xBCA387FC2FAAEAE9, "DCArray<LightGroupInstance>", NULL, NULL},
     {0xBD4C9F5B0EC743C2, "Map<String,Vector3,less<String>>", NULL, NULL},
@@ -768,7 +768,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0xBF2E8C49D2783BDC, "Map<String,Rule*__ptr64,less<String>>", NULL, NULL},
     {0xBF34FB893AC17AAD, "Map<Symbol,PhonemeTable::PhonemeEntry,less<Symbol>>", Map_SymbolPhonemeTable__PhonemeEntryless_Symbol__Read, NULL},
     {0xBF8F61B0F64AED35, "CompressedKeys<Vector2>", NULL, NULL},
-    {0xBFB0CE2BD1F38792, "DlgChild", NULL, NULL},
+    {0xBFB0CE2BD1F38792, "DlgChild", DlgChildRead, NULL},
     {0xBFC99E3D3E3CBB4A, "InverseKinematicsDerived", NULL, NULL},
     {0xBFD0071071629E03, "Map<unsignedint,LanguageRes,less<unsignedint>>", Map_unsignedintLanguageResless_unsignedint__Read, NULL},
     {0xBFD68E6E1C629E01, "T3MaterialRuntimeProperty", T3MaterialRuntimePropertyRead, NULL},
@@ -781,7 +781,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0xC1E4AC327DAD6D1C, "bgh", NULL, NULL},
     {0xC2254DAAD52E7340, "Handle<PhysicsData>", intrinsic8Read, NULL},
     {0xC23697BBFB06DD17, "Handle<LanguageResource>", intrinsic8Read, NULL},
-    {0xC39BEABE5AD9E70C, "DCArray<Ptr<DlgChild>>", NULL, NULL},
+    {0xC39BEABE5AD9E70C, "DCArray<Ptr<DlgChild>>", DCArray_Ptr_DlgChild__Read, NULL},
     {0xC3EFDA35DDD4ABC3, "List<float>", NULL, NULL},
     {0xC41AA69F9B838B0A, "Map<int,Ptr<DialogBranch>,less<int>>", NULL, NULL},
     {0xC472E26D936CE1A8, "SingleValue<Vector2>", NULL, NULL},
@@ -823,7 +823,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0xCDA6183D330B433B, "ChoreInst", NULL, NULL},
     {0xCDD094E2E769C2B5, "ToolProps", intrinsic1Read, NULL},
     {0xCDFC7236DB3B636B, "EnumRenderTextureResolution", intrinsic4Read, NULL},
-    {0xCE1B42C4736DEB3A, "DlgObjectProps", NULL, NULL},
+    {0xCE1B42C4736DEB3A, "DlgObjectProps", DlgObjectPropsRead, NULL},
     {0xCECACE3A835CB7EE, "SingleValue<Quaternion>", NULL, NULL},
     {0xCECC22CA2F746449, "CompressedKeys<SoundEventName<2>>", NULL, NULL},
     {0xCF3AE053D709090B, "DCArray<Handle<AudioData>>", NULL, NULL},
@@ -850,17 +850,17 @@ static const struct MetaClassDescription descriptions[] = {
     {0xD4B5597D859A03DE, "PreloadPackage::ResourceKey", NULL, NULL},
     {0xD4BFE847C1725627, "DCArray<RenderObject_Mesh::TextureInstance>", NULL, NULL},
     {0xD4D0C7977631D29D, "SingleValue<ScriptEnum>", NULL, NULL},
-    {0xD513AEAF2180FC7E, "DlgNodeCriteria::EnumThresholdT", NULL, NULL},
+    {0xD513AEAF2180FC7E, "DlgNodeCriteria::EnumThresholdT", intrinsic4Read, NULL},
     {0xD521915AA8E8C0F7, "DCArray<KeyframedValue<Handle<T3Texture>>::Sample>", NULL, NULL},
     {0xD5C86012BF6B91CA, "LanguageResProxy", intrinsic4Read, NULL},
     {0xD5D35E216D0124D6, "Dlg", DlgRead, NULL},
     {0xD5D35E216D0124D6, "dlg", NULL, NULL},
-    {0xD6652FB7B143EA32, "AutoActStatus", AutoActStatusRead, NULL},
+    {0xD6652FB7B143EA32, "AutoActStatus", intrinsic4Read, NULL},
     {0xD6A50A09FEA7E4A6, "DCArray<KeyframedValue<Vector3>::Sample>", NULL, NULL},
     {0xD713BF2F0EEF6FE0, "KeyframedValue<bool>", KeyframedValue_bool_Read, NULL},
     {0xD78BF3D477EC3DFB, "Map<String,Set<String,less<String>>,less<String>>", NULL, NULL},
     {0xD7CE90BB8FFA4753, "EnumT3MaterialNormalSpaceType", intrinsic4Read, NULL},
-    {0xD7FF03FA339F3F62, "DlgVisibilityConditionsOwner", NULL, NULL},
+    {0xD7FF03FA339F3F62, "DlgVisibilityConditionsOwner", DlgVisibilityConditionsOwnerRead, NULL},
     {0xD8785AF203AA53EB, "DCArray<Map<String,String,less<String>>>", NULL, NULL},
     {0xD8794539F89A180E, "List<Handle<SoundData>>", NULL, NULL},
     {0xD8893CCA081E38A2, "Map<Symbol,String,less<Symbol>>", NULL, NULL},
@@ -886,7 +886,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0xDF302FFF123E7CAB, "T3MaterialParameter", T3MaterialParameterRead, NULL},
     {0xDF30362E292BEF14, "CompressedKeys<Color>", NULL, NULL},
     {0xDFA5071C13D73E63, "Handle<AgentMap>", intrinsic8Read, NULL},
-    {0xE008B7EFBA7579D4, "DlgNodeExchange::Entry", NULL, NULL},
+    {0xE008B7EFBA7579D4, "DlgNodeExchange::Entry", intrinsic8Read, NULL},
     {0xE00CB3BD8BD8ACE7, "LightType", intrinsic4Read, NULL},
     {0xE04937724C9E5EF1, "List<Handle<AudioData>>", NULL, NULL},
     {0xE05D92D1490181FA, "PreloadPackage::RuntimeDataDialog::DialogResourceInfo", NULL, NULL},
@@ -901,7 +901,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0xE1C51CF067B11F25, "DCArray<PreloadPackage::RuntimeDataDialog::DlgObjIdAndResourceVector>", NULL, NULL},
     {0xE1E6CA8E844E23EB, "T3LightProbeInternalData", NULL, NULL},
     {0xE2602DAF0134246D, "DCArray<Transform>", NULL, NULL},
-    {0xE26BBBA29EBA3E2A, "DlgChainHead", NULL, NULL},
+    {0xE26BBBA29EBA3E2A, "DlgChainHead", DlgChainHeadRead, NULL},
     {0xE2ACF7CEBEA09992, "KeyframedValue<AnimOrChore>", KeyframedValue_AnimOrChore_Read, NULL},
     {0xE2AF89E495F738E2, "DCArray<DCArray<String>>", NULL, NULL},
     {0xE2BA743E952F9338, "T3MaterialData", T3MaterialDataRead, NULL},
@@ -918,7 +918,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0xE4E5A2E3EC044937, "DCArray<KeyframedValue<String>::Sample>", NULL, NULL},
     {0xE4E87E07690A89E6, "InputMapper", NULL, NULL},
     {0xE4E8C8ABFF566D60, "dss", NULL, NULL},
-    {0xE6130DF4EDCEC9C8, "DlgConditionSet", NULL, NULL},
+    {0xE6130DF4EDCEC9C8, "DlgConditionSet", DlgConditionSetRead, NULL},
     {0xE6293E22F651B314, "DCArray<SkeletonPoseValue::BoneEntry>", NULL, NULL},
     {0xE67D8AC64150698E, "SingleValue<Handle<PhonemeTable>>", NULL, NULL},
     {0xE6B45077A341070A, "List<Handle<Chore>>", NULL, NULL},
@@ -949,7 +949,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0xEFA1BA20E620F40F, "T3Texture::StreamHeader", NULL, NULL},
     {0xEFC64D422DF9376F, "DependencyLoader<1>", DependencyLoaderRead, NULL},
     {0xF0181C2BFD4EA8D6, "Polar", Vector3Read, NULL},
-    {0xF0205400D4C83EBC, "TRange<float>", TRange_float_Read, NULL},
+    {0xF0205400D4C83EBC, "TRange<float>", Vector2Read, NULL},
     {0xF07C552824816DD1, "char", intrinsic1Read, NULL},
     {0xF07D50698E252C35, "ldb", NULL, NULL},
     {0xF0CA92E85C1E9849, "KeyframedValue<Handle<T3Texture>>", NULL, NULL},
@@ -996,11 +996,11 @@ static const struct MetaClassDescription descriptions[] = {
     {0xFC7C5120ABAA70AA, "overlay", NULL, NULL},
     {0xFC96DFDEDE31FB4A, "unsignedlong", intrinsic4Read, NULL},
     {0xFCB10E2F8E89DB2B, "SoundBusSnapshot::Snapshot", NULL, NULL},
-    {0xFCE72EB881AEAFB7, "LocalizeInfo", NULL, NULL},
+    {0xFCE72EB881AEAFB7, "LocalizeInfo", intrinsic4Read, NULL},
     {0xFD0F32CBB13B258D, "CompressedKeys<Handle<SoundBusSnapshot::Snapshot>>", NULL, NULL},
     {0xFD267A5B808A5824, "List<Handle<AnimOrChore>>", NULL, NULL},
     {0xFD45D124E5FAC6CE, "T3MeshMaterial", T3MeshMaterialRead, NULL},
-    {0xFD5454BA0F088B05, "wbox", NULL, NULL},
+    {0xFD5454BA0F088B05, "wbox", WalkBoxesRead, NULL},
     {0xFE828771D8009C1D, "preloadpackagertd", NULL, NULL},
     {0xFE96A13E293CC8EF, "Map<String,DCArray<unsignedchar>,less<String>>", NULL, NULL},
     {0xFF15DC09F8B4F0E1, "IdleTransitionSettings", NULL, NULL},
@@ -1110,22 +1110,34 @@ const struct MetaClassDescription *getMetaClassDescriptionByIndex(uint16_t index
     return descriptions + index;
 }
 
-int genericRead(FILE *stream, struct TreeNode *node, uint32_t flags, uint16_t childCount, uint16_t *typeList, uint8_t *blockList)
+int genericRead(FILE *stream, struct TreeNode *node, uint32_t flags, uint32_t childCount, const struct MetaMemberDescription const *membersDescriptions)
 {
-    node->childCount = childCount;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    for (uint16_t i = 0; i < node->childCount; ++i)
+    int64_t tell = cftell(stream);
+    if (tell > 0x1080 && tell < 0x1300)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->isBlocked = blockList[i];
+        printf("stop\n");
+    }
+    struct TreeNode **currentNode = &node->child;
 
-        if (node->children[i]->isBlocked)
+    for (uint32_t i = 0; i < childCount; ++i)
+    {
+        *currentNode = malloc(sizeof(struct TreeNode));
+        (*currentNode)->dataSize = 0;
+        (*currentNode)->serializeType = 0;
+        (*currentNode)->sibling = NULL;
+        (*currentNode)->child = NULL;
+        (*currentNode)->parent = node;
+        (*currentNode)->isBlocked = membersDescriptions[i].isBlocked;
+        if ((*currentNode)->isBlocked)
         {
             cfseek(stream, sizeof(uint32_t), SEEK_CUR);
         }
-        node->children[i]->description = getMetaClassDescriptionByIndex(typeList[i]);
-        node->children[i]->description->read(stream, node->children[i], flags);
+        (*currentNode)->memberName = membersDescriptions[i].memberName;
+        const struct MetaClassDescription *description = getMetaClassDescriptionByIndex(membersDescriptions[i].metaClassDescriptionIndex);
+        (*currentNode)->description = description;
+        (*currentNode)->description->read(stream, *currentNode, flags);
+
+        currentNode = &((*currentNode)->sibling);
     }
     return 0;
 }

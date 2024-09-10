@@ -9,7 +9,6 @@ int ChoreResourceBlockRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int ChoreResourceRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int ChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int ChoreAgentAttachmentRead(FILE *stream, struct TreeNode *node, uint32_t flags);
-int AutoActStatusRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 
 int PerAgentClipResourceFilterRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int Set_StringStringCompareCaseInsensitive_Read(FILE *stream, struct TreeNode *node, uint32_t flags);

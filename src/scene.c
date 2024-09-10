@@ -54,7 +54,7 @@ int Vector2Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     (void)flags;
     node->dataSize = 2 * sizeof(float);
-    fread(node->data.staticBuffer, node->dataSize, 1, stream);
+    fread(node->staticBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
@@ -66,133 +66,54 @@ int Set_FileName_SoundEventBankDummy_less_FileName_SoundEventBankDummy___Read(FI
 
 int FileName_SoundEventBankDummy_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->parent = node;
-    node->children[0]->description = getMetaClassDescriptionByIndex(FileNameBase);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "Baseclass_FileNameBass", .metaClassDescriptionIndex = FileNameBase},
+    };
+    return genericRead(stream, node, flags, 1, descriptions);
 }
 
 int EnlightenModule__EnlightenPrimitiveSettingsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(String);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(EnlightenModule__EnumeInstanceType);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(EnlightenModule__EnumeUpdateMethod);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(EnlightenModule__EnumeQualityWithDefault);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mSystemId", .metaClassDescriptionIndex = String},
+        {.isBlocked = 1, .memberName = "mEnlightenLightingMode", .metaClassDescriptionIndex = EnlightenModule__EnumeInstanceType},
+        {.isBlocked = 1, .memberName = "mEnlightenUpdateMethod", .metaClassDescriptionIndex = EnlightenModule__EnumeUpdateMethod},
+        {.isBlocked = 1, .memberName = "mEnlightenQuality", .metaClassDescriptionIndex = EnlightenModule__EnumeQualityWithDefault},
+    };
+    return genericRead(stream, node, flags, 4, descriptions);
 }
 
 int EnlightenModule__EnlightenSystemSettingsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(EnlightenModule__EnumeQuality);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(EnlightenModule__EnumeProbeResolution);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(bool_type);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mDefaultQuality", .metaClassDescriptionIndex = EnlightenModule__EnumeQuality},
+        {.isBlocked = 1, .memberName = "mAdaptiveProbeResolution", .metaClassDescriptionIndex = EnlightenModule__EnumeProbeResolution},
+        {.isBlocked = 0, .memberName = "mDisableEnlighten", .metaClassDescriptionIndex = bool_type},
+    };
+    return genericRead(stream, node, flags, 3, descriptions);
 }
 
 int MeshSceneEnlightenDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(Vector4);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mSystemName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mUVTransform", .metaClassDescriptionIndex = Vector4},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+    };
+    return genericRead(stream, node, flags, 3, descriptions);
 }
 
 static int MeshSceneLightmapData__EntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 6;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    node->children[3]->description = getMetaClassDescriptionByIndex(Vector2);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    node->children[4]->description = getMetaClassDescriptionByIndex(Vector2);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    node->children[5]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mMeshName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mLODIndex", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mLightQuality", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mTextureScale", .metaClassDescriptionIndex = Vector2},
+        {.isBlocked = 0, .memberName = "mTextureOffset", .metaClassDescriptionIndex = Vector2},
+        {.isBlocked = 0, .memberName = "mTexturePage", .metaClassDescriptionIndex = unsignedlong},
+    };
+    return genericRead(stream, node, flags, 6, descriptions);
 }
 
 int DCArray_unsignedshort_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -202,158 +123,84 @@ int DCArray_unsignedshort_Read(FILE *stream, struct TreeNode *node, uint32_t fla
 
 int DCArray_float_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(DCArray_float_));
+    return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(float_type));
 }
 
 int DCArray_MeshSceneLightmapData__Entry_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        MeshSceneLightmapData__EntryRead(stream, node->children[i], flags); // TODO: Set description
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        MeshSceneLightmapData__EntryRead(stream, currentNode, flags);
     }
     return 0;
 }
 
 int MeshSceneLightmapDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(DCArray_MeshSceneLightmapData__Entry_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(DCArray_unsignedshort_);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mEntries", .metaClassDescriptionIndex = DCArray_MeshSceneLightmapData__Entry_},
+        {.isBlocked = 1, .memberName = "mStationaryLightIndices", .metaClassDescriptionIndex = DCArray_unsignedshort_},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+    };
+    return genericRead(stream, node, flags, 3, descriptions);
 }
 
 int SoundEventNameBaseRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mEventGuid", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mEventDisplayName", .metaClassDescriptionIndex = Symbol},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 int SoundEventNameRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->parent = node;
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(SoundEventNameBase);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "Baseclass_SoundEventNameBase", .metaClassDescriptionIndex = SoundEventNameBase},
+    };
+    return genericRead(stream, node, flags, 1, descriptions);
 }
 
 int Footsteps__FootstepBankRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->isBlocked = 1;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->description = getMetaClassDescriptionByIndex(DCArray_Handle_SoundData__);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->description = getMetaClassDescriptionByIndex(Map_SoundFootsteps__EnumMaterialDCArray_Handle_SoundData__less_SoundFootsteps__EnumMaterial__);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mSounds", .metaClassDescriptionIndex = DCArray_Handle_SoundData__},
+        {.isBlocked = 1, .memberName = "mMaterialFootsteps", .metaClassDescriptionIndex = Map_SoundFootsteps__EnumMaterialDCArray_Handle_SoundData__less_SoundFootsteps__EnumMaterial__},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 int Footsteps2__FootstepBankRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->isBlocked = 1;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->description = getMetaClassDescriptionByIndex(SoundEventName_0_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->description = getMetaClassDescriptionByIndex(Map_SoundFootsteps__EnumMaterialSoundEventName_0_less_SoundFootsteps__EnumMaterial__);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mEventName", .metaClassDescriptionIndex = SoundEventName_0_},
+        {.isBlocked = 1, .memberName = "mMaterialMap", .metaClassDescriptionIndex = Map_SoundFootsteps__EnumMaterialSoundEventName_0_less_SoundFootsteps__EnumMaterial__},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 static int T3LightSceneInternalData__LightmapPageRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(Handle_T3Texture_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mhTextureAtlas", .metaClassDescriptionIndex = Handle_T3Texture_},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 int DCArray_Symbol_Read(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Move to different file
@@ -370,183 +217,94 @@ int T3LightEnvInternalData__QualityEntryRead(FILE *stream, struct TreeNode *node
 {
     (void)flags;
     node->dataSize = 2 * sizeof(uint32_t);
-    fread(node->data.staticBuffer, node->dataSize, 1, stream); // TODO: Change to children?
+    fread(node->staticBuffer, node->dataSize, 1, stream); // TODO: Change to children?
 
     return 0;
 }
 
 int T3LightEnvInternalDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-        node->children[i]->isBlocked = 1;
-        node->children[i]->description = getMetaClassDescriptionByIndex(T3LightEnvInternalData__QualityEntry);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
-
-    node->dataSize = sizeof(int32_t);
-    fread(node->data.staticBuffer, node->dataSize, 1, stream); // TODO: Change to child?
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mEntryForQuality[0]", .metaClassDescriptionIndex = T3LightEnvInternalData__QualityEntry},
+        {.isBlocked = 1, .memberName = "mEntryForQuality[1]", .metaClassDescriptionIndex = T3LightEnvInternalData__QualityEntry},
+        {.isBlocked = 1, .memberName = "mEntryForQuality[2]", .metaClassDescriptionIndex = T3LightEnvInternalData__QualityEntry},
+        {.isBlocked = 1, .memberName = "mEntryForQuality[3]", .metaClassDescriptionIndex = T3LightEnvInternalData__QualityEntry},
+        {.isBlocked = 0, .memberName = "mStationaryLightIndex", .metaClassDescriptionIndex = long_type},
+    };
+    return genericRead(stream, node, flags, 5, descriptions);
 }
 
 int DCArray_T3LightSceneInternalData__LightmapPage_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        T3LightSceneInternalData__LightmapPageRead(stream, node->children[i], flags); // TODO: Set description
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        T3LightSceneInternalData__LightmapPageRead(stream, currentNode, flags);
     }
     return 0;
 }
 
 int T3LightSceneInternalData__QualityEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(DCArray_T3LightSceneInternalData__LightmapPage_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(Handle_T3Texture_);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mLightmapPages", .metaClassDescriptionIndex = DCArray_T3LightSceneInternalData__LightmapPage_},
+        {.isBlocked = 1, .memberName = "mhStaticShadowVolumeTexture", .metaClassDescriptionIndex = Handle_T3Texture_},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 int T3LightSceneInternalDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 6;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    for (uint16_t i = 0; i < 4; ++i)
-    {
-        cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-        node->children[i]->isBlocked = 1;
-        node->children[i]->description = getMetaClassDescriptionByIndex(T3LightSceneInternalData__QualityEntry);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
-
-    node->children[4]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    node->children[5]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mEntryForQuality[0]", .metaClassDescriptionIndex = T3LightSceneInternalData__QualityEntry},
+        {.isBlocked = 1, .memberName = "mEntryForQuality[1]", .metaClassDescriptionIndex = T3LightSceneInternalData__QualityEntry},
+        {.isBlocked = 1, .memberName = "mEntryForQuality[2]", .metaClassDescriptionIndex = T3LightSceneInternalData__QualityEntry},
+        {.isBlocked = 1, .memberName = "mEntryForQuality[3]", .metaClassDescriptionIndex = T3LightSceneInternalData__QualityEntry},
+        {.isBlocked = 0, .memberName = "mStationaryLightCount", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mBakeVersion", .metaClassDescriptionIndex = unsignedlong},
+    };
+    return genericRead(stream, node, flags, 6, descriptions);
 }
 
 int LocationInfoRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(String);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(Transform);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mAttachmentAgent", .metaClassDescriptionIndex = String},
+        {.isBlocked = 0, .memberName = "mAttachmentNode", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 1, .memberName = "mInitialLocalTransform", .metaClassDescriptionIndex = Transform},
+    };
+    return genericRead(stream, node, flags, 3, descriptions);
 }
 
-int SceneAgentInfoRead(FILE *stream, struct TreeNode *node, uint32_t flags)
+int Scene__AgentInfoRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->isBlocked = 1;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->description = getMetaClassDescriptionByIndex(String);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->description = getMetaClassDescriptionByIndex(PropertySet);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mAgentName", .metaClassDescriptionIndex = String},
+        {.isBlocked = 1, .memberName = "mAgentSceneProps", .metaClassDescriptionIndex = PropertySet},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 int SceneRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(bool_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(String);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(DCArray_HandleLock_Scene__);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(LinkedList_Scene__AgentInfo0_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mbActive", .metaClassDescriptionIndex = bool_type},
+        {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
+        {.isBlocked = 1, .memberName = "mReferencedScenes", .metaClassDescriptionIndex = DCArray_HandleLock_Scene__},
+        {.isBlocked = 1, .memberName = "mAgentList", .metaClassDescriptionIndex = LinkedList_Scene__AgentInfo0_},
+    };
+    return genericRead(stream, node, flags, 4, descriptions);
 }

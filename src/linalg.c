@@ -182,25 +182,25 @@ struct Matrix matrixInvert(struct Matrix mat)
     /* Assumes it is invertible */
     float idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
-    result.data[0][0] = (float)(int32_t)((mat.data[1][1] * c[5] - mat.data[1][2] * c[4] + mat.data[1][3] * c[3]) * idet + 0.0001);
-    result.data[0][1] = (float)(int32_t)((-mat.data[0][1] * c[5] + mat.data[0][2] * c[4] - mat.data[0][3] * c[3]) * idet + 0.0001);
-    result.data[0][2] = (float)(int32_t)((mat.data[3][1] * s[5] - mat.data[3][2] * s[4] + mat.data[3][3] * s[3]) * idet + 0.0001);
-    result.data[0][3] = (float)(int32_t)((-mat.data[2][1] * s[5] + mat.data[2][2] * s[4] - mat.data[2][3] * s[3]) * idet + 0.0001);
+    result.data[0][0] = ((mat.data[1][1] * c[5] - mat.data[1][2] * c[4] + mat.data[1][3] * c[3]) * idet);
+    result.data[0][1] = ((-mat.data[0][1] * c[5] + mat.data[0][2] * c[4] - mat.data[0][3] * c[3]) * idet);
+    result.data[0][2] = ((mat.data[3][1] * s[5] - mat.data[3][2] * s[4] + mat.data[3][3] * s[3]) * idet);
+    result.data[0][3] = ((-mat.data[2][1] * s[5] + mat.data[2][2] * s[4] - mat.data[2][3] * s[3]) * idet);
 
-    result.data[1][0] = (float)(int32_t)((-mat.data[1][0] * c[5] + mat.data[1][2] * c[2] - mat.data[1][3] * c[1]) * idet + 0.0001);
-    result.data[1][1] = (float)(int32_t)((mat.data[0][0] * c[5] - mat.data[0][2] * c[2] + mat.data[0][3] * c[1]) * idet + 0.0001);
-    result.data[1][2] = (float)(int32_t)((-mat.data[3][0] * s[5] + mat.data[3][2] * s[2] - mat.data[3][3] * s[1]) * idet + 0.0001);
-    result.data[1][3] = (float)(int32_t)((mat.data[2][0] * s[5] - mat.data[2][2] * s[2] + mat.data[2][3] * s[1]) * idet + 0.0001);
+    result.data[1][0] = ((-mat.data[1][0] * c[5] + mat.data[1][2] * c[2] - mat.data[1][3] * c[1]) * idet);
+    result.data[1][1] = ((mat.data[0][0] * c[5] - mat.data[0][2] * c[2] + mat.data[0][3] * c[1]) * idet);
+    result.data[1][2] = ((-mat.data[3][0] * s[5] + mat.data[3][2] * s[2] - mat.data[3][3] * s[1]) * idet);
+    result.data[1][3] = ((mat.data[2][0] * s[5] - mat.data[2][2] * s[2] + mat.data[2][3] * s[1]) * idet);
 
-    result.data[2][0] = (float)(int32_t)((mat.data[1][0] * c[4] - mat.data[1][1] * c[2] + mat.data[1][3] * c[0]) * idet + 0.0001);
-    result.data[2][1] = (float)(int32_t)((-mat.data[0][0] * c[4] + mat.data[0][1] * c[2] - mat.data[0][3] * c[0]) * idet + 0.0001);
-    result.data[2][2] = (float)(int32_t)((mat.data[3][0] * s[4] - mat.data[3][1] * s[2] + mat.data[3][3] * s[0]) * idet + 0.0001);
-    result.data[2][3] = (float)(int32_t)((-mat.data[2][0] * s[4] + mat.data[2][1] * s[2] - mat.data[2][3] * s[0]) * idet + 0.0001);
+    result.data[2][0] = ((mat.data[1][0] * c[4] - mat.data[1][1] * c[2] + mat.data[1][3] * c[0]) * idet);
+    result.data[2][1] = ((-mat.data[0][0] * c[4] + mat.data[0][1] * c[2] - mat.data[0][3] * c[0]) * idet);
+    result.data[2][2] = ((mat.data[3][0] * s[4] - mat.data[3][1] * s[2] + mat.data[3][3] * s[0]) * idet);
+    result.data[2][3] = ((-mat.data[2][0] * s[4] + mat.data[2][1] * s[2] - mat.data[2][3] * s[0]) * idet);
 
-    result.data[3][0] = (float)(int32_t)((-mat.data[1][0] * c[3] + mat.data[1][1] * c[1] - mat.data[1][2] * c[0]) * idet + 0.0001);
-    result.data[3][1] = (float)(int32_t)((mat.data[0][0] * c[3] - mat.data[0][1] * c[1] + mat.data[0][2] * c[0]) * idet + 0.0001);
-    result.data[3][2] = (float)(int32_t)((-mat.data[3][0] * s[3] + mat.data[3][1] * s[1] - mat.data[3][2] * s[0]) * idet + 0.0001);
-    result.data[3][3] = (float)(int32_t)((mat.data[2][0] * s[3] - mat.data[2][1] * s[1] + mat.data[2][2] * s[0]) * idet + 0.0001);
+    result.data[3][0] = ((-mat.data[1][0] * c[3] + mat.data[1][1] * c[1] - mat.data[1][2] * c[0]) * idet);
+    result.data[3][1] = ((mat.data[0][0] * c[3] - mat.data[0][1] * c[1] + mat.data[0][2] * c[0]) * idet);
+    result.data[3][2] = ((-mat.data[3][0] * s[3] + mat.data[3][1] * s[1] - mat.data[3][2] * s[0]) * idet);
+    result.data[3][3] = ((mat.data[2][0] * s[3] - mat.data[2][1] * s[1] + mat.data[2][2] * s[0]) * idet);
 
     return result;
 }
@@ -373,6 +373,38 @@ struct Quaternion getShortestRotation(struct Vector3 v1, struct Vector3 v2)
     struct Vector3 a = vector3Cross(v1, v2);
     struct Quaternion result = {a.x, a.y, a.z, sqrtf((v1.x * v1.x + v1.y * v1.y + v1.z * v1.z) * (v2.x * v2.x + v2.y * v2.y + v2.z * v2.z)) + vector3InnerProduct(v1, v2)};
     return result;
+}
+
+struct Transform multiplyTransform(struct Transform t1, struct Transform t2)
+{
+    float fVar1;
+    float fVar2;
+    float fVar3;
+    float fVar4;
+    float fVar5;
+    float fVar6;
+    struct Vector3 pVVar7;
+    struct Quaternion pQVar8;
+    struct Vector3 local_58;
+    struct Quaternion local_48[4];
+
+    pVVar7 = rotateVector(t2.vector, t1.quaternion);
+    fVar1 = (t1.vector).y;
+    fVar2 = (t1.vector).z;
+    fVar3 = pVVar7.x;
+    fVar4 = (t1.vector).x;
+    fVar5 = pVVar7.y;
+    fVar6 = pVVar7.z;
+    pQVar8 = multiplyQuaternion(t1.quaternion, t2.quaternion);
+    struct Transform ret;
+    (ret.quaternion).x = pQVar8.x;
+    (ret.quaternion).y = pQVar8.y;
+    (ret.quaternion).z = pQVar8.z;
+    (ret.quaternion).w = pQVar8.w;
+    (ret.vector).x = fVar3 + fVar4;
+    (ret.vector).y = fVar1 + fVar5;
+    (ret.vector).z = fVar2 + fVar6;
+    return ret;
 }
 
 struct Quaternion normalizeQuaternion(struct Quaternion q)

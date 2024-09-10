@@ -194,11 +194,6 @@ struct __attribute__((__packed__)) DataBuffer
     struct SampleHeader *headers;
 };
 
-int func()
-{
-    sizeof(struct DataBuffer);
-}
-
 struct Animation
 {
     int32_t version;

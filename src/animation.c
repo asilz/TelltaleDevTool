@@ -6,93 +6,130 @@
 #include <meta.h>
 #include <assert.h>
 
+enum AnimationValueInterfaceBaseFlags
+{
+    eDisabled = 0x1,
+    eTimeBehavior = 0x2,
+    eWeightBehavior = 0x4,
+    eMoverAnim = 0x10,
+    ePropertyAnimation = 0x20,
+    eTextureMatrixAnimation = 0x40,
+    eAudioDataAnimation = 0x80,
+    eDontOptimize = 0x100,
+    eHomogeneous = 0x200,
+    eMixerScaled = 0x400,
+    eMixerHomogeneous = 0x800,
+    eStyleAnimation = 0x1000,
+    ePropForceUpdate = 0x2000,
+    eMixerOwned = 0x4000,
+    eMixerDirty = 0x8000,
+    eAdditive = 0x10000,
+    eExternallyOwned = 0x20000,
+    eDontMixPausedControllers = 0x40000,
+    eRuntimeAnimation = 0x80000,
+    eTransientAnimation = 0x100000,
+    eToolOnly = 0x200000,
+    eKeyedAttachmentAnimation = 0x400000,
+    eMixerWeightedBlend = 0x800000,
+    eValueKind = 0xff000000
+};
+
 static int AnimationValueRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     (void)flags;
     node->dataSize = sizeof(uint64_t) + 2 * sizeof(uint16_t);
-    node->data.dynamicBuffer = malloc(node->dataSize);
-    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
 
 static int AnimationValueArrayRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        // node->children[i]->description; //TODO: Set description
-        node->children[i]->parent = node;
-        AnimationValueRead(stream, node->children[i], flags);
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        AnimationValueRead(stream, currentNode, flags);
     }
     return 0;
 }
 
 static int AnimationCoreRead(FILE *stream, struct TreeNode *node, uint32_t flags) // Don't know what to name this
 {
-    uint32_t interfaceCount;
-    fread(&interfaceCount, sizeof(interfaceCount), 1, stream);
-    cfseek(stream, -(int64_t)sizeof(interfaceCount), SEEK_CUR);
+    node->child = calloc(1, sizeof(struct TreeNode));
+    struct TreeNode *currentNode = node->child;
+    currentNode->parent = node;
+    currentNode->memberName = "interfaceCount";
+    currentNode->description = getMetaClassDescriptionByIndex(long_type);
+    currentNode->description->read(stream, currentNode, flags);
+    uint32_t interfaceCount = *(uint32_t *)(currentNode->staticBuffer);
 
-    node->childCount = 4 + 2 * interfaceCount;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "dataBufferSize";
+    currentNode->description = getMetaClassDescriptionByIndex(long_type);
+    currentNode->description->read(stream, currentNode, flags);
 
-    for (uint16_t i = 0; i < node->childCount; ++i)
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    AnimationValueArrayRead(stream, currentNode, flags);
+
+    struct TreeNode *animationValuesHeadersArray = currentNode->child->sibling;
+
+    while (animationValuesHeadersArray != NULL)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    // node->children[2]->description; // TODO: Set description
-    AnimationValueArrayRead(stream, node->children[2], flags);
-
-    uint16_t childIndex = 2;
-    for (uint32_t i = 1; i < node->children[2]->childCount; ++i)
-    {
-        for (uint32_t j = 0; j < ((uint16_t *)node->children[2]->children[i]->data.dynamicBuffer)[4]; ++j)
+        for (uint32_t j = 0; j < ((uint16_t *)animationValuesHeadersArray->dynamicBuffer)[4]; ++j)
         {
-            node->children[++childIndex]->description = getMetaClassDescriptionBySymbol(*(uint64_t *)node->children[2]->children[i]->data.dynamicBuffer);
-            node->children[childIndex]->description->read(stream, node->children[childIndex], flags);
+            currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+            currentNode->sibling->parent = currentNode->parent;
+            currentNode = currentNode->sibling;
+            currentNode->description = getMetaClassDescriptionBySymbol(*(uint64_t *)animationValuesHeadersArray->dynamicBuffer);
+            currentNode->description->read(stream, currentNode, flags);
         }
+        animationValuesHeadersArray = animationValuesHeadersArray->sibling;
     }
 
-    while (childIndex < node->childCount - 2)
+    for (uint32_t i = 0; i < interfaceCount; ++i)
     {
-        node->children[++childIndex]->description = getMetaClassDescriptionByIndex(Flags);
-        node->children[childIndex]->description->read(stream, node->children[childIndex], flags);
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
+        currentNode->description = getMetaClassDescriptionByIndex(Flags);
+        currentNode->description->read(stream, currentNode, flags);
     }
 
-    node->children[++childIndex]->description = getMetaClassDescriptionByIndex(unsignedshort);
-    node->children[childIndex]->description->read(stream, node->children[childIndex], flags);
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "symbolsNotSerialized";
+    currentNode->description = getMetaClassDescriptionByIndex(unsignedshort);
+    currentNode->description->read(stream, currentNode, flags);
 
-    if (*(uint16_t *)(node->children[childIndex]->data.staticBuffer) == 0)
+    uint16_t symbolsNotSerialized = *(uint16_t *)(currentNode->staticBuffer);
+    if (symbolsNotSerialized == 0)
     {
-        node->childCount += interfaceCount;
-        node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
-
-        while (childIndex < node->childCount - 1)
+        for (uint32_t i = 0; i < interfaceCount; ++i)
         {
-            node->children[++childIndex] = calloc(1, sizeof(struct TreeNode));
-            node->children[childIndex]->parent = node;
-
-            node->children[childIndex]->description = getMetaClassDescriptionByIndex(Symbol);
-            node->children[childIndex]->description->read(stream, node->children[childIndex], flags);
+            currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+            currentNode->sibling->parent = currentNode->parent;
+            currentNode = currentNode->sibling;
+            currentNode->description = getMetaClassDescriptionByIndex(Symbol);
+            currentNode->description->read(stream, currentNode, flags);
         }
     }
 
@@ -101,37 +138,26 @@ static int AnimationCoreRead(FILE *stream, struct TreeNode *node, uint32_t flags
 
 int AnimationRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 7;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mVersion", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+        {.isBlocked = 0, .memberName = "mName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mLength", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 0, .memberName = "mAdditiveMask", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 0, .memberName = "mToolProps", .metaClassDescriptionIndex = ToolProps},
+    };
+    genericRead(stream, node, flags, 6, descriptions);
 
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
+    struct TreeNode *currentNode = node->child->sibling->sibling->sibling->sibling->sibling;
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
 
-    node->children[0]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    node->children[3]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    node->children[4]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    node->children[5]->description = getMetaClassDescriptionByIndex(ToolProps);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
+    currentNode->memberName = "animationCore";
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[6]->isBlocked = 1;
-    // node->children[6]->description; TODO: Set description
-    AnimationCoreRead(stream, node->children[6], flags);
+    currentNode->isBlocked = 1;
+    //  TODO: Set description
+    AnimationCoreRead(stream, currentNode, flags);
 
     return 0;
 }

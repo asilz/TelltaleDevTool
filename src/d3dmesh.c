@@ -6,90 +6,58 @@
 #include <meta.h>
 #include <assert.h>
 
+enum MeshFlags // T3MeshData
+{
+    eDeformable = 0x1,
+    eHasLocalCameraFacing = 0x2,
+    eHasLocalCameraFacingY = 0x4,
+    eHasLocalCameraFacingLocalY = 0x8,
+    eHasCPUSkinning = 0x10,
+    eHasComputeSkinning = 0x20
+};
+
 int BoundingBoxRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(Vector3);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(Vector3);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mMin", .metaClassDescriptionIndex = Vector3},
+        {.isBlocked = 0, .memberName = "mMax", .metaClassDescriptionIndex = Vector3},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 int SphereRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(Vector3);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mCentre", .metaClassDescriptionIndex = Vector3},
+        {.isBlocked = 0, .memberName = "mRadius", .metaClassDescriptionIndex = float_type},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 int BitSetBase_1_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->description = getMetaClassDescriptionByIndex(int_type);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
+    (void)flags;
+    node->dataSize = sizeof(int32_t);
+    fread(node->staticBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
 
 int BitSetBase_2_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->description = getMetaClassDescriptionByIndex(int_type);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
+    (void)flags;
+    node->dataSize = 2 * sizeof(int32_t);
+    fread(node->staticBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
 
 int BitSetBase_3_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->description = getMetaClassDescriptionByIndex(int_type);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
+    (void)flags;
+    node->dataSize = 3 * sizeof(int32_t);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
@@ -105,14 +73,14 @@ int T3MeshTextureIndicesRead(FILE *stream, struct TreeNode *node, uint32_t flags
     } while (buffer != 0xFFFFFFFF && node->dataSize < 8 * sizeof(uint32_t));
     cfseek(stream, -(int64_t)(node->dataSize), SEEK_CUR);
 
-    if (node->dataSize <= sizeof(node->data))
+    if (node->dataSize <= sizeof(node->staticBuffer))
     {
-        fread(node->data.staticBuffer, node->dataSize, 1, stream);
+        fread(node->staticBuffer, node->dataSize, 1, stream);
     }
     else
     {
-        node->data.dynamicBuffer = malloc(node->dataSize);
-        fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+        node->dynamicBuffer = malloc(node->dataSize);
+        fread(node->dynamicBuffer, node->dataSize, 1, stream);
     }
 
     return 0;
@@ -120,56 +88,21 @@ int T3MeshTextureIndicesRead(FILE *stream, struct TreeNode *node, uint32_t flags
 
 int T3MeshBatchRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 12;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(BoundingBox);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(Sphere);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    node->children[3]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    node->children[4]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    node->children[5]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    node->children[6]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[6]->description->read(stream, node->children[6], flags);
-
-    node->children[7]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[7]->description->read(stream, node->children[7], flags);
-
-    node->children[8]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[8]->description->read(stream, node->children[8], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[9]->isBlocked = 1;
-    node->children[9]->description = getMetaClassDescriptionByIndex(T3MeshTextureIndices);
-    node->children[9]->description->read(stream, node->children[9], flags);
-
-    node->children[10]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[10]->description->read(stream, node->children[10], flags);
-
-    node->children[11]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[11]->description->read(stream, node->children[11], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mBoundingBox", .metaClassDescriptionIndex = BoundingBox},
+        {.isBlocked = 1, .memberName = "mBoundingSphere", .metaClassDescriptionIndex = Sphere},
+        {.isBlocked = 0, .memberName = "mBatchUsage", .metaClassDescriptionIndex = Flags},
+        {.isBlocked = 0, .memberName = "mMinVertIndex", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mMaxVertIndex", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mBaseIndex", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mStartIndex", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mNumPrimitives", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mNumIndices", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 1, .memberName = "mTextureIndices", .metaClassDescriptionIndex = T3MeshTextureIndices},
+        {.isBlocked = 0, .memberName = "mMaterialIndex", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mAdjacencyStartIndex", .metaClassDescriptionIndex = unsignedlong},
+    };
+    return genericRead(stream, node, flags, 12, descriptions);
 }
 
 int DCArray_T3MeshBatch_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -179,321 +112,179 @@ int DCArray_T3MeshBatch_Read(FILE *stream, struct TreeNode *node, uint32_t flags
 
 int T3MeshLODRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 16;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshBatch_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshBatch_);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(BitSetBase_1_);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    node->children[3]->description = getMetaClassDescriptionByIndex(BoundingBox);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[4]->isBlocked = 1;
-    node->children[4]->description = getMetaClassDescriptionByIndex(Sphere);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    node->children[5]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    for (uint16_t i = 6; i < 13; ++i)
-    {
-        node->children[i]->description = getMetaClassDescriptionByIndex(unsignedlong);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
-
-    node->children[13]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[13]->description->read(stream, node->children[13], flags);
-
-    node->children[14]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[14]->description->read(stream, node->children[14], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[15]->isBlocked = 1;
-    node->children[15]->description = getMetaClassDescriptionByIndex(DCArray_Symbol_);
-    node->children[15]->description->read(stream, node->children[15], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mBatches[0]", .metaClassDescriptionIndex = DCArray_T3MeshBatch_},
+        {.isBlocked = 1, .memberName = "mBatches[1]", .metaClassDescriptionIndex = DCArray_T3MeshBatch_},
+        {.isBlocked = 1, .memberName = "mVertexStreams", .metaClassDescriptionIndex = BitSetBase_1_},
+        {.isBlocked = 0, .memberName = "mBoundingBox", .metaClassDescriptionIndex = BoundingBox},
+        {.isBlocked = 1, .memberName = "mBoundingSphere", .metaClassDescriptionIndex = Sphere},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+        {.isBlocked = 0, .memberName = "mVertexStateIndex", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mNumPrimitives", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mNumBatches", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mVertexStart", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mVertexCount", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mTextureAtlasWidth", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mTextureAtlasHeight", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mPixelSize", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 0, .memberName = "mDistance", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 1, .memberName = "mBones", .metaClassDescriptionIndex = DCArray_Symbol_},
+    };
+    return genericRead(stream, node, flags, 16, descriptions);
 }
 
 static int T3MeshTextureRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 7;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(Handle_T3Texture_);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    node->children[3]->description = getMetaClassDescriptionByIndex(BoundingBox);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[4]->isBlocked = 1;
-    node->children[4]->description = getMetaClassDescriptionByIndex(Sphere);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    node->children[5]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    node->children[6]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[6]->description->read(stream, node->children[6], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mTextureType", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 1, .memberName = "mhTexture", .metaClassDescriptionIndex = Handle_T3Texture_},
+        {.isBlocked = 0, .memberName = "mNameSymbol", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mBoundingBox", .metaClassDescriptionIndex = BoundingBox},
+        {.isBlocked = 1, .memberName = "mBoundingSphere", .metaClassDescriptionIndex = Sphere},
+        {.isBlocked = 0, .memberName = "mMaxObjAreaPerUVArea", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 0, .memberName = "mAverageObjAreaPerUVArea", .metaClassDescriptionIndex = float_type},
+    };
+    return genericRead(stream, node, flags, 7, descriptions);
 }
 
 int T3MeshMaterialRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 6;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(Handle_PropertySet_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    node->children[3]->description = getMetaClassDescriptionByIndex(BoundingBox);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[4]->isBlocked = 1;
-    node->children[4]->description = getMetaClassDescriptionByIndex(Sphere);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    node->children[5]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mhMaterial", .metaClassDescriptionIndex = Handle_PropertySet_},
+        {.isBlocked = 0, .memberName = "mBaseMaterialName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mLegacyRenderTextureProperty", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mBoundingBox", .metaClassDescriptionIndex = BoundingBox},
+        {.isBlocked = 1, .memberName = "mBoundingSphere", .metaClassDescriptionIndex = Sphere},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+    };
+    return genericRead(stream, node, flags, 6, descriptions);
 }
 
 static int T3MeshMaterialOverrideRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(Handle_PropertySet_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mhOverrideMaterial", .metaClassDescriptionIndex = Handle_PropertySet_},
+        {.isBlocked = 0, .memberName = "mMaterialIndex", .metaClassDescriptionIndex = unsignedlong},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 int T3MeshBoneEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(BoundingBox);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(Sphere);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    node->children[3]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mBoneName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mBoundingBox", .metaClassDescriptionIndex = BoundingBox},
+        {.isBlocked = 1, .memberName = "mBoundingSphere", .metaClassDescriptionIndex = Sphere},
+        {.isBlocked = 0, .memberName = "mNumVerts", .metaClassDescriptionIndex = long_type},
+    };
+    return genericRead(stream, node, flags, 4, descriptions);
 }
 
 int T3MeshLocalTransformEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(Transform);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mTransform", .metaClassDescriptionIndex = Transform},
+        {.isBlocked = 0, .memberName = "mCameraFacingType", .metaClassDescriptionIndex = long_type},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 static int T3MeshTexCoordTransformRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->description = getMetaClassDescriptionByIndex(Vector2);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mScale", .metaClassDescriptionIndex = Vector2},
+        {.isBlocked = 0, .memberName = "mOffset", .metaClassDescriptionIndex = Vector2},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 static int T3MeshCPUSkinningDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 9;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(BitSetBase_1_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    node->children[4]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    node->children[5]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    node->children[6]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[6]->description->read(stream, node->children[6], flags);
-
-    node->children[7]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[7]->description->read(stream, node->children[7], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[8]->isBlocked = 1;
-    node->children[8]->description = getMetaClassDescriptionByIndex(BinaryBuffer);
-    node->children[8]->description->read(stream, node->children[8], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mPositionFormat", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mWeightFormat", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mNormalFormat", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 1, .memberName = "mVertexStreams", .metaClassDescriptionIndex = BitSetBase_1_},
+        {.isBlocked = 0, .memberName = "mNormalCount", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mWeightOffset", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mVertexSize", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mWeightSize", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 1, .memberName = "mData", .metaClassDescriptionIndex = BinaryBuffer},
+    };
+    return genericRead(stream, node, flags, 9, descriptions);
 }
 
 int GFXPlatformAttributeParamsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     (void)flags;
     node->dataSize = sizeof(int32_t) * 5; // TODO: maybe change to children
-    node->data.dynamicBuffer = malloc(node->dataSize);
-    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
 
 int T3GFXVertexStateRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
+    node->child = calloc(1, sizeof(struct TreeNode));
+    struct TreeNode *currentNode = node->child;
+    currentNode->parent = node;
+    currentNode->memberName = "mVertexCountPerInstance";
+    currentNode->description = getMetaClassDescriptionByIndex(unsignedlong);
+    currentNode->description->read(stream, currentNode, flags);
 
-    uint32_t buf[4];
-    fread(buf, sizeof(buf), 1, stream);
-    cfseek(stream, -sizeof(buf), SEEK_CUR);
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "mIndexBufferCount";
+    currentNode->description = getMetaClassDescriptionByIndex(unsignedlong);
+    currentNode->description->read(stream, currentNode, flags);
+    uint32_t indexBufferCount = *(uint32_t *)(currentNode->staticBuffer);
 
-    node->childCount = 4 + buf[1] + buf[2] + buf[3];
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "mVertexBufferCount";
+    currentNode->description = getMetaClassDescriptionByIndex(unsignedlong);
+    currentNode->description->read(stream, currentNode, flags);
+    uint32_t vertexBufferCount = *(uint32_t *)(currentNode->staticBuffer);
 
-    for (uint16_t i = 0; i < node->childCount; ++i)
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "mAttributeCount";
+    currentNode->description = getMetaClassDescriptionByIndex(unsignedlong);
+    currentNode->description->read(stream, currentNode, flags);
+    uint32_t attributeCount = *(uint32_t *)(currentNode->staticBuffer);
+
+    for (uint32_t i = 0; i < attributeCount; ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
+        currentNode->memberName = "attribute";
+        currentNode->description = getMetaClassDescriptionByIndex(GFXPlatformAttributeParams);
+        currentNode->description->read(stream, currentNode, flags);
     }
 
-    node->children[0]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    node->children[3]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    for (uint16_t i = 4; i < 4 + buf[3]; ++i)
+    for (uint32_t i = 0; i < indexBufferCount; ++i)
     {
-        node->children[i]->description = getMetaClassDescriptionByIndex(GFXPlatformAttributeParams);
-        node->children[i]->description->read(stream, node->children[i], flags);
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
+        currentNode->memberName = "indexBuffer";
+        currentNode->description = getMetaClassDescriptionByIndex(T3GFXBuffer);
+        currentNode->description->read(stream, currentNode, flags);
     }
-    for (uint16_t i = 4 + buf[3]; i < 4 + buf[3] + buf[1]; ++i)
+
+    for (uint32_t i = 0; i < vertexBufferCount; ++i)
     {
-        node->children[i]->description = getMetaClassDescriptionByIndex(T3GFXBuffer);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
-    for (uint16_t i = 4 + buf[3] + buf[1]; i < node->childCount; ++i)
-    {
-        node->children[i]->description = getMetaClassDescriptionByIndex(T3GFXBuffer);
-        node->children[i]->description->read(stream, node->children[i], flags);
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
+        currentNode->memberName = "vertexBuffer";
+        currentNode->description = getMetaClassDescriptionByIndex(T3GFXBuffer);
+        currentNode->description->read(stream, currentNode, flags);
     }
 
     return 0;
@@ -503,32 +294,19 @@ int T3GFXBufferRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     (void)flags;
     node->dataSize = sizeof(int32_t) * 5; // TODO: maybe change to children
-    node->data.dynamicBuffer = malloc(node->dataSize);
-    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
 
 int T3MeshEffectPreloadDynamicFeaturesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(BitSetBase_1_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mDynamicFeatures", .metaClassDescriptionIndex = BitSetBase_1_},
+        {.isBlocked = 0, .memberName = "mPriority", .metaClassDescriptionIndex = long_type},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 int DCArray_T3MeshEffectPreloadDynamicFeatures_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -538,32 +316,13 @@ int DCArray_T3MeshEffectPreloadDynamicFeatures_Read(FILE *stream, struct TreeNod
 
 int T3MeshEffectPreloadEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(BitSetBase_3_);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(unsigned__int64);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshEffectPreloadDynamicFeatures_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mEffectType", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 1, .memberName = "mStaticEffectFeatures", .metaClassDescriptionIndex = BitSetBase_3_},
+        {.isBlocked = 0, .memberName = "mMaterialCRC", .metaClassDescriptionIndex = unsigned__int64},
+        {.isBlocked = 1, .memberName = "mDynamicEffectFeatures", .metaClassDescriptionIndex = DCArray_T3MeshEffectPreloadDynamicFeatures_},
+    };
+    return genericRead(stream, node, flags, 4, descriptions);
 }
 
 int DCArray_T3MeshEffectPreloadEntry_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -573,27 +332,12 @@ int DCArray_T3MeshEffectPreloadEntry_Read(FILE *stream, struct TreeNode *node, u
 
 int T3MeshEffectPreloadRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshEffectPreloadEntry_);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mEffectQuality", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 1, .memberName = "mEntries", .metaClassDescriptionIndex = DCArray_T3MeshEffectPreloadEntry_},
+        {.isBlocked = 0, .memberName = "mTotalEffectCount", .metaClassDescriptionIndex = unsignedlong},
+    };
+    return genericRead(stream, node, flags, 3, descriptions);
 }
 
 int DCArray_T3MeshEffectPreload_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -603,31 +347,12 @@ int DCArray_T3MeshEffectPreload_Read(FILE *stream, struct TreeNode *node, uint32
 
 int T3MaterialRequirementsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(BitSetBase_1_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(BitSetBase_2_);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(BitSetBase_3_);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mPasses", .metaClassDescriptionIndex = BitSetBase_1_},
+        {.isBlocked = 1, .memberName = "mChannels", .metaClassDescriptionIndex = BitSetBase_2_},
+        {.isBlocked = 1, .memberName = "mInputs", .metaClassDescriptionIndex = BitSetBase_3_},
+    };
+    return genericRead(stream, node, flags, 3, descriptions);
 }
 
 int DCArray_T3MeshLOD_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -637,21 +362,23 @@ int DCArray_T3MeshLOD_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DCArray_T3MeshTexture_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        T3MeshTextureRead(stream, node->children[i], flags); // TODO: Set description
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        T3MeshTextureRead(stream, currentNode, flags);
     }
     return 0;
 }
@@ -663,21 +390,23 @@ int DCArray_T3MeshMaterial_Read(FILE *stream, struct TreeNode *node, uint32_t fl
 
 int DCArray_T3MeshMaterialOverride_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        T3MeshMaterialOverrideRead(stream, node->children[i], flags); // TODO: Set description
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        T3MeshMaterialOverrideRead(stream, currentNode, flags);
     }
     return 0;
 }
@@ -694,133 +423,80 @@ int DCArray_T3MeshLocalTransformEntry_Read(FILE *stream, struct TreeNode *node, 
 
 int T3MeshDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 22;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mLODs", .metaClassDescriptionIndex = DCArray_T3MeshLOD_},
+        {.isBlocked = 1, .memberName = "mTextures", .metaClassDescriptionIndex = DCArray_T3MeshTexture_},
+        {.isBlocked = 1, .memberName = "mMaterials", .metaClassDescriptionIndex = DCArray_T3MeshMaterial_},
+        {.isBlocked = 1, .memberName = "mMaterialOverrides", .metaClassDescriptionIndex = DCArray_T3MeshMaterialOverride_},
+        {.isBlocked = 1, .memberName = "mBones", .metaClassDescriptionIndex = DCArray_T3MeshBoneEntry_},
+        {.isBlocked = 1, .memberName = "mLocalTransforms", .metaClassDescriptionIndex = DCArray_T3MeshLocalTransformEntry_},
+        {.isBlocked = 1, .memberName = "mMaterialRequirements", .metaClassDescriptionIndex = T3MaterialRequirements},
+        {.isBlocked = 1, .memberName = "mVertexStreams", .metaClassDescriptionIndex = BitSetBase_1_},
+        {.isBlocked = 0, .memberName = "mBoundingBox", .metaClassDescriptionIndex = BoundingBox},
+        {.isBlocked = 1, .memberName = "mBoundingSphere", .metaClassDescriptionIndex = Sphere},
+        {.isBlocked = 0, .memberName = "mEndianType", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mPositionScale", .metaClassDescriptionIndex = Vector3},
+        {.isBlocked = 0, .memberName = "mPositionWScale", .metaClassDescriptionIndex = Vector3},
+        {.isBlocked = 0, .memberName = "mPositionOffset", .metaClassDescriptionIndex = Vector3},
+        {.isBlocked = 0, .memberName = "mLightmapTexelAreaPerSurfaceAre", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 0, .memberName = "mPropertyKeyBase", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mVertexCount", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+        {.isBlocked = 1, .memberName = "mMeshPreload", .metaClassDescriptionIndex = DCArray_T3MeshEffectPreload_},
+    };
+    genericRead(stream, node, flags, 19, descriptions);
+    struct TreeNode *currentNode = node->child;
+    currentNode = currentNode->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling->sibling;
+    uint32_t meshDataFlags = *(uint32_t *)(currentNode->staticBuffer);
+    currentNode = currentNode->sibling;
 
-    for (uint16_t i = 0; i < node->childCount; ++i)
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+
+    currentNode->child = malloc(sizeof(struct TreeNode));
+    currentNode->child->description = getMetaClassDescriptionByIndex(int_type);
+    currentNode->child->description->read(stream, currentNode->child, flags);
+    currentNode->child->parent = node;
+    currentNode->child->serializeType = 0;
+    currentNode->child->memberName = "pairCount";
+    currentNode->child->isBlocked = 0;
+    currentNode->child->sibling = NULL;
+
+    struct TreeNode *mapNode = currentNode->child;
+
+    for (uint32_t i = 0; i < *(uint32_t *)(currentNode->child->staticBuffer) * 2; ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshLOD_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshTexture_);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshMaterial_);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshMaterialOverride_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[4]->isBlocked = 1;
-    node->children[4]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshBoneEntry_);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    uint64_t boneNumVerts = 0;
-    for (uint32_t i = 1; i < node->children[4]->childCount; ++i) // TODO: Remove
-    {
-        assert(*(int32_t *)(node->children[4]->children[i]->children[3]->data.staticBuffer) >= 0);
-        boneNumVerts += *(int32_t *)(node->children[4]->children[i]->children[3]->data.staticBuffer);
-    }
-    printf("%ld\n", boneNumVerts);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[5]->isBlocked = 1;
-    node->children[5]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshLocalTransformEntry_);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[6]->isBlocked = 1;
-    node->children[6]->description = getMetaClassDescriptionByIndex(T3MaterialRequirements);
-    node->children[6]->description->read(stream, node->children[6], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[7]->isBlocked = 1;
-    node->children[7]->description = getMetaClassDescriptionByIndex(BitSetBase_1_);
-    node->children[7]->description->read(stream, node->children[7], flags);
-
-    node->children[8]->description = getMetaClassDescriptionByIndex(BoundingBox);
-    node->children[8]->description->read(stream, node->children[8], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[9]->isBlocked = 1;
-    node->children[9]->description = getMetaClassDescriptionByIndex(Sphere);
-    node->children[9]->description->read(stream, node->children[9], flags);
-
-    node->children[10]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[10]->description->read(stream, node->children[10], flags);
-
-    node->children[11]->description = getMetaClassDescriptionByIndex(Vector3);
-    node->children[11]->description->read(stream, node->children[11], flags);
-
-    node->children[12]->description = getMetaClassDescriptionByIndex(Vector3);
-    node->children[12]->description->read(stream, node->children[12], flags);
-
-    node->children[13]->description = getMetaClassDescriptionByIndex(Vector3);
-    node->children[13]->description->read(stream, node->children[13], flags);
-
-    node->children[14]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[14]->description->read(stream, node->children[14], flags);
-
-    node->children[15]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[15]->description->read(stream, node->children[15], flags);
-
-    node->children[16]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[16]->description->read(stream, node->children[16], flags);
-
-    node->children[17]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[17]->description->read(stream, node->children[17], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[18]->isBlocked = 1;
-    node->children[18]->description = getMetaClassDescriptionByIndex(DCArray_T3MeshEffectPreload_);
-    node->children[18]->description->read(stream, node->children[18], flags);
-
-    node->children[19]->childCount = 1;
-    node->children[19]->children = malloc(node->children[19]->childCount * sizeof(struct TreeNode *));
-    node->children[19]->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[19]->children[0]->parent = node;
-    node->children[19]->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[19]->children[0]->description->read(stream, node->children[19]->children[0], flags);
-    node->children[19]->childCount += (*(uint32_t *)(node->children[19]->children[0]->data.staticBuffer)) * 2;
-    node->children[19]->children = realloc(node->children[19]->children, node->children[19]->childCount * sizeof(struct TreeNode *));
-
-    for (uint32_t i = 1; i < node->children[19]->childCount; ++i)
-    {
-        node->children[19]->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[19]->children[i]->parent = node;
+        mapNode->sibling = calloc(1, sizeof(struct TreeNode));
+        mapNode = mapNode->sibling;
+        mapNode->parent = node;
         if (i % 2) // if odd
         {
-            node->children[19]->children[i]->description = getMetaClassDescriptionByIndex(int_type);
-            node->children[19]->children[i]->description->read(stream, node->children[19]->children[i], flags);
+            T3MeshTexCoordTransformRead(stream, mapNode, flags);
         }
         else
         {
-            // node->children[19]->children[i]->description; // TODO: set description
-            T3MeshTexCoordTransformRead(stream, node->children[19]->children[i], flags);
+            mapNode->description = getMetaClassDescriptionByIndex(int_type);
+            mapNode->description->read(stream, mapNode, flags);
         }
     }
 
-    if ((((*(uint32_t *)node->children[17]->data.staticBuffer) >> 4) & 1) != 0) // if there are no T3MeshCPUSkinningData, then T3SkinningStartegy will be eSkinningGPU_Vertex I think. Don't quote me on this since I did not completely look over the code in ghidra. I am partially making assumptions
+    if (meshDataFlags & eHasCPUSkinning) // if there are no T3MeshCPUSkinningData, then T3SkinningStartegy will be eSkinningGPU_Vertex I think. Don't quote me on this since I did not completely look over the code in ghidra. I am partially making assumptions
     {
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
+        currentNode->memberName = "mpCPUSkinningData";
         // node->children[20]->description; // TODO: Set description
-        T3MeshCPUSkinningDataRead(stream, node->children[20], flags);
+        T3MeshCPUSkinningDataRead(stream, currentNode, flags);
     }
 
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "mVertexStates";
     // node->children[21]->description; // TODO: Set description
-    genericArrayRead(stream, node->children[21], flags, getMetaClassDescriptionByIndex(T3GFXVertexState));
+    genericArrayRead(stream, currentNode, flags, getMetaClassDescriptionByIndex(T3GFXVertexState));
 
     return 0;
 }
@@ -829,66 +505,45 @@ static int T3OcclusionMeshBatchRead(FILE *stream, struct TreeNode *node, uint32_
 {
     (void)flags;
     node->dataSize = sizeof(uint32_t) * 3;
-    node->data.dynamicBuffer = malloc(node->dataSize);
-    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
 
 int DCArray_T3OcclusionMeshBatch_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        T3OcclusionMeshBatchRead(stream, node->children[i], flags); // TODO: Set description
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        T3OcclusionMeshBatchRead(stream, currentNode, flags);
     }
     return 0;
 }
 
 int T3OcclusionMeshDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 5;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(BinaryBuffer);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(BoundingBox);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(Sphere);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(DCArray_T3OcclusionMeshBatch_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    node->children[4]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mData", .metaClassDescriptionIndex = BinaryBuffer},
+        {.isBlocked = 0, .memberName = "mBoundingBox", .metaClassDescriptionIndex = BoundingBox},
+        {.isBlocked = 1, .memberName = "mBoundingSphere", .metaClassDescriptionIndex = Sphere},
+        {.isBlocked = 1, .memberName = "mBatches", .metaClassDescriptionIndex = DCArray_T3OcclusionMeshBatch_},
+        {.isBlocked = 0, .memberName = "mVertexCount", .metaClassDescriptionIndex = unsignedlong},
+    };
+    return genericRead(stream, node, flags, 5, descriptions);
 }
 
 int DCArray_HandleBase_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -898,117 +553,108 @@ int DCArray_HandleBase_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int D3DMeshRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 11;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
+        {.isBlocked = 0, .memberName = "mVersion", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mToolProps", .metaClassDescriptionIndex = ToolProps},
+        {.isBlocked = 0, .memberName = "mLightmapGlobalScale", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 0, .memberName = "mLightmapTexCoordVersion", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mLODParamCRC", .metaClassDescriptionIndex = unsigned__int64},
+    };
+    genericRead(stream, node, flags, 6, descriptions);
 
-    for (uint16_t i = 0; i < node->childCount; ++i)
+    struct TreeNode *currentNode = node->child->sibling->sibling->sibling->sibling->sibling;
+
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+
+    currentNode->child = malloc(sizeof(struct TreeNode));
+    currentNode->child->description = getMetaClassDescriptionByIndex(int_type);
+    currentNode->child->description->read(stream, currentNode->child, flags);
+    currentNode->child->parent = currentNode;
+    currentNode->child->serializeType = 0;
+    currentNode->child->memberName = "pairCount";
+    currentNode->child->isBlocked = 0;
+    currentNode->child->sibling = NULL;
+
+    struct TreeNode *mapNode = currentNode->child;
+
+    for (uint32_t i = 0; i < *(uint32_t *)(currentNode->child->staticBuffer) * 2; ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(String);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(ToolProps);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    node->children[3]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    node->children[4]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    node->children[5]->description = getMetaClassDescriptionByIndex(unsigned__int64);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    uint32_t mapCount;
-    fread(&mapCount, sizeof(mapCount), 1, stream);
-    cfseek(stream, -sizeof(mapCount), SEEK_CUR);
-
-    node->children[6]->childCount = (mapCount * 2) + 1;
-    node->children[6]->children = malloc(node->children[6]->childCount * sizeof(struct TreeNode *));
-
-    node->children[6]->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[6]->children[0]->parent = node->children[6];
-    node->children[6]->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[6]->children[0]->description->read(stream, node->children[6]->children[0], flags);
-
-    for (uint16_t i = 1; i < node->children[6]->childCount; ++i)
-    {
-        node->children[6]->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[6]->children[i]->parent = node->children[6];
-        if (i % 2)
-        {
-            node->children[6]->children[i]->description = getMetaClassDescriptionByIndex(Symbol);
-            node->children[6]->children[i]->description->read(stream, node->children[6]->children[i], flags);
-        }
-        else
+        mapNode->sibling = calloc(1, sizeof(struct TreeNode));
+        mapNode = mapNode->sibling;
+        mapNode->parent = node;
+        if (i % 2) // if odd
         {
             uint64_t typeSymbol;
             fread(&typeSymbol, sizeof(typeSymbol), 1, stream);
-            node->children[6]->children[i]->serializeType = 1;
-
+            mapNode->serializeType = 1;
             cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-            node->children[6]->children[i]->isBlocked = 1;
-            node->children[6]->children[i]->description = getMetaClassDescriptionBySymbol(typeSymbol);
-            node->children[6]->children[i]->description->read(stream, node->children[6]->children[i], flags);
+            mapNode->isBlocked = 1;
+            mapNode->description = getMetaClassDescriptionBySymbol(typeSymbol);
+            mapNode->description->read(stream, mapNode, flags);
+        }
+        else
+        {
+            mapNode->description = getMetaClassDescriptionByIndex(Symbol);
+            mapNode->description->read(stream, mapNode, flags);
         }
     }
 
-    node->children[7]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[7]->description->read(stream, node->children[7], flags);
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "unknown";
+    currentNode->description = getMetaClassDescriptionByIndex(int_type);
+    currentNode->description->read(stream, currentNode, flags);
 
-    node->children[8]->description = getMetaClassDescriptionByIndex(bool_type);
-    node->children[8]->description->read(stream, node->children[8], flags);
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "isOcclusionMeshData";
+    currentNode->description = getMetaClassDescriptionByIndex(bool_type);
+    currentNode->description->read(stream, currentNode, flags);
 
-    if (*node->children[8]->data.staticBuffer == '1')
+    if (*(currentNode->staticBuffer) == '1')
     {
-        node->children = realloc(node->children, (++node->childCount) * sizeof(struct TreeNode *));
-        node->children[node->childCount - 1] = calloc(1, sizeof(struct TreeNode));
-        node->children[node->childCount - 1]->parent = node;
-
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
         cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-        node->children[9]->isBlocked = 1;
-        node->children[9]->description = getMetaClassDescriptionByIndex(T3OcclusionMeshData);
-        node->children[9]->description->read(stream, node->children[9], flags);
+        currentNode->isBlocked = 1;
+        currentNode->description = getMetaClassDescriptionByIndex(T3OcclusionMeshData);
+        currentNode->description->read(stream, currentNode, flags);
     }
-
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[node->childCount - 2]->isBlocked = 1;
-    node->children[node->childCount - 2]->description = getMetaClassDescriptionByIndex(T3MeshData);
-    node->children[node->childCount - 2]->description->read(stream, node->children[node->childCount - 2], flags);
+    currentNode->isBlocked = 1;
+    currentNode->description = getMetaClassDescriptionByIndex(T3MeshData);
+    currentNode->description->read(stream, currentNode, flags);
 
     // node->children[node->childCount - 1]->description; TODO: Set description
-    int64_t startOfAsync = ftell(stream);
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    int64_t startOfAsync = cftell(stream);
     cfseek(stream, 0, SEEK_END);
-    node->children[node->childCount - 1]->dataSize = cftell(stream) - startOfAsync;
-    node->children[node->childCount - 1]->data.dynamicBuffer = malloc(node->children[node->childCount - 1]->dataSize);
+    currentNode->dataSize = cftell(stream) - startOfAsync;
+    currentNode->dynamicBuffer = malloc(currentNode->dataSize);
     cfseek(stream, startOfAsync, SEEK_SET);
-    fread(node->children[node->childCount - 1]->data.dynamicBuffer, node->children[node->childCount - 1]->dataSize, 1, stream);
+    fread(currentNode->dynamicBuffer, currentNode->dataSize, 1, stream);
 
     return 0;
 }
 
 int T3MaterialRuntimePropertyRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->description = getMetaClassDescriptionByIndex(Symbol);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mRuntimeName", .metaClassDescriptionIndex = Symbol},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 int DCArray_T3MaterialRuntimeProperty_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -1020,8 +666,8 @@ int T3MaterialParameterRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     (void)flags;
     node->dataSize = sizeof(uint64_t) + 6 * sizeof(int32_t); // TODO: Maybe change to children
-    node->data.dynamicBuffer = malloc(node->dataSize);
-    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
@@ -1033,48 +679,19 @@ int DCArray_T3MaterialParameter_Read(FILE *stream, struct TreeNode *node, uint32
 
 int T3MaterialTextureRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 10;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    node->children[3]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    node->children[4]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[5]->isBlocked = 1;
-    node->children[5]->description = getMetaClassDescriptionByIndex(BitSetBase_1_);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    node->children[6]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[6]->description->read(stream, node->children[6], flags);
-
-    node->children[7]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[7]->description->read(stream, node->children[7], flags);
-
-    node->children[8]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[8]->description->read(stream, node->children[8], flags);
-
-    node->children[9]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[9]->description->read(stream, node->children[9], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mTextureName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mTextureNameWithoutExtension", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mLayout", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mPropertyType", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 1, .memberName = "mTextureTypes", .metaClassDescriptionIndex = BitSetBase_1_},
+        {.isBlocked = 0, .memberName = "mFirstParamIndex", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mParamCount", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mTextureIndex", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mNestedMaterialIndex", .metaClassDescriptionIndex = long_type},
+    };
+    return genericRead(stream, node, flags, 10, descriptions);
 }
 
 int DCArray_T3MaterialTexture_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -1086,8 +703,8 @@ int T3MaterialTransform2DRead(FILE *stream, struct TreeNode *node, uint32_t flag
 {
     (void)flags;
     node->dataSize = sizeof(uint64_t) + 6 * sizeof(int32_t); // TODO: Maybe change to children
-    node->data.dynamicBuffer = malloc(node->dataSize);
-    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
@@ -1099,36 +716,31 @@ int DCArray_T3MaterialTransform2D_Read(FILE *stream, struct TreeNode *node, uint
 
 static int T3MaterialNestedMaterialRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->parent = node;
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(Handle_PropertySet_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mhMaterial", .metaClassDescriptionIndex = Handle_PropertySet_},
+    };
+    return genericRead(stream, node, flags, 1, descriptions);
 }
 
 int DCArray_T3MaterialNestedMaterial_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        T3MaterialNestedMaterialRead(stream, node->children[i], flags); // TODO: Set description
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        T3MaterialNestedMaterialRead(stream, currentNode, flags); // TODO: Set description
     }
     return 0;
 }
@@ -1137,8 +749,8 @@ int T3MaterialPreShaderRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     (void)flags;
     node->dataSize = 4 * sizeof(int32_t); // TODO: Maybe change to children
-    node->data.dynamicBuffer = malloc(node->dataSize);
-    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
@@ -1152,8 +764,8 @@ int T3MaterialStaticParameterRead(FILE *stream, struct TreeNode *node, uint32_t 
 {
     (void)flags;
     node->dataSize = sizeof(uint64_t) + sizeof(int32_t); // TODO: Maybe change to children
-    node->data.dynamicBuffer = malloc(node->dataSize);
-    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
@@ -1167,29 +779,31 @@ static int T3MaterialTextureParamRead(FILE *stream, struct TreeNode *node, uint3
 {
     (void)flags;
     node->dataSize = 4 * sizeof(int32_t); // TODO: Maybe change to children
-    node->data.dynamicBuffer = malloc(node->dataSize);
-    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
 
 int DCArray_T3MaterialTextureParam_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        T3MaterialTextureParamRead(stream, node->children[i], flags); // TODO: Set description
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        T3MaterialTextureParamRead(stream, currentNode, flags); // TODO: Set description
     }
     return 0;
 }
@@ -1198,8 +812,8 @@ int T3MaterialPassDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
     (void)flags;
     node->dataSize = 2 * sizeof(int32_t) + sizeof(uint64_t); // TODO: Maybe change to children
-    node->data.dynamicBuffer = malloc(node->dataSize);
-    fread(node->data.dynamicBuffer, node->dataSize, 1, stream);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
@@ -1211,106 +825,29 @@ int DCArray_T3MaterialPassData_Read(FILE *stream, struct TreeNode *node, uint32_
 
 int T3MaterialCompiledDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 20;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(DCArray_T3MaterialParameter_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(DCArray_T3MaterialTexture_);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(DCArray_T3MaterialTransform2D_);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(DCArray_T3MaterialNestedMaterial_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[4]->isBlocked = 1;
-    node->children[4]->description = getMetaClassDescriptionByIndex(DCArray_T3MaterialPreShader_);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[5]->isBlocked = 1;
-    node->children[5]->description = getMetaClassDescriptionByIndex(DCArray_T3MaterialStaticParameter_);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[6]->isBlocked = 1;
-    node->children[6]->description = getMetaClassDescriptionByIndex(DCArray_T3MaterialTextureParam_);
-    node->children[6]->description->read(stream, node->children[6], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[7]->isBlocked = 1;
-    node->children[7]->description = getMetaClassDescriptionByIndex(DCArray_T3MaterialPassData_);
-    node->children[7]->description->read(stream, node->children[7], flags);
-
-    node->children[8]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[8]->description->read(stream, node->children[8], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[9]->isBlocked = 1;
-    node->children[9]->description = getMetaClassDescriptionByIndex(BitSetBase_1_);
-    node->children[9]->description->read(stream, node->children[9], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[10]->isBlocked = 1;
-    node->children[10]->description = getMetaClassDescriptionByIndex(BitSetBase_1_);
-    node->children[10]->description->read(stream, node->children[10], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[11]->isBlocked = 1;
-    node->children[11]->description = getMetaClassDescriptionByIndex(BitSetBase_2_);
-    node->children[11]->description->read(stream, node->children[11], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[12]->isBlocked = 1;
-    node->children[12]->description = getMetaClassDescriptionByIndex(BitSetBase_3_);
-    node->children[12]->description->read(stream, node->children[12], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[13]->isBlocked = 1;
-    node->children[13]->description = getMetaClassDescriptionByIndex(BitSetBase_1_);
-    node->children[13]->description->read(stream, node->children[13], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[14]->isBlocked = 1;
-    node->children[14]->description = getMetaClassDescriptionByIndex(BitSetBase_1_);
-    node->children[14]->description->read(stream, node->children[14], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[15]->isBlocked = 1;
-    node->children[15]->description = getMetaClassDescriptionByIndex(BinaryBuffer);
-    node->children[15]->description->read(stream, node->children[15], flags);
-
-    node->children[16]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[16]->description->read(stream, node->children[16], flags);
-
-    node->children[17]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[17]->description->read(stream, node->children[17], flags);
-
-    node->children[18]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[18]->description->read(stream, node->children[18], flags);
-
-    node->children[19]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    node->children[19]->description->read(stream, node->children[19], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mParameters", .metaClassDescriptionIndex = DCArray_T3MaterialParameter_},
+        {.isBlocked = 1, .memberName = "mTextures", .metaClassDescriptionIndex = DCArray_T3MaterialTexture_},
+        {.isBlocked = 1, .memberName = "mTransforms", .metaClassDescriptionIndex = DCArray_T3MaterialTransform2D_},
+        {.isBlocked = 1, .memberName = "mNestedMaterials", .metaClassDescriptionIndex = DCArray_T3MaterialNestedMaterial_},
+        {.isBlocked = 1, .memberName = "mPreShaders", .metaClassDescriptionIndex = DCArray_T3MaterialPreShader_},
+        {.isBlocked = 1, .memberName = "mStaticParameters", .metaClassDescriptionIndex = DCArray_T3MaterialStaticParameter_},
+        {.isBlocked = 1, .memberName = "mTextureParams", .metaClassDescriptionIndex = DCArray_T3MaterialTextureParam_},
+        {.isBlocked = 1, .memberName = "mPasses", .metaClassDescriptionIndex = DCArray_T3MaterialPassData_},
+        {.isBlocked = 0, .memberName = "mMaterialQuality", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 1, .memberName = "mMaterialBlendModes", .metaClassDescriptionIndex = BitSetBase_1_},
+        {.isBlocked = 1, .memberName = "mMaterialPasses", .metaClassDescriptionIndex = BitSetBase_1_},
+        {.isBlocked = 1, .memberName = "mMaterialChannels", .metaClassDescriptionIndex = BitSetBase_2_},
+        {.isBlocked = 1, .memberName = "mShaderInputs", .metaClassDescriptionIndex = BitSetBase_3_},
+        {.isBlocked = 1, .memberName = "mSceneTextures", .metaClassDescriptionIndex = BitSetBase_1_},
+        {.isBlocked = 1, .memberName = "mOptionalPropertyTypes", .metaClassDescriptionIndex = BitSetBase_1_},
+        {.isBlocked = 1, .memberName = "mPreShaderBuffer", .metaClassDescriptionIndex = BinaryBuffer},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+        {.isBlocked = 0, .memberName = "mParameterBufferScalarSize[0]", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mParameterBufferScalarSize[1]", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mPreShaderParameterBufferScalar", .metaClassDescriptionIndex = unsignedlong},
+    };
+    return genericRead(stream, node, flags, 20, descriptions);
 }
 
 int DCArray_T3MaterialCompiledData_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -1320,40 +857,17 @@ int DCArray_T3MaterialCompiledData_Read(FILE *stream, struct TreeNode *node, uin
 
 int T3MaterialDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 10;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    for (uint16_t i = 0; i < 4; ++i)
-    {
-        node->children[i]->description = getMetaClassDescriptionByIndex(Symbol);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
-
-    node->children[4]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[5]->isBlocked = 1;
-    node->children[5]->description = getMetaClassDescriptionByIndex(DCArray_T3MaterialRuntimeProperty_);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    node->children[6]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[6]->description->read(stream, node->children[6], flags);
-
-    node->children[7]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[7]->description->read(stream, node->children[7], flags);
-
-    node->children[8]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[8]->description->read(stream, node->children[8], flags);
-
-    node->children[9]->description = getMetaClassDescriptionByIndex(DCArray_T3MaterialCompiledData_);
-    node->children[9]->description->read(stream, node->children[9], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mMaterialName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mRuntimePropertiesName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mLegacyRenderTextureProperty", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mLegacyBlendModeRuntimeProperty", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mDomain", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 1, .memberName = "mRuntimeProperties", .metaClassDescriptionIndex = DCArray_T3MaterialRuntimeProperty_},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+        {.isBlocked = 0, .memberName = "mRuntimeFlags", .metaClassDescriptionIndex = Flags},
+        {.isBlocked = 0, .memberName = "mVersion", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mCompiledData2", .metaClassDescriptionIndex = DCArray_T3MaterialCompiledData_}, // isBlocked is set to 0 intentionally
+    };
+    return genericRead(stream, node, flags, 10, descriptions);
 }

@@ -7,27 +7,12 @@
 
 int PhonemeTable__PhonemeEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(AnimOrChore);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mAnimation", .metaClassDescriptionIndex = AnimOrChore},
+        {.isBlocked = 0, .memberName = "mContributionScalar", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 0, .memberName = "mTimeScalar", .metaClassDescriptionIndex = float_type},
+    };
+    return genericRead(stream, node, flags, 3, descriptions);
 }
 
 int Map_SymbolPhonemeTable__PhonemeEntryless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -37,27 +22,10 @@ int Map_SymbolPhonemeTable__PhonemeEntryless_Symbol__Read(FILE *stream, struct T
 
 int PhonemeTableRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(String);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(Map_SymbolPhonemeTable__PhonemeEntryless_Symbol__);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
+        {.isBlocked = 0, .memberName = "mContributionScalar", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 1, .memberName = "mAnimations", .metaClassDescriptionIndex = Map_SymbolPhonemeTable__PhonemeEntryless_Symbol__},
+    };
+    return genericRead(stream, node, flags, 3, descriptions);
 }

@@ -3,7 +3,7 @@
 
 int DCArray_HandleLock_Scene__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
 int LinkedList_Scene__AgentInfo0_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
-int SceneAgentInfoRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int Scene__AgentInfoRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int SceneRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 int LocationInfoRead(FILE *stream, struct TreeNode *node, uint32_t flags);
 

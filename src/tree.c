@@ -3,50 +3,57 @@
 #include <stdio.h>
 #include <stream.h>
 #include <string.h>
+#include <assert.h>
 
-void treeFree(struct TreeNode *restrict root)
+void treeFree(struct TreeNode *root)
 {
-    if (root->dataSize > sizeof(root->data))
+    if (root->sibling != NULL)
     {
-        free(root->data.dynamicBuffer);
-        root->data.dynamicBuffer = NULL;
-        root->dataSize = 0;
+        treeFree(root->sibling);
+        free(root->sibling);
     }
-
-    if (root->children != NULL)
+    if (root->dataSize > sizeof(root->staticBuffer))
     {
-        for (uint32_t i = 0; i < root->childCount; ++i)
-        {
-            if (root->children[i] != NULL)
-            {
-                treeFree(root->children[i]);
-                free(root->children[i]);
-                root->children[i] = NULL;
-            }
-        }
-        free(root->children);
-        root->children = NULL;
-        root->childCount = 0;
+        free(root->dynamicBuffer);
+    }
+    else if (root->dataSize == 0 && root->child != NULL)
+    {
+        treeFree(root->child);
+        free(root->child);
     }
 }
 
-uint32_t writeTree(FILE *stream, struct TreeNode *restrict root)
+uint32_t writeTree(FILE *stream, const struct TreeNode *root)
 {
-    // printf("ftell = %lx\n", cftell(stream));
-    // int64_t ftel = cftell(stream);
-    uint32_t ret = 0;
-
-    for (uint16_t i = 0; i < root->childCount; ++i)
+    int64_t tell = cftell(stream);
+    if (tell < 0x2ba8 && tell > 0x2b90)
     {
-        if (root->children[i]->serializeType)
+        printf("stop\n");
+    }
+    if (root->dataSize > 0)
+    {
+        if (root->dataSize > sizeof(root->staticBuffer))
         {
-            ret += fwrite(&root->children[i]->description->crc, 1, sizeof(root->children[i]->description->crc), stream);
+            return fwrite(root->dynamicBuffer, 1, root->dataSize, stream);
         }
-        if (root->children[i]->isBlocked)
+        else
         {
-            size_t childSize = 0;
-            childSize = fwrite(&childSize, 1, sizeof(uint32_t), stream);
-            childSize += writeTree(stream, root->children[i]);
+            return fwrite(root->staticBuffer, 1, root->dataSize, stream);
+        }
+    }
+
+    uint32_t ret = 0;
+    root = root->child;
+    while (root != NULL)
+    {
+        if (root->serializeType)
+        {
+            ret += fwrite(&(root->description->crc), 1, sizeof(root->description->crc), stream);
+        }
+        if (root->isBlocked)
+        {
+            size_t childSize = fwrite(&ret, 1, sizeof(ret), stream);
+            childSize += writeTree(stream, root);
             cfseek(stream, -(int64_t)childSize, SEEK_CUR);
             fwrite(&childSize, 1, sizeof(uint32_t), stream);
             cfseek(stream, childSize - sizeof(uint32_t), SEEK_CUR);
@@ -54,73 +61,9 @@ uint32_t writeTree(FILE *stream, struct TreeNode *restrict root)
         }
         else
         {
-            ret += writeTree(stream, root->children[i]);
+            ret += writeTree(stream, root);
         }
-    }
-    if (root->dataSize <= sizeof(root->data))
-    {
-        ret += fwrite(root->data.staticBuffer, 1, root->dataSize, stream);
-    }
-    else
-    {
-        ret += fwrite(root->data.dynamicBuffer, 1, root->dataSize, stream);
+        root = root->sibling;
     }
     return ret;
-}
-
-void treePushBack(struct TreeNode *restrict tree, struct TreeNode *restrict child) // tree and child should never point to the same node.
-{
-    tree->children = realloc(tree->children, (++tree->childCount) * sizeof(struct TreeNode *));
-    tree->children[tree->childCount - 1] = child;
-    child->parent = tree; // TODO: Maybe remove this and let the user do this manually since this requires that memory is allocated for the child which I might not always be able to garantuee.
-}
-
-struct TreeNode *copyTree(struct TreeNode *restrict tree)
-{
-    struct TreeNode *copy = malloc(sizeof(struct TreeNode));
-
-    copy->dataSize = tree->dataSize;
-    copy->childCount = tree->childCount;
-    copy->isBlocked = tree->isBlocked;
-    copy->description = tree->description;
-    copy->serializeType = tree->serializeType;
-    copy->parent = NULL;
-
-    if (copy->dataSize > sizeof(tree->data))
-    {
-        copy->data.dynamicBuffer = malloc(copy->dataSize);
-        memcpy(copy->data.dynamicBuffer, tree->data.dynamicBuffer, copy->dataSize);
-    }
-    else
-    {
-        memcpy(copy->data.staticBuffer, tree->data.staticBuffer, sizeof(tree->data));
-    }
-
-    copy->children = malloc(copy->childCount * sizeof(struct TreeNode *));
-    for (uint16_t i = 0; i < tree->childCount; ++i)
-    {
-        copy->children[i] = copyTree(tree->children[i]);
-    }
-
-    return copy;
-}
-
-void treeErase(struct TreeNode *tree, uint16_t childIndex)
-{
-    if (tree->childCount <= childIndex)
-    {
-        printf("Warning: treeErase: Index out of range\n");
-        return;
-    }
-    treeFree(tree->children[childIndex]);
-    free(tree->children[childIndex]);
-
-    struct TreeNode **newChildren = malloc((--tree->childCount) * sizeof(struct TreeNode *));
-    for (uint16_t i = 0; i < tree->childCount; ++i)
-    {
-        newChildren[i] = tree->children[i + (i >= childIndex)];
-    }
-
-    free(tree->children);
-    tree->children = newChildren;
 }

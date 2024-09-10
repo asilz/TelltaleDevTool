@@ -9,29 +9,12 @@
 
 int LanguageResLocalRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->isBlocked = 1;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->description = getMetaClassDescriptionByIndex(String);
-    StringRead(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->description = getMetaClassDescriptionByIndex(String);
-    StringRead(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->description = getMetaClassDescriptionByIndex(LocalizeInfo);
-    intrinsic4Read(stream, node->children[2], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mPrefix", .metaClassDescriptionIndex = String},
+        {.isBlocked = 1, .memberName = "mText", .metaClassDescriptionIndex = String},
+        {.isBlocked = 1, .memberName = "localizeInfo", .metaClassDescriptionIndex = LocalizeInfo},
+    };
+    return genericRead(stream, node, flags, 3, descriptions);
 }
 
 int DCArray_LanguageResLocal_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -41,56 +24,19 @@ int DCArray_LanguageResLocal_Read(FILE *stream, struct TreeNode *node, uint32_t 
 
 int LanguageResRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 10;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(Symbol);
-    intrinsic8Read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    intrinsic4Read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    intrinsic4Read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(Handle_Animation_);
-    intrinsic8Read(stream, node->children[3], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[4]->isBlocked = 1;
-    node->children[4]->description = getMetaClassDescriptionByIndex(Handle_SoundData_);
-    intrinsic8Read(stream, node->children[4], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[5]->isBlocked = 1;
-    node->children[5]->description = getMetaClassDescriptionByIndex(DCArray_LanguageResLocal_);
-    node->children[5]->description->read(stream, node->children[5], flags);
-
-    node->children[6]->description = getMetaClassDescriptionByIndex(float_type);
-    intrinsic4Read(stream, node->children[6], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[7]->isBlocked = 1;
-    node->children[7]->description = getMetaClassDescriptionByIndex(LanguageResLocal);
-    LanguageResLocalRead(stream, node->children[7], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[8]->isBlocked = 1;
-    node->children[8]->description = getMetaClassDescriptionByIndex(RecordingUtils__EnumRecordingStatus);
-    intrinsic4Read(stream, node->children[8], flags);
-
-    node->children[9]->description = getMetaClassDescriptionByIndex(Flags);
-    intrinsic4Read(stream, node->children[9], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mResName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mID", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mIDAlias", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 1, .memberName = "mhAnimation", .metaClassDescriptionIndex = Handle_Animation_},
+        {.isBlocked = 1, .memberName = "mhVoiceData", .metaClassDescriptionIndex = Handle_SoundData_},
+        {.isBlocked = 1, .memberName = "mLocalData", .metaClassDescriptionIndex = DCArray_LanguageResLocal_},
+        {.isBlocked = 0, .memberName = "mLengthOverride", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 1, .memberName = "mResolvedLocalData", .metaClassDescriptionIndex = LanguageResLocal},
+        {.isBlocked = 1, .memberName = "mRecordingStatus", .metaClassDescriptionIndex = RecordingUtils__EnumRecordingStatus},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+    };
+    return genericRead(stream, node, flags, 10, descriptions);
 }
 
 int Map_intSymbolless_int__Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -100,65 +46,31 @@ int Map_intSymbolless_int__Read(FILE *stream, struct TreeNode *node, uint32_t fl
 
 int LocalizationRegistryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(Map_Symbolintless_Symbol__);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(Map_intSymbolless_int__);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(ToolProps);
-    intrinsic1Read(stream, node->children[2], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mFlagIndexMap", .metaClassDescriptionIndex = Map_Symbolintless_Symbol__},
+        {.isBlocked = 1, .memberName = "mFlagIndexMapReverse", .metaClassDescriptionIndex = Map_intSymbolless_int__},
+        {.isBlocked = 0, .memberName = "mToolProps", .metaClassDescriptionIndex = ToolProps},
+    };
+    return genericRead(stream, node, flags, 3, descriptions);
 }
 
 int ProjectDatabaseIDPairRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    intrinsic4Read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(long_type);
-    intrinsic4Read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mProjectID", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mDBID", .metaClassDescriptionIndex = long_type},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 static int LangAnmWavTripletRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->description = getMetaClassDescriptionByIndex(String);
-        StringRead(stream, node->children[i], flags);
-    }
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "langName", .metaClassDescriptionIndex = String},
+        {.isBlocked = 0, .memberName = "anmName", .metaClassDescriptionIndex = String},
+        {.isBlocked = 0, .memberName = "wavName", .metaClassDescriptionIndex = String},
+    };
+    return genericRead(stream, node, flags, 3, descriptions);
 }
 
 int DCArray_ProjectDatabaseIDPair_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
@@ -173,54 +85,26 @@ int Map_unsignedintLanguageResless_unsignedint__Read(FILE *stream, struct TreeNo
 
 int LanguageDBRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 8;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "Baseclass_UID::Owner", .metaClassDescriptionIndex = UID__Owner},
+        {.isBlocked = 1, .memberName = "Baseclass_UID::Generator", .metaClassDescriptionIndex = UID__Generator},
+        {.isBlocked = 1, .memberName = "mLanguageResources", .metaClassDescriptionIndex = Map_unsignedintLanguageResless_unsignedint__},
+        {.isBlocked = 1, .memberName = "mRegistry", .metaClassDescriptionIndex = LocalizationRegistry},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+        {.isBlocked = 0, .memberName = "mProjectID", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 1, .memberName = "mExpandedIDRanges", .metaClassDescriptionIndex = DCArray_ProjectDatabaseIDPair_},
+    };
+    genericRead(stream, node, flags, 7, descriptions);
 
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(UID__Owner);
-    intrinsic4Read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(UID__Generator);
-    intrinsic4Read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(Map_unsignedintLanguageResless_unsignedint__);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(LocalizationRegistry);
-    LocalizationRegistryRead(stream, node->children[3], flags);
-
-    node->children[4]->description = getMetaClassDescriptionByIndex(Flags);
-    intrinsic4Read(stream, node->children[4], flags);
-
-    node->children[5]->description = getMetaClassDescriptionByIndex(unsignedlong);
-    intrinsic4Read(stream, node->children[5], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR); // Skip block
-    node->children[6]->isBlocked = 1;
-    node->children[6]->description = getMetaClassDescriptionByIndex(DCArray_ProjectDatabaseIDPair_);
-    node->children[6]->description->read(stream, node->children[6], flags);
+    struct TreeNode *currentNode = node->child->sibling->sibling->sibling->sibling->sibling->sibling;
 
     // node->children[7]->typeSymbol = 0; // TODO: Set description
-    node->children[7]->childCount = *(uint32_t *)(node->children[2]->children[0]->data.staticBuffer);
-    node->children[7]->children = malloc(node->children[7]->childCount * sizeof(struct TreeNode *));
-    for (uint16_t i = 0; i < node->children[7]->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->sibling->sibling->child->staticBuffer); ++i)
     {
-        node->children[7]->children[i] = calloc(1, sizeof(struct TreeNode)); // TODO: Set description
-        node->children[7]->children[i]->parent = node->children[7];
-        LangAnmWavTripletRead(stream, node->children[7]->children[i], flags);
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
+        LangAnmWavTripletRead(stream, currentNode, flags);
     }
 
     return 0;

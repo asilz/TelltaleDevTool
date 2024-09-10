@@ -9,221 +9,223 @@ static int WalkBoxes__EdgeRead(FILE *stream, struct TreeNode *node, uint32_t fla
 {
     (void)flags;
     node->dataSize = 5 * sizeof(int32_t) + sizeof(float);
-    node->data.dynamicBuffer = malloc(node->dataSize);
-    fread(node->data.dynamicBuffer, node->dataSize, 1, stream); // TODO: Maybe change to children
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream); // TODO: Maybe change to children
 
     return 0;
 }
 
 static int SArray_int3_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->description = getMetaClassDescriptionByIndex(int_type);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
+    (void)flags;
+    node->dataSize = 3 * sizeof(int32_t);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
 
 static int SArray_int4_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->description = getMetaClassDescriptionByIndex(int_type);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
+    (void)flags;
+    node->dataSize = 4 * sizeof(int32_t);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
 
 static int SArray_float3_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        node->children[i]->description = getMetaClassDescriptionByIndex(float_type);
-        node->children[i]->description->read(stream, node->children[i], flags);
-    }
+    (void)flags;
+    node->dataSize = 3 * sizeof(float);
+    node->dynamicBuffer = malloc(node->dataSize);
+    fread(node->dynamicBuffer, node->dataSize, 1, stream);
 
     return 0;
 }
 
 static int SArray_WalkBoxes__Edge3_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 3;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->child = calloc(1, sizeof(struct TreeNode));
+    node->child->parent = node;
+    struct TreeNode *currentNode = node->child;
+    WalkBoxes__EdgeRead(stream, currentNode, flags);
 
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        // node->children[i]->description; // TODO: set description
-        WalkBoxes__EdgeRead(stream, node->children[i], flags);
-    }
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    WalkBoxes__EdgeRead(stream, currentNode, flags);
+
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    WalkBoxes__EdgeRead(stream, currentNode, flags);
 
     return 0;
 }
 
 static int WalkBoxes__TriRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 9;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
+    node->child = calloc(1, sizeof(struct TreeNode));
+    struct TreeNode *currentNode = node->child;
+    currentNode->parent = node;
+    currentNode->memberName = "mFootstepMaterial";
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(long_type); // SoundFootsteps::EnumMaterial
-    node->children[0]->description->read(stream, node->children[0], flags);
+    currentNode->isBlocked = 1;
+    currentNode->description = getMetaClassDescriptionByIndex(long_type); // SoundFootsteps::EnumMaterial
+    currentNode->description->read(stream, currentNode, flags);
 
-    node->children[1]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[1]->description->read(stream, node->children[1], flags);
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "mFlags";
+    currentNode->description = getMetaClassDescriptionByIndex(Flags);
+    currentNode->description->read(stream, currentNode, flags);
 
-    node->children[2]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[2]->description->read(stream, node->children[2], flags);
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "mNormal";
+    currentNode->description = getMetaClassDescriptionByIndex(long_type);
+    currentNode->description->read(stream, currentNode, flags);
 
-    node->children[3]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[3]->description->read(stream, node->children[3], flags);
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "mQuadBuddy";
+    currentNode->description = getMetaClassDescriptionByIndex(long_type);
+    currentNode->description->read(stream, currentNode, flags);
 
-    node->children[4]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[4]->description->read(stream, node->children[4], flags);
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "mMaxRadius";
+    currentNode->description = getMetaClassDescriptionByIndex(long_type);
+    currentNode->description->read(stream, currentNode, flags);
 
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[5]->isBlocked = 1;
-    // node->children[5]->description; // TODO: Set description
-    SArray_int3_Read(stream, node->children[5], flags);
+    currentNode->isBlocked = 1;
+    currentNode->memberName = "mVerts";
+    SArray_int3_Read(stream, currentNode, flags);
 
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[6]->isBlocked = 1;
-    // node->children[6]->description; // TODO: Set description
-    SArray_WalkBoxes__Edge3_Read(stream, node->children[6], flags);
+    currentNode->isBlocked = 1;
+    currentNode->memberName = "mEdgeInfo";
+    SArray_WalkBoxes__Edge3_Read(stream, currentNode, flags);
 
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[7]->isBlocked = 1;
-    // node->children[7]->description; // TODO: Set description
-    SArray_int3_Read(stream, node->children[7], flags);
+    currentNode->isBlocked = 1;
+    currentNode->memberName = "mVertOffsets";
+    SArray_int3_Read(stream, currentNode, flags);
 
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[8]->isBlocked = 1;
-    // node->children[8]->description; // TODO: Set description
-    SArray_float3_Read(stream, node->children[8], flags);
+    currentNode->isBlocked = 1;
+    currentNode->memberName = "mVertScales";
+    SArray_float3_Read(stream, currentNode, flags);
 
     return 0;
 }
 
 static int WalkBoxes__VertRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(Vector3);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+        {.isBlocked = 0, .memberName = "mPos", .metaClassDescriptionIndex = Vector3},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 static int WalkBoxes__QuadRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->parent = node;
+    node->child = calloc(1, sizeof(struct TreeNode));
+    struct TreeNode *currentNode = node->child;
+    currentNode->parent = node;
+    currentNode->memberName = "mVerts";
     cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    // node->children[0]->description; // TODO: Set description
-    SArray_int4_Read(stream, node->children[0], flags);
+    currentNode->isBlocked = 1;
+    SArray_int4_Read(stream, currentNode, flags);
 
     return 0;
 }
 
 int DCArray_WalkBoxes__Tri_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        WalkBoxes__TriRead(stream, node->children[i], flags); // TODO: Set description
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        WalkBoxes__TriRead(stream, currentNode, flags);
     }
     return 0;
 }
 
 int DCArray_WalkBoxes__Vert_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        WalkBoxes__VertRead(stream, node->children[i], flags); // TODO: Set description
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        WalkBoxes__VertRead(stream, currentNode, flags);
     }
     return 0;
 }
 
 int DCArray_WalkBoxes__Quad_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
+    struct TreeNode *currentNode = node->child;
 
-    for (uint32_t i = 1; i < node->childCount; ++i)
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-        WalkBoxes__QuadRead(stream, node->children[i], flags); // TODO: Set description
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        WalkBoxes__QuadRead(stream, currentNode, flags);
     }
     return 0;
 }
@@ -235,39 +237,12 @@ int DCArray_Vector3_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int WalkBoxesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 5;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(String);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(DCArray_WalkBoxes__Tri_);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(DCArray_WalkBoxes__Vert_);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(DCArray_Vector3_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[4]->isBlocked = 1;
-    node->children[4]->description = getMetaClassDescriptionByIndex(DCArray_WalkBoxes__Quad_);
-    node->children[4]->description->read(stream, node->children[4], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
+        {.isBlocked = 1, .memberName = "mTris", .metaClassDescriptionIndex = DCArray_WalkBoxes__Tri_},
+        {.isBlocked = 1, .memberName = "mVerts", .metaClassDescriptionIndex = DCArray_WalkBoxes__Vert_},
+        {.isBlocked = 1, .memberName = "mNormals", .metaClassDescriptionIndex = DCArray_Vector3_},
+        {.isBlocked = 1, .memberName = "mQuads", .metaClassDescriptionIndex = DCArray_WalkBoxes__Quad_},
+    };
+    return genericRead(stream, node, flags, 5, descriptions);
 }

@@ -8,314 +8,131 @@
 
 int AnimationValueInterfaceBaseRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 2;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->parent = node;
-    node->children[0]->description = getMetaClassDescriptionByIndex(Symbol);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1] = calloc(1, sizeof(struct TreeNode));
-    node->children[1]->parent = node;
-    node->children[1]->description = getMetaClassDescriptionByIndex(Flags);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 0, .memberName = "mName", .metaClassDescriptionIndex = Symbol},
+        {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
+    };
+    return genericRead(stream, node, flags, 2, descriptions);
 }
 
 int AnimatedValueInterfaceGenericRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->parent = node;
-    node->children[0]->description = getMetaClassDescriptionByIndex(AnimationValueInterfaceBase);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "interfaceBase", .metaClassDescriptionIndex = AnimationValueInterfaceBase},
+    };
+    return genericRead(stream, node, flags, 1, descriptions);
 }
 
-static int KeyframedValueGenericSampleRead(FILE *stream, struct TreeNode *node, uint32_t flags, const struct MetaClassDescription *description)
+static int KeyframedValueGenericSampleRead(FILE *stream, struct TreeNode *node, uint32_t flags, uint8_t isBlocked, uint16_t metaClassDescriptionIndex)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(bool_type);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    node->children[3]->description = description;
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
+    struct MetaMemberDescription descriptions[] = {
+        {.isBlocked = 0, .memberName = "time", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 0, .memberName = "interpolateToNextKey", .metaClassDescriptionIndex = bool_type},
+        {.isBlocked = 0, .memberName = "tangentMode", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = isBlocked, .memberName = "value", .metaClassDescriptionIndex = metaClassDescriptionIndex},
+    };
+    return genericRead(stream, node, flags, 4, descriptions);
 }
 
-static int KeyframedValueGenericBlockedSampleRead(FILE *stream, struct TreeNode *node, uint32_t flags, const struct MetaClassDescription *description)
+static int DCArray_KeyframedValue_Generic___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags, uint8_t isBlocked, uint16_t metaClassDescriptionIndex)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
+    node->child = malloc(sizeof(struct TreeNode));
+    node->child->description = getMetaClassDescriptionByIndex(int_type);
+    node->child->description->read(stream, node->child, flags);
+    node->child->parent = node;
+    node->child->serializeType = 0;
+    node->child->memberName = "entryCount";
+    node->child->isBlocked = 0;
+    node->child->sibling = NULL;
 
-    for (uint16_t i = 0; i < node->childCount; ++i)
+    struct TreeNode *currentNode = node->child;
+
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
     {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    node->children[0]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(bool_type);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(long_type);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = description;
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
-}
-
-static int DCArray_KeyframedValue_Generic___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags, const struct MetaClassDescription *description)
-{
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
-
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
-
-    for (uint32_t i = 1; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        // node->children[i]->description; TODO: Set description
-        node->children[i]->parent = node;
-        KeyframedValueGenericSampleRead(stream, node->children[i], flags, description);
-    }
-    return 0;
-}
-
-static int DCArray_KeyframedValue_GenericBlocked___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags, const struct MetaClassDescription *description)
-{
-    node->childCount = 1;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-    node->children[0] = calloc(1, sizeof(struct TreeNode));
-    node->children[0]->description = getMetaClassDescriptionByIndex(int_type);
-    node->children[0]->description->read(stream, node->children[0], flags);
-    node->children[0]->parent = node;
-
-    node->childCount += *(uint32_t *)(node->children[0]->data.staticBuffer);
-    node->children = realloc(node->children, node->childCount * sizeof(struct TreeNode *));
-
-    for (uint32_t i = 1; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        // node->children[i]->description; TODO: Set description
-        node->children[i]->parent = node;
-        KeyframedValueGenericBlockedSampleRead(stream, node->children[i], flags, description);
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+        KeyframedValueGenericSampleRead(stream, currentNode, flags, isBlocked, metaClassDescriptionIndex);
     }
     return 0;
 }
 
 int DCArray_KeyframedValue_Transform___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    return DCArray_KeyframedValue_GenericBlocked___Sample_Read(stream, node, flags, getMetaClassDescriptionByIndex(Transform));
+    return DCArray_KeyframedValue_Generic___Sample_Read(stream, node, flags, 1, Transform);
 }
 
 int DCArray_KeyframedValue_float___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    return DCArray_KeyframedValue_Generic___Sample_Read(stream, node, flags, getMetaClassDescriptionByIndex(float_type));
+    return DCArray_KeyframedValue_Generic___Sample_Read(stream, node, flags, 0, float_type);
 }
 
 int DCArray_KeyframedValue_unsigned__int64___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    return DCArray_KeyframedValue_Generic___Sample_Read(stream, node, flags, getMetaClassDescriptionByIndex(unsigned__int64));
+    return DCArray_KeyframedValue_Generic___Sample_Read(stream, node, flags, 0, unsigned__int64);
 }
 
 int DCArray_KeyframedValue_AnimOrChore___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    return DCArray_KeyframedValue_GenericBlocked___Sample_Read(stream, node, flags, getMetaClassDescriptionByIndex(AnimOrChore));
+    return DCArray_KeyframedValue_Generic___Sample_Read(stream, node, flags, 1, AnimOrChore);
 }
 
 int DCArray_KeyframedValue_bool___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    return DCArray_KeyframedValue_Generic___Sample_Read(stream, node, flags, getMetaClassDescriptionByIndex(bool_type));
+    return DCArray_KeyframedValue_Generic___Sample_Read(stream, node, flags, 0, bool_type);
 }
 
 int KeyframedValue_Transform_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(AnimatedValueInterface_Transform_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(Transform);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(Transform);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(DCArray_KeyframedValue_Transform___Sample_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "Baseclass_AnimatedValueInterface_T_", .metaClassDescriptionIndex = AnimatedValueInterface_Transform_},
+        {.isBlocked = 1, .memberName = "minValue", .metaClassDescriptionIndex = Transform},
+        {.isBlocked = 1, .memberName = "maxValue", .metaClassDescriptionIndex = Transform},
+        {.isBlocked = 1, .memberName = "samples", .metaClassDescriptionIndex = DCArray_KeyframedValue_Transform___Sample_},
+    };
+    return genericRead(stream, node, flags, 4, descriptions);
 }
 
 int KeyframedValue_float_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(AnimatedValueInterface_float_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(float_type);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(DCArray_KeyframedValue_float___Sample_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "Baseclass_AnimatedValueInterface_T_", .metaClassDescriptionIndex = AnimatedValueInterface_float_},
+        {.isBlocked = 0, .memberName = "minValue", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 0, .memberName = "maxValue", .metaClassDescriptionIndex = float_type},
+        {.isBlocked = 1, .memberName = "samples", .metaClassDescriptionIndex = DCArray_KeyframedValue_float___Sample_},
+    };
+    return genericRead(stream, node, flags, 4, descriptions);
 }
 
 int KeyframedValue_unsigned__int64_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(AnimatedValueInterface_unsigned__int64_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(unsigned__int64);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(unsigned__int64);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(DCArray_KeyframedValue_unsigned__int64___Sample_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "Baseclass_AnimatedValueInterface_T_", .metaClassDescriptionIndex = AnimatedValueInterface_unsigned__int64_},
+        {.isBlocked = 0, .memberName = "minValue", .metaClassDescriptionIndex = unsigned__int64},
+        {.isBlocked = 0, .memberName = "maxValue", .metaClassDescriptionIndex = unsigned__int64},
+        {.isBlocked = 1, .memberName = "samples", .metaClassDescriptionIndex = DCArray_KeyframedValue_unsigned__int64___Sample_},
+    };
+    return genericRead(stream, node, flags, 4, descriptions);
 }
 
 int KeyframedValue_AnimOrChore_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(AnimatedValueInterface_AnimOrChore_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[1]->isBlocked = 1;
-    node->children[1]->description = getMetaClassDescriptionByIndex(AnimOrChore);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[2]->isBlocked = 1;
-    node->children[2]->description = getMetaClassDescriptionByIndex(AnimOrChore);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(DCArray_KeyframedValue_AnimOrChore___Sample_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "Baseclass_AnimatedValueInterface_T_", .metaClassDescriptionIndex = AnimatedValueInterface_AnimOrChore_},
+        {.isBlocked = 1, .memberName = "minValue", .metaClassDescriptionIndex = AnimOrChore},
+        {.isBlocked = 1, .memberName = "maxValue", .metaClassDescriptionIndex = AnimOrChore},
+        {.isBlocked = 1, .memberName = "samples", .metaClassDescriptionIndex = DCArray_KeyframedValue_AnimOrChore___Sample_},
+    };
+    return genericRead(stream, node, flags, 4, descriptions);
 }
 
 int KeyframedValue_bool_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    node->childCount = 4;
-    node->children = malloc(node->childCount * sizeof(struct TreeNode *));
-
-    for (uint16_t i = 0; i < node->childCount; ++i)
-    {
-        node->children[i] = calloc(1, sizeof(struct TreeNode));
-        node->children[i]->parent = node;
-    }
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[0]->isBlocked = 1;
-    node->children[0]->description = getMetaClassDescriptionByIndex(AnimatedValueInterface_bool_);
-    node->children[0]->description->read(stream, node->children[0], flags);
-
-    node->children[1]->description = getMetaClassDescriptionByIndex(bool_type);
-    node->children[1]->description->read(stream, node->children[1], flags);
-
-    node->children[2]->description = getMetaClassDescriptionByIndex(bool_type);
-    node->children[2]->description->read(stream, node->children[2], flags);
-
-    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-    node->children[3]->isBlocked = 1;
-    node->children[3]->description = getMetaClassDescriptionByIndex(DCArray_KeyframedValue_bool___Sample_);
-    node->children[3]->description->read(stream, node->children[3], flags);
-
-    return 0;
+    const static struct MetaMemberDescription const descriptions[] = {
+        {.isBlocked = 1, .memberName = "Baseclass_AnimatedValueInterface_T_", .metaClassDescriptionIndex = AnimatedValueInterface_bool_},
+        {.isBlocked = 0, .memberName = "minValue", .metaClassDescriptionIndex = bool_type},
+        {.isBlocked = 0, .memberName = "maxValue", .metaClassDescriptionIndex = bool_type},
+        {.isBlocked = 1, .memberName = "samples", .metaClassDescriptionIndex = DCArray_KeyframedValue_bool___Sample_},
+    };
+    return genericRead(stream, node, flags, 4, descriptions);
 }
