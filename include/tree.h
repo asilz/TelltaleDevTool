@@ -2,7 +2,6 @@
 #define TREE_H
 #include <inttypes.h>
 #include <stdio.h>
-#include <stdbool.h>
 
 struct TreeNode;
 
@@ -11,7 +10,7 @@ typedef int (*RenderFunction)(struct TreeNode *node, uint32_t flags);
 
 struct MetaClassDescription
 {
-    const uint64_t crc;
+    uint64_t crc;
     const char *name;
     const SerializeFunction read;
     const RenderFunction render;
@@ -25,7 +24,7 @@ struct MetaMemberDescription
 };
 
 /** @struct TreeNode
- * @brief All telltale data types are serialized into this data structure. Each child represents a member of the data type usually. Which data type is serialized into the node is determined by the description. If the data type is intrinsic, then staticBuffer or dynamicBuffer is used to store the values
+ * @brief This is an n-ary tree. All telltale data types are serialized into this data structure. Each child represents a member of the data type usually. Which data type is serialized into the node is determined by the description. If the data type is intrinsic, then staticBuffer or dynamicBuffer is used to store the values
  */
 struct TreeNode
 {
@@ -43,6 +42,7 @@ struct TreeNode
     uint32_t dataSize;
     uint8_t isBlocked;
     uint8_t serializeType;
+    // TODO: Spend last 2 bytes
 };
 
 void treeFree(struct TreeNode *root);

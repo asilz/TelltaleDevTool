@@ -24,4 +24,4 @@ const struct MetaClassDescription *getMetaClassDescriptionByIndex(uint16_t index
 const char *getFileName(uint64_t symbol);
 const char *getString(uint64_t symbol);
 const struct HashName *getDatabase();
-int genericRead(FILE *stream, struct TreeNode *node, uint32_t flags, uint32_t childCount, const struct MetaMemberDescription const *membersDescriptions);
+int genericRead(FILE *stream, struct TreeNode *node, uint32_t flags, uint32_t childCount, const struct MetaMemberDescription *membersDescriptions);

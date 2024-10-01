@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+int AnimationValueInterfaceBaseRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int AnimatedValueInterfaceGenericRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+
 int KeyframedValue_Transform_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DCArray_KeyframedValue_Transform___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
 int KeyframedValue_float_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
@@ -11,5 +14,58 @@ int KeyframedValue_AnimOrChore_Read(FILE *stream, struct TreeNode *node, uint32_
 int DCArray_KeyframedValue_AnimOrChore___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
 int KeyframedValue_bool_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
 int DCArray_KeyframedValue_bool___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
-int AnimationValueInterfaceBaseRead(FILE *stream, struct TreeNode *node, uint32_t flags);
-int AnimatedValueInterfaceGenericRead(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Quaternion_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Quaternion___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Symbol_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Symbol___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_int_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_int___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Vector2_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Vector2___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Vector3_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Vector3___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Vector4_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Vector4___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_String_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_String___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_Chore__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_Chore____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_Scene__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_Scene____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_PropertySet__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_PropertySet____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_Font__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_Font____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_Dlg__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_Dlg____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_SoundData__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_SoundData____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_SoundEventData__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_SoundEventData____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_SoundEventSnapshotData__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_SoundEventSnapshotData____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_SoundReverbDefinition__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_SoundReverbDefinition____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_WalkBoxes__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_WalkBoxes____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_D3DMesh__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_D3DMesh____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_T3Texture__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_T3Texture____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_PhonemeTable__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_PhonemeTable____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_ScriptEnum_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_ScriptEnum___Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_SoundBusSnapshot__SnapshotSuite____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_SoundBusSnapshot__SnapshotSuite__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_SoundBusSnapshot__Snapshot____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_SoundBusSnapshot__Snapshot__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_Handle_SoundAmbience__AmbienceDefinition____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_Handle_SoundAmbience__AmbienceDefinition__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+
+int DCArray_KeyframedValue_SoundEventName_0____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_SoundEventName_0__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_SoundEventName_1____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_SoundEventName_1__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int DCArray_KeyframedValue_SoundEventName_2____Sample_Read(FILE *stream, struct TreeNode *node, uint32_t flags);
+int KeyframedValue_SoundEventName_2__Read(FILE *stream, struct TreeNode *node, uint32_t flags);
