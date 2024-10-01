@@ -141,7 +141,7 @@ static int WalkBoxes__TriRead(FILE *stream, struct TreeNode *node, uint32_t flag
 
 static int WalkBoxes__VertRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
         {.isBlocked = 0, .memberName = "mPos", .metaClassDescriptionIndex = Vector3},
     };
@@ -237,7 +237,7 @@ int DCArray_Vector3_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int WalkBoxesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
         {.isBlocked = 1, .memberName = "mTris", .metaClassDescriptionIndex = DCArray_WalkBoxes__Tri_},
         {.isBlocked = 1, .memberName = "mVerts", .metaClassDescriptionIndex = DCArray_WalkBoxes__Vert_},

@@ -138,7 +138,7 @@ static int AnimationCoreRead(FILE *stream, struct TreeNode *node, uint32_t flags
 
 int AnimationRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mVersion", .metaClassDescriptionIndex = long_type},
         {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
         {.isBlocked = 0, .memberName = "mName", .metaClassDescriptionIndex = Symbol},

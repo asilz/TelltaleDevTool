@@ -68,7 +68,7 @@ int Map_SymbolWalkPathless_Symbol__Read(FILE *stream, struct TreeNode *node, uin
 
 int PerAgentClipResourceFilterRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mIncludedAgents", .metaClassDescriptionIndex = Map_StringClipResourceFilterStringCompareCaseInsensitive_},
         {.isBlocked = 1, .memberName = "mExcludedAgents", .metaClassDescriptionIndex = Set_StringStringCompareCaseInsensitive_},
         {.isBlocked = 0, .memberName = "mbExclusiveMode", .metaClassDescriptionIndex = bool_type},
@@ -137,7 +137,7 @@ int HandleBaseRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int ChoreAgentAttachmentRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mbDoAttach", .metaClassDescriptionIndex = bool_type},
         {.isBlocked = 1, .memberName = "mAttachTo", .metaClassDescriptionIndex = String},
         {.isBlocked = 1, .memberName = "mAttachToNode", .metaClassDescriptionIndex = String},
@@ -156,7 +156,7 @@ int DCArray_int_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int ChoreAgentRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mAgentName", .metaClassDescriptionIndex = String},
         {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
         {.isBlocked = 1, .memberName = "mResources", .metaClassDescriptionIndex = DCArray_int_},
@@ -189,7 +189,7 @@ int Map_Symbolfloatless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32
 
 int ChoreResourceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mVersion", .metaClassDescriptionIndex = long_type},
         {.isBlocked = 0, .memberName = "mResName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mResLength", .metaClassDescriptionIndex = float_type},
@@ -243,7 +243,7 @@ int ChoreResourceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int ChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
         {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
         {.isBlocked = 0, .memberName = "mLength", .metaClassDescriptionIndex = float_type},

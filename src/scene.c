@@ -66,7 +66,7 @@ int Set_FileName_SoundEventBankDummy_less_FileName_SoundEventBankDummy___Read(FI
 
 int FileName_SoundEventBankDummy_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_FileNameBass", .metaClassDescriptionIndex = FileNameBase},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -74,7 +74,7 @@ int FileName_SoundEventBankDummy_Read(FILE *stream, struct TreeNode *node, uint3
 
 int EnlightenModule__EnlightenPrimitiveSettingsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mSystemId", .metaClassDescriptionIndex = String},
         {.isBlocked = 1, .memberName = "mEnlightenLightingMode", .metaClassDescriptionIndex = EnlightenModule__EnumeInstanceType},
         {.isBlocked = 1, .memberName = "mEnlightenUpdateMethod", .metaClassDescriptionIndex = EnlightenModule__EnumeUpdateMethod},
@@ -85,7 +85,7 @@ int EnlightenModule__EnlightenPrimitiveSettingsRead(FILE *stream, struct TreeNod
 
 int EnlightenModule__EnlightenSystemSettingsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mDefaultQuality", .metaClassDescriptionIndex = EnlightenModule__EnumeQuality},
         {.isBlocked = 1, .memberName = "mAdaptiveProbeResolution", .metaClassDescriptionIndex = EnlightenModule__EnumeProbeResolution},
         {.isBlocked = 0, .memberName = "mDisableEnlighten", .metaClassDescriptionIndex = bool_type},
@@ -95,7 +95,7 @@ int EnlightenModule__EnlightenSystemSettingsRead(FILE *stream, struct TreeNode *
 
 int MeshSceneEnlightenDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mSystemName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mUVTransform", .metaClassDescriptionIndex = Vector4},
         {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
@@ -105,7 +105,7 @@ int MeshSceneEnlightenDataRead(FILE *stream, struct TreeNode *node, uint32_t fla
 
 static int MeshSceneLightmapData__EntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mMeshName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mLODIndex", .metaClassDescriptionIndex = unsignedlong},
         {.isBlocked = 0, .memberName = "mLightQuality", .metaClassDescriptionIndex = long_type},
@@ -151,7 +151,7 @@ int DCArray_MeshSceneLightmapData__Entry_Read(FILE *stream, struct TreeNode *nod
 
 int MeshSceneLightmapDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mEntries", .metaClassDescriptionIndex = DCArray_MeshSceneLightmapData__Entry_},
         {.isBlocked = 1, .memberName = "mStationaryLightIndices", .metaClassDescriptionIndex = DCArray_unsignedshort_},
         {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
@@ -161,7 +161,7 @@ int MeshSceneLightmapDataRead(FILE *stream, struct TreeNode *node, uint32_t flag
 
 int SoundEventNameBaseRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mEventGuid", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mEventDisplayName", .metaClassDescriptionIndex = Symbol},
     };
@@ -170,7 +170,7 @@ int SoundEventNameBaseRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int SoundEventNameRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_SoundEventNameBase", .metaClassDescriptionIndex = SoundEventNameBase},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -178,7 +178,7 @@ int SoundEventNameRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int Footsteps__FootstepBankRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mSounds", .metaClassDescriptionIndex = DCArray_Handle_SoundData__},
         {.isBlocked = 1, .memberName = "mMaterialFootsteps", .metaClassDescriptionIndex = Map_SoundFootsteps__EnumMaterialDCArray_Handle_SoundData__less_SoundFootsteps__EnumMaterial__},
     };
@@ -187,7 +187,7 @@ int Footsteps__FootstepBankRead(FILE *stream, struct TreeNode *node, uint32_t fl
 
 int Footsteps2__FootstepBankRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mEventName", .metaClassDescriptionIndex = SoundEventName_0_},
         {.isBlocked = 1, .memberName = "mMaterialMap", .metaClassDescriptionIndex = Map_SoundFootsteps__EnumMaterialSoundEventName_0_less_SoundFootsteps__EnumMaterial__},
     };
@@ -196,7 +196,7 @@ int Footsteps2__FootstepBankRead(FILE *stream, struct TreeNode *node, uint32_t f
 
 static int T3LightSceneInternalData__LightmapPageRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mhTextureAtlas", .metaClassDescriptionIndex = Handle_T3Texture_},
         {.isBlocked = 0, .memberName = "mFlags", .metaClassDescriptionIndex = Flags},
     };
@@ -224,7 +224,7 @@ int T3LightEnvInternalData__QualityEntryRead(FILE *stream, struct TreeNode *node
 
 int T3LightEnvInternalDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mEntryForQuality[0]", .metaClassDescriptionIndex = T3LightEnvInternalData__QualityEntry},
         {.isBlocked = 1, .memberName = "mEntryForQuality[1]", .metaClassDescriptionIndex = T3LightEnvInternalData__QualityEntry},
         {.isBlocked = 1, .memberName = "mEntryForQuality[2]", .metaClassDescriptionIndex = T3LightEnvInternalData__QualityEntry},
@@ -259,7 +259,7 @@ int DCArray_T3LightSceneInternalData__LightmapPage_Read(FILE *stream, struct Tre
 
 int T3LightSceneInternalData__QualityEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mLightmapPages", .metaClassDescriptionIndex = DCArray_T3LightSceneInternalData__LightmapPage_},
         {.isBlocked = 1, .memberName = "mhStaticShadowVolumeTexture", .metaClassDescriptionIndex = Handle_T3Texture_},
     };
@@ -268,7 +268,7 @@ int T3LightSceneInternalData__QualityEntryRead(FILE *stream, struct TreeNode *no
 
 int T3LightSceneInternalDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mEntryForQuality[0]", .metaClassDescriptionIndex = T3LightSceneInternalData__QualityEntry},
         {.isBlocked = 1, .memberName = "mEntryForQuality[1]", .metaClassDescriptionIndex = T3LightSceneInternalData__QualityEntry},
         {.isBlocked = 1, .memberName = "mEntryForQuality[2]", .metaClassDescriptionIndex = T3LightSceneInternalData__QualityEntry},
@@ -281,7 +281,7 @@ int T3LightSceneInternalDataRead(FILE *stream, struct TreeNode *node, uint32_t f
 
 int LocationInfoRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mAttachmentAgent", .metaClassDescriptionIndex = String},
         {.isBlocked = 0, .memberName = "mAttachmentNode", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 1, .memberName = "mInitialLocalTransform", .metaClassDescriptionIndex = Transform},
@@ -291,7 +291,7 @@ int LocationInfoRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int Scene__AgentInfoRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mAgentName", .metaClassDescriptionIndex = String},
         {.isBlocked = 1, .memberName = "mAgentSceneProps", .metaClassDescriptionIndex = PropertySet},
     };
@@ -300,7 +300,7 @@ int Scene__AgentInfoRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int SceneRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mbActive", .metaClassDescriptionIndex = bool_type},
         {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
         {.isBlocked = 1, .memberName = "mReferencedScenes", .metaClassDescriptionIndex = DCArray_HandleLock_Scene__},

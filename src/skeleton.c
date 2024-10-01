@@ -8,7 +8,7 @@
 
 int TransformRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mRot", .metaClassDescriptionIndex = Quaternion},
         {.isBlocked = 0, .memberName = "mTrans", .metaClassDescriptionIndex = Vector3},
     };
@@ -17,7 +17,7 @@ int TransformRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int SArray_TRange_float_3_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "xAxis", .metaClassDescriptionIndex = TRange_float_},
         {.isBlocked = 0, .memberName = "yAxis", .metaClassDescriptionIndex = TRange_float_},
         {.isBlocked = 0, .memberName = "zAxis", .metaClassDescriptionIndex = TRange_float_},
@@ -27,7 +27,7 @@ int SArray_TRange_float_3_Read(FILE *stream, struct TreeNode *node, uint32_t fla
 
 int BoneContraintsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mBoneType", .metaClassDescriptionIndex = long_type},
         {.isBlocked = 0, .memberName = "mHingeAxis", .metaClassDescriptionIndex = Vector3},
         {.isBlocked = 1, .memberName = "mAxisRange", .metaClassDescriptionIndex = SArray_TRange_float_3_},
@@ -37,7 +37,7 @@ int BoneContraintsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int SkeletonEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mJointName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mParentName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mParentIndex", .metaClassDescriptionIndex = long_type},
@@ -63,7 +63,7 @@ int DCArray_Skeleton__Entry_Read(FILE *stream, struct TreeNode *node, uint32_t f
 
 int SkeletonRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "entries", .metaClassDescriptionIndex = DCArray_Skeleton__Entry_},
     };
     return genericRead(stream, node, flags, 1, descriptions);

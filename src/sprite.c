@@ -22,7 +22,7 @@ int DCArray_ParticleSprite__Animation_Read(FILE *stream, struct TreeNode *node, 
 
 int ParticleSpriteRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
         {.isBlocked = 1, .memberName = "mhTexture", .metaClassDescriptionIndex = SArray_Handle_T3Texture_1_},
         {.isBlocked = 0, .memberName = "mTextureX", .metaClassDescriptionIndex = long_type},

@@ -67,8 +67,8 @@ int Vector3Read(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Mo
 
 int AnimOrChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Move this function to a different file
 {
-    const static struct MetaMemberDescription const descriptions[] = {{.isBlocked = 1, .memberName = "animation", .metaClassDescriptionIndex = Handle_Animation_},
-                                                                      {.isBlocked = 1, .memberName = "chore", .metaClassDescriptionIndex = Handle_Chore_}};
+    const static struct MetaMemberDescription descriptions[] = {{.isBlocked = 1, .memberName = "animation", .metaClassDescriptionIndex = Handle_Animation_},
+                                                                {.isBlocked = 1, .memberName = "chore", .metaClassDescriptionIndex = Handle_Chore_}};
     return genericRead(stream, node, flags, 2, descriptions);
 }
 
@@ -89,7 +89,7 @@ int Vector4Read(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Mo
 
 int ScriptEnumRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "curValue", .metaClassDescriptionIndex = String}};
     return genericRead(stream, node, flags, 1, descriptions);
 
@@ -205,7 +205,7 @@ uint64_t *DlgGetID(struct TreeNode *node)
 
 int DlgFolderRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgObjIDOwner", .metaClassDescriptionIndex = DlgObjIDOwner},
         {.isBlocked = 1, .memberName = "Baseclass_DlgObjectPropsOwner", .metaClassDescriptionIndex = DlgObjectPropsOwner},
         {.isBlocked = 1, .memberName = "Baseclass_DlgChildSet", .metaClassDescriptionIndex = DlgChildSet},
@@ -222,7 +222,7 @@ int JiraRecordManagerRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgObjIDOwner", .metaClassDescriptionIndex = DlgObjIDOwner},
         {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
         {.isBlocked = 0, .memberName = "mVersion", .metaClassDescriptionIndex = long_type},
@@ -251,7 +251,6 @@ int DlgRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     // dlg->children[13]->typeSymbol = 0; // TODO: Set symbol
     genericArrayRead(stream, currentNode, flags, getMetaClassDescriptionByIndex(DlgFolder));
 
-    int64_t tell = cftell(stream);
     currentNode->sibling = calloc(1, sizeof(struct TreeNode));
     currentNode = currentNode->sibling;
     currentNode->parent = node;
@@ -300,7 +299,7 @@ int Map_Symbolintless_Symbol__Read(FILE *stream, struct TreeNode *node, uint32_t
 
 int LogicItemRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "prop", .metaClassDescriptionIndex = PropertySet},
         {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
         {.isBlocked = 1, .memberName = "mKeyNegateList", .metaClassDescriptionIndex = Map_Symbolboolless_Symbol__},
@@ -321,9 +320,9 @@ int DCArray_LogicGroup_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
     return genericArrayRead(stream, node, flags, getMetaClassDescriptionByIndex(LogicGroup));
 }
 
-int LogicGroupRead(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO: Fix to allow general write function
+int LogicGroupRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "operator", .metaClassDescriptionIndex = int_type},
         {.isBlocked = 1, .memberName = "mItems", .metaClassDescriptionIndex = Map_StringLogicGroup__LogicItemless_String__},
         {.isBlocked = 1, .memberName = "mLogicGroups", .metaClassDescriptionIndex = DCArray_LogicGroup_},
@@ -336,7 +335,7 @@ int LogicGroupRead(FILE *stream, struct TreeNode *node, uint32_t flags) // TODO:
 
 int RuleRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
         {.isBlocked = 1, .memberName = "mRuntimePropName", .metaClassDescriptionIndex = String},
         {.isBlocked = 0, .memberName = "flags", .metaClassDescriptionIndex = Flags},
@@ -350,7 +349,7 @@ int RuleRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgDownstreamVisibilityConditionsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mNodeTypeFlags", .metaClassDescriptionIndex = Flags},
         {.isBlocked = 0, .memberName = "mMaxNumNodeEvals", .metaClassDescriptionIndex = int_type},
     };
@@ -359,7 +358,7 @@ int DlgDownstreamVisibilityConditionsRead(FILE *stream, struct TreeNode *node, u
 
 int DlgNodeChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mChore", .metaClassDescriptionIndex = Handle_Chore_},
         {.isBlocked = 0, .memberName = "mPriority", .metaClassDescriptionIndex = int_type},
         {.isBlocked = 0, .memberName = "mLooping", .metaClassDescriptionIndex = bool_type},
@@ -370,11 +369,6 @@ int DlgNodeChoreRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgVisibilityConditionsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    uint32_t visCondFlags;
-    cfseek(stream, sizeof(uint8_t), SEEK_CUR);
-    fread(&visCondFlags, sizeof(visCondFlags), 1, stream);
-    cfseek(stream, -(int64_t)(sizeof(visCondFlags) + sizeof(uint8_t)), SEEK_CUR);
-
     node->child = calloc(1, sizeof(struct TreeNode));
     struct TreeNode *currentNode = node->child;
     currentNode->parent = node;
@@ -406,7 +400,7 @@ int DlgVisibilityConditionsRead(FILE *stream, struct TreeNode *node, uint32_t fl
     currentNode->memberName = "mScriptVisCond";
     currentNode->description = getMetaClassDescriptionByIndex(String);
     currentNode->description->read(stream, currentNode, flags);
-    if (*(uint32_t *)currentNode->parent->child->sibling->staticBuffer & 1)
+    if (*(uint32_t *)currentNode->parent->child->sibling->staticBuffer & 1) // Access flags node
     {
         currentNode->sibling = calloc(1, sizeof(struct TreeNode));
         currentNode->sibling->parent = currentNode->parent;
@@ -420,7 +414,7 @@ int DlgVisibilityConditionsRead(FILE *stream, struct TreeNode *node, uint32_t fl
 
 int DlgVisibilityConditionsOwnerRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mVisCond", .metaClassDescriptionIndex = DlgVisibilityConditions},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -437,7 +431,7 @@ int DlgObjectPropsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     uint32_t propFlags = *(uint32_t *)(currentNode->staticBuffer);
     uint32_t propCount = ((propFlags & 0x1) > 0) + ((propFlags & 0x2) > 0) + ((propFlags & 0x4) > 0);
 
-    for (uint32_t i = 0; i < propCount; ++i)
+    while (propCount--)
     {
         currentNode->sibling = calloc(1, sizeof(struct TreeNode));
         currentNode->sibling->parent = currentNode->parent;
@@ -451,7 +445,7 @@ int DlgObjectPropsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 }
 int DlgObjectPropsOwnerRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mDlgObjectProps", .metaClassDescriptionIndex = DlgObjectProps},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -459,7 +453,7 @@ int DlgObjectPropsOwnerRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgObjIDOwnerRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mDlgObjID", .metaClassDescriptionIndex = DlgObjID},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -467,7 +461,7 @@ int DlgObjIDOwnerRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeLinkRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgObjIDOwner", .metaClassDescriptionIndex = DlgObjIDOwner},
         {.isBlocked = 0, .memberName = "mRequiredCCType", .metaClassDescriptionIndex = long_type}, // blocked is wrong?
     };
@@ -476,7 +470,7 @@ int DlgNodeLinkRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgObjIDOwner", .metaClassDescriptionIndex = DlgObjIDOwner},
         {.isBlocked = 1, .memberName = "Baseclass_DlgVisibilityConditionsOwner", .metaClassDescriptionIndex = DlgVisibilityConditionsOwner},
         {.isBlocked = 1, .memberName = "Baseclass_DlgObjectPropsOwner", .metaClassDescriptionIndex = DlgObjectPropsOwner},
@@ -491,7 +485,7 @@ int DlgNodeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeTextRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "mLangResProxy", .metaClassDescriptionIndex = LanguageResProxy},
     };
@@ -500,7 +494,7 @@ int DlgNodeTextRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeLogicRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "mRule", .metaClassDescriptionIndex = Rule},
     };
@@ -509,7 +503,7 @@ int DlgNodeLogicRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeScriptRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "mScriptText", .metaClassDescriptionIndex = String},
         {.isBlocked = 0, .memberName = "mbBlocking", .metaClassDescriptionIndex = bool_type},
@@ -520,7 +514,7 @@ int DlgNodeScriptRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeNotesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "mNoteText", .metaClassDescriptionIndex = String},
     };
@@ -529,7 +523,7 @@ int DlgNodeNotesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeStartRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "mProdReportProps", .metaClassDescriptionIndex = PropertySet},
     };
@@ -538,7 +532,7 @@ int DlgNodeStartRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeJumpRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "jumpToLink", .metaClassDescriptionIndex = DlgNodeLink},
         {.isBlocked = 0, .memberName = "jumpToName", .metaClassDescriptionIndex = Symbol},
@@ -553,7 +547,7 @@ int DlgNodeJumpRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgChainHeadRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgObjIDOwner", .metaClassDescriptionIndex = DlgObjIDOwner},
         {.isBlocked = 1, .memberName = "mLink", .metaClassDescriptionIndex = DlgNodeLink},
     };
@@ -562,7 +556,7 @@ int DlgChainHeadRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgChildRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgChainHead", .metaClassDescriptionIndex = DlgChainHead},
         {.isBlocked = 0, .memberName = "mName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 1, .memberName = "Baseclass_DlgVisibilityConditionsOwner", .metaClassDescriptionIndex = DlgVisibilityConditionsOwner},
@@ -574,7 +568,7 @@ int DlgChildRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeIdleRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "mhIdle", .metaClassDescriptionIndex = Handle_Chore_},
         {.isBlocked = 0, .memberName = "mOverrideOptionTime", .metaClassDescriptionIndex = long_type},
@@ -588,7 +582,7 @@ int DlgNodeIdleRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeMarkerRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -601,7 +595,7 @@ int DlgNodeExitRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgLineRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_UID::Generator", .metaClassDescriptionIndex = UID__Generator},
         {.isBlocked = 1, .memberName = "Baseclass_DlgObjIDOwner", .metaClassDescriptionIndex = DlgObjIDOwner},
         {.isBlocked = 1, .memberName = "mLangResProxy", .metaClassDescriptionIndex = LanguageResProxy},
@@ -616,7 +610,7 @@ int Map_intDlgLineless_int__Read(FILE *stream, struct TreeNode *node, uint32_t f
 
 int DlgLineCollectionRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_UID::Generator", .metaClassDescriptionIndex = UID__Generator},
         {.isBlocked = 1, .memberName = "mLines", .metaClassDescriptionIndex = Map_intDlgLineless_int__},
     };
@@ -666,7 +660,6 @@ int DlgNodeExchangeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     currentNode->description = getMetaClassDescriptionByIndex(DCArray_DlgNodeExchange__Entry_);
     currentNode->description->read(stream, currentNode, flags);
 
-    int64_t tell = cftell(stream);
     if (nodeFlags & 0x1)
     {
         printf("Error: NoteCollection Read not implemented"); // TODO: Implement this, but wait until you run into a file that uses a note collection before trying to implement it.
@@ -682,13 +675,12 @@ int DlgNodeExchangeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
         currentNode->description = getMetaClassDescriptionByIndex(DlgLineCollection);
         currentNode->description->read(stream, currentNode, flags);
     }
-    tell = cftell(stream);
     return 0;
 }
 
 int DlgConditionRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mDlgObjID", .metaClassDescriptionIndex = DlgObjIDOwner},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -696,7 +688,7 @@ int DlgConditionRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgConditionRuleRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "BaseClass_DlgCondition", .metaClassDescriptionIndex = DlgCondition},
         {.isBlocked = 1, .memberName = "mRule", .metaClassDescriptionIndex = Rule},
     };
@@ -705,7 +697,7 @@ int DlgConditionRuleRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgConditionTimeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgCondition", .metaClassDescriptionIndex = DlgCondition},
         {.isBlocked = 0, .memberName = "mDurationClass", .metaClassDescriptionIndex = long_type},
         {.isBlocked = 0, .memberName = "mSeconds", .metaClassDescriptionIndex = float_type},
@@ -715,7 +707,7 @@ int DlgConditionTimeRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgConditionInputRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgCondition", .metaClassDescriptionIndex = DlgCondition},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -751,7 +743,7 @@ int DlgConditionSetRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeCancelChoicesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 0, .memberName = "mCancelGroup", .metaClassDescriptionIndex = long_type},
     };
@@ -760,7 +752,7 @@ int DlgNodeCancelChoicesRead(FILE *stream, struct TreeNode *node, uint32_t flags
 
 int DlgNodeWaitRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "Baseclass_DlgConditionSet", .metaClassDescriptionIndex = DlgConditionSet},
     };
@@ -806,7 +798,7 @@ int DlgChildSetRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgChildSetChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgChildSet", .metaClassDescriptionIndex = DlgChildSet},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -824,7 +816,7 @@ int DlgChildSetChoicesChildPostRead(FILE *stream, struct TreeNode *node, uint32_
 
 int DlgNodeChoicesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "mChoices", .metaClassDescriptionIndex = DlgChildSetChoice},
         {.isBlocked = 1, .memberName = "mPreChoice", .metaClassDescriptionIndex = DlgChildSetChoicesChildPre},
@@ -835,7 +827,7 @@ int DlgNodeChoicesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgFolderChildRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgChild", .metaClassDescriptionIndex = DlgChild},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -853,7 +845,7 @@ int DlgChoicesChildPostRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgChoiceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgChild", .metaClassDescriptionIndex = DlgChild},
         {.isBlocked = 1, .memberName = "Baseclass_DlgConditionSet", .metaClassDescriptionIndex = DlgConditionSet},
     };
@@ -872,7 +864,7 @@ int DlgConditionalCaseRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeCriteriaRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mTestType", .metaClassDescriptionIndex = DlgNodeCriteria__EnumTestT},
         {.isBlocked = 1, .memberName = "mFlagsThreshold", .metaClassDescriptionIndex = DlgNodeCriteria__EnumThresholdT},
         {.isBlocked = 1, .memberName = "mCriteriaThreshold", .metaClassDescriptionIndex = DlgNodeCriteria__EnumThresholdT},
@@ -885,7 +877,7 @@ int DlgNodeCriteriaRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgChildSetElementRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgChildSet", .metaClassDescriptionIndex = DlgChildSet},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -893,7 +885,7 @@ int DlgChildSetElementRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeSequenceElementRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgChild", .metaClassDescriptionIndex = DlgChild},
         {.isBlocked = 0, .memberName = "mRepeat", .metaClassDescriptionIndex = long_type},
         {.isBlocked = 0, .memberName = "mPlayPosition", .metaClassDescriptionIndex = long_type},
@@ -903,7 +895,7 @@ int DlgNodeSequenceElementRead(FILE *stream, struct TreeNode *node, uint32_t fla
 
 int DlgNodeSequenceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "mElements", .metaClassDescriptionIndex = DlgNodeSequence__DlgChildSetElement},
         {.isBlocked = 0, .memberName = "mPlaybackMode", .metaClassDescriptionIndex = long_type},
@@ -915,7 +907,7 @@ int DlgNodeSequenceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int DlgNodeParallelRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "mPElements", .metaClassDescriptionIndex = DlgNodeParallel__DlgChildSetElement},
         {.isBlocked = 1, .memberName = "mElemUseCriteria", .metaClassDescriptionIndex = DlgNodeCriteria},
@@ -930,7 +922,7 @@ int DlgChildSetConditionalCaseRead(FILE *stream, struct TreeNode *node, uint32_t
 
 int DlgNodeConditionalRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_DlgNode", .metaClassDescriptionIndex = DlgNode},
         {.isBlocked = 1, .memberName = "mCases", .metaClassDescriptionIndex = DlgChildSetConditionalCase},
     };

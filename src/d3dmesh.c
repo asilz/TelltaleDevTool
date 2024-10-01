@@ -18,7 +18,7 @@ enum MeshFlags // T3MeshData
 
 int BoundingBoxRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mMin", .metaClassDescriptionIndex = Vector3},
         {.isBlocked = 0, .memberName = "mMax", .metaClassDescriptionIndex = Vector3},
     };
@@ -27,7 +27,7 @@ int BoundingBoxRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int SphereRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mCentre", .metaClassDescriptionIndex = Vector3},
         {.isBlocked = 0, .memberName = "mRadius", .metaClassDescriptionIndex = float_type},
     };
@@ -88,7 +88,7 @@ int T3MeshTextureIndicesRead(FILE *stream, struct TreeNode *node, uint32_t flags
 
 int T3MeshBatchRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mBoundingBox", .metaClassDescriptionIndex = BoundingBox},
         {.isBlocked = 1, .memberName = "mBoundingSphere", .metaClassDescriptionIndex = Sphere},
         {.isBlocked = 0, .memberName = "mBatchUsage", .metaClassDescriptionIndex = Flags},
@@ -112,7 +112,7 @@ int DCArray_T3MeshBatch_Read(FILE *stream, struct TreeNode *node, uint32_t flags
 
 int T3MeshLODRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mBatches[0]", .metaClassDescriptionIndex = DCArray_T3MeshBatch_},
         {.isBlocked = 1, .memberName = "mBatches[1]", .metaClassDescriptionIndex = DCArray_T3MeshBatch_},
         {.isBlocked = 1, .memberName = "mVertexStreams", .metaClassDescriptionIndex = BitSetBase_1_},
@@ -135,7 +135,7 @@ int T3MeshLODRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 static int T3MeshTextureRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mTextureType", .metaClassDescriptionIndex = long_type},
         {.isBlocked = 1, .memberName = "mhTexture", .metaClassDescriptionIndex = Handle_T3Texture_},
         {.isBlocked = 0, .memberName = "mNameSymbol", .metaClassDescriptionIndex = Symbol},
@@ -149,7 +149,7 @@ static int T3MeshTextureRead(FILE *stream, struct TreeNode *node, uint32_t flags
 
 int T3MeshMaterialRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mhMaterial", .metaClassDescriptionIndex = Handle_PropertySet_},
         {.isBlocked = 0, .memberName = "mBaseMaterialName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mLegacyRenderTextureProperty", .metaClassDescriptionIndex = Symbol},
@@ -162,7 +162,7 @@ int T3MeshMaterialRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 static int T3MeshMaterialOverrideRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mhOverrideMaterial", .metaClassDescriptionIndex = Handle_PropertySet_},
         {.isBlocked = 0, .memberName = "mMaterialIndex", .metaClassDescriptionIndex = unsignedlong},
     };
@@ -171,7 +171,7 @@ static int T3MeshMaterialOverrideRead(FILE *stream, struct TreeNode *node, uint3
 
 int T3MeshBoneEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mBoneName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mBoundingBox", .metaClassDescriptionIndex = BoundingBox},
         {.isBlocked = 1, .memberName = "mBoundingSphere", .metaClassDescriptionIndex = Sphere},
@@ -182,7 +182,7 @@ int T3MeshBoneEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int T3MeshLocalTransformEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mTransform", .metaClassDescriptionIndex = Transform},
         {.isBlocked = 0, .memberName = "mCameraFacingType", .metaClassDescriptionIndex = long_type},
     };
@@ -191,7 +191,7 @@ int T3MeshLocalTransformEntryRead(FILE *stream, struct TreeNode *node, uint32_t 
 
 static int T3MeshTexCoordTransformRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mScale", .metaClassDescriptionIndex = Vector2},
         {.isBlocked = 0, .memberName = "mOffset", .metaClassDescriptionIndex = Vector2},
     };
@@ -200,7 +200,7 @@ static int T3MeshTexCoordTransformRead(FILE *stream, struct TreeNode *node, uint
 
 static int T3MeshCPUSkinningDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mPositionFormat", .metaClassDescriptionIndex = long_type},
         {.isBlocked = 0, .memberName = "mWeightFormat", .metaClassDescriptionIndex = long_type},
         {.isBlocked = 0, .memberName = "mNormalFormat", .metaClassDescriptionIndex = long_type},
@@ -302,7 +302,7 @@ int T3GFXBufferRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int T3MeshEffectPreloadDynamicFeaturesRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mDynamicFeatures", .metaClassDescriptionIndex = BitSetBase_1_},
         {.isBlocked = 0, .memberName = "mPriority", .metaClassDescriptionIndex = long_type},
     };
@@ -316,7 +316,7 @@ int DCArray_T3MeshEffectPreloadDynamicFeatures_Read(FILE *stream, struct TreeNod
 
 int T3MeshEffectPreloadEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mEffectType", .metaClassDescriptionIndex = unsignedlong},
         {.isBlocked = 1, .memberName = "mStaticEffectFeatures", .metaClassDescriptionIndex = BitSetBase_3_},
         {.isBlocked = 0, .memberName = "mMaterialCRC", .metaClassDescriptionIndex = unsigned__int64},
@@ -332,7 +332,7 @@ int DCArray_T3MeshEffectPreloadEntry_Read(FILE *stream, struct TreeNode *node, u
 
 int T3MeshEffectPreloadRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mEffectQuality", .metaClassDescriptionIndex = long_type},
         {.isBlocked = 1, .memberName = "mEntries", .metaClassDescriptionIndex = DCArray_T3MeshEffectPreloadEntry_},
         {.isBlocked = 0, .memberName = "mTotalEffectCount", .metaClassDescriptionIndex = unsignedlong},
@@ -347,7 +347,7 @@ int DCArray_T3MeshEffectPreload_Read(FILE *stream, struct TreeNode *node, uint32
 
 int T3MaterialRequirementsRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mPasses", .metaClassDescriptionIndex = BitSetBase_1_},
         {.isBlocked = 1, .memberName = "mChannels", .metaClassDescriptionIndex = BitSetBase_2_},
         {.isBlocked = 1, .memberName = "mInputs", .metaClassDescriptionIndex = BitSetBase_3_},
@@ -423,7 +423,7 @@ int DCArray_T3MeshLocalTransformEntry_Read(FILE *stream, struct TreeNode *node, 
 
 int T3MeshDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mLODs", .metaClassDescriptionIndex = DCArray_T3MeshLOD_},
         {.isBlocked = 1, .memberName = "mTextures", .metaClassDescriptionIndex = DCArray_T3MeshTexture_},
         {.isBlocked = 1, .memberName = "mMaterials", .metaClassDescriptionIndex = DCArray_T3MeshMaterial_},
@@ -536,7 +536,7 @@ int DCArray_T3OcclusionMeshBatch_Read(FILE *stream, struct TreeNode *node, uint3
 
 int T3OcclusionMeshDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mData", .metaClassDescriptionIndex = BinaryBuffer},
         {.isBlocked = 0, .memberName = "mBoundingBox", .metaClassDescriptionIndex = BoundingBox},
         {.isBlocked = 1, .memberName = "mBoundingSphere", .metaClassDescriptionIndex = Sphere},
@@ -553,7 +553,7 @@ int DCArray_HandleBase_Read(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int D3DMeshRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
         {.isBlocked = 0, .memberName = "mVersion", .metaClassDescriptionIndex = long_type},
         {.isBlocked = 0, .memberName = "mToolProps", .metaClassDescriptionIndex = ToolProps},
@@ -650,7 +650,7 @@ int D3DMeshRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 int T3MaterialRuntimePropertyRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mRuntimeName", .metaClassDescriptionIndex = Symbol},
     };
@@ -679,7 +679,7 @@ int DCArray_T3MaterialParameter_Read(FILE *stream, struct TreeNode *node, uint32
 
 int T3MaterialTextureRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mTextureName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mTextureNameWithoutExtension", .metaClassDescriptionIndex = Symbol},
@@ -716,7 +716,7 @@ int DCArray_T3MaterialTransform2D_Read(FILE *stream, struct TreeNode *node, uint
 
 static int T3MaterialNestedMaterialRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mhMaterial", .metaClassDescriptionIndex = Handle_PropertySet_},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -825,7 +825,7 @@ int DCArray_T3MaterialPassData_Read(FILE *stream, struct TreeNode *node, uint32_
 
 int T3MaterialCompiledDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mParameters", .metaClassDescriptionIndex = DCArray_T3MaterialParameter_},
         {.isBlocked = 1, .memberName = "mTextures", .metaClassDescriptionIndex = DCArray_T3MaterialTexture_},
         {.isBlocked = 1, .memberName = "mTransforms", .metaClassDescriptionIndex = DCArray_T3MaterialTransform2D_},
@@ -857,7 +857,7 @@ int DCArray_T3MaterialCompiledData_Read(FILE *stream, struct TreeNode *node, uin
 
 int T3MaterialDataRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "mMaterialName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mRuntimePropertiesName", .metaClassDescriptionIndex = Symbol},
         {.isBlocked = 0, .memberName = "mLegacyRenderTextureProperty", .metaClassDescriptionIndex = Symbol},

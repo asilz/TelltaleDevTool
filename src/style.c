@@ -41,7 +41,7 @@ int ActingOverridablePropOwnerRead(FILE *stream, struct TreeNode *node, uint32_t
 
 static int ActingResourceRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "Baseclass_ActingOverridablePropOwner", .metaClassDescriptionIndex = ActingOverridablePropOwner},
         {.isBlocked = 1, .memberName = "mResource", .metaClassDescriptionIndex = AnimOrChore},
         {.isBlocked = 0, .memberName = "mValidIntensityRange", .metaClassDescriptionIndex = TRange_float_},

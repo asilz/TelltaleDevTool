@@ -8,7 +8,7 @@
 
 int bankwavemapRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 1, .memberName = "mWaveMap", .metaClassDescriptionIndex = Map_SymbolSoundBankWaveMapEntryless_Symbol__},
     };
     return genericRead(stream, node, flags, 1, descriptions);
@@ -16,7 +16,7 @@ int bankwavemapRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 
 static int SoundBankWaveMapEntryRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    const static struct MetaMemberDescription const descriptions[] = {
+    const static struct MetaMemberDescription descriptions[] = {
         {.isBlocked = 0, .memberName = "fLengthSeconds", .metaClassDescriptionIndex = float_type},
         {.isBlocked = 1, .memberName = "strFileName", .metaClassDescriptionIndex = String},
     };
