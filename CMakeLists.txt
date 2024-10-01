@@ -41,6 +41,7 @@ set(SOURCES
 add_executable(devtool ${SOURCES})
 target_link_libraries(devtool PRIVATE ZLIB::ZLIB)
 target_link_libraries(devtool PRIVATE m)
+target_compile_options(devtool PRIVATE -Wall -Werror=vla)
 
 # target_link_libraries(devtool PRIVATE PkgConfig::GTK4)
 
