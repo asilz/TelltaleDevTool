@@ -5,6 +5,7 @@ set(CMAKE_BUILD_TYPE Debug)
 
 
 find_package(ZLIB REQUIRED)
+find_package(assimp REQUIRED)
 
 # find_package(PkgConfig REQUIRED)
 # pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
@@ -35,11 +36,13 @@ set(SOURCES
     src/style.c
     src/ptable.c
     src/gltf2.c
+    src/asset.c
 )
 
 # Create the executable
 add_executable(devtool ${SOURCES})
 target_link_libraries(devtool PRIVATE ZLIB::ZLIB)
+target_link_libraries(devtool PRIVATE assimp::assimp)
 target_link_libraries(devtool PRIVATE m)
 target_compile_options(devtool PRIVATE -Wall -Werror=vla)
 

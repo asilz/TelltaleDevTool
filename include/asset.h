@@ -1,0 +1,1 @@
+int convertAnimation2(struct TreeNode *animation, struct TreeNode *skeleton, struct TreeNode *d3dmesh);
