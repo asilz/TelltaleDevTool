@@ -3,6 +3,8 @@ project(TelltaleDevTool)
 
 set(CMAKE_BUILD_TYPE Debug)
 
+set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS_RELEASE "-O3")
 
 find_package(ZLIB REQUIRED)
 find_package(assimp REQUIRED)
@@ -37,18 +39,17 @@ set(SOURCES
     src/ptable.c
     src/gltf2.c
     src/asset.c
+    src/array.c
+    src/shader.c
+    src/event.c
 )
 
-# Create the executable
 add_executable(devtool ${SOURCES})
-target_link_libraries(devtool PRIVATE ZLIB::ZLIB)
-target_link_libraries(devtool PRIVATE assimp::assimp)
-target_link_libraries(devtool PRIVATE m)
+target_link_libraries(devtool PRIVATE ZLIB::ZLIB assimp::assimp m)
 target_compile_options(devtool PRIVATE -Wall -Werror=vla)
 
 # target_link_libraries(devtool PRIVATE PkgConfig::GTK4)
 
-# Add includes
 target_include_directories(devtool PRIVATE include)
 
 if(UNIX)

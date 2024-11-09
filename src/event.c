@@ -1,61 +1,164 @@
-/*
-38 is start of default (10828)
-Header types:
-EventLoggerEvent,
-EventStoragePage,
-Symbol
-*/
-
-/*
-50 is start of default (estore)
-Header types:
-EventStorage
-UNKNOWN
-Symbol
-EventStoragePage
-EventLoggerEvent
-*/
-
-#include <inttypes.h>
+#include <meta.h>
 #include <types.h>
+#include <stdlib.h>
+#include <stream.h>
 
-struct PageEntry
+int EventStorageRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    uint32_t block;
-    uint64_t pageHandle;
-    uint32_t maxEventID;
+    const static struct MetaMemberDescription descriptions[] = {
+        {.isBlocked = 0, .memberName = "mVersion", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mSessionID", .metaClassDescriptionIndex = unsigned__int64},
+        {.isBlocked = 1, .memberName = "mPages", .metaClassDescriptionIndex = DCArray_EventStorage__PageEntry_},
+        {.isBlocked = 1, .memberName = "mName", .metaClassDescriptionIndex = String},
+        {.isBlocked = 0, .memberName = "mLastEventID", .metaClassDescriptionIndex = unsignedlong},
+        {.isBlocked = 0, .memberName = "mEventStoragePageSize", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "serializeEventStoragePage", .metaClassDescriptionIndex = bool_type},
+    };
+    genericRead(stream, node, flags, 7, descriptions);
+
+    struct TreeNode *currentNode = node->child->sibling->sibling->sibling->sibling->sibling->sibling;
+
+    if (*((uint8_t *)(currentNode->staticBuffer)))
+    {
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
+        currentNode->memberName = "eventStoragePage";
+        currentNode->description = getMetaClassDescriptionByIndex(EventStoragePage);
+        currentNode->description->read(stream, currentNode, flags);
+    }
+
+    return 0;
 };
 
-struct EventStorage
+int EventStoragePageRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    uint32_t version;
-    uint64_t sessionID;
-    uint32_t pageBlock;
-    uint32_t pageCount;
-    struct PageEntry *entries;
-    uint32_t stringBlock;
-    struct String name;
-    uint32_t lastEventID;
-    uint32_t eventStoragePageSize;
-};
+    const static struct MetaMemberDescription descriptions[] = {
+        {.isBlocked = 0, .memberName = "mVersion", .metaClassDescriptionIndex = long_type},
+        {.isBlocked = 0, .memberName = "mSessionID", .metaClassDescriptionIndex = unsigned__int64},
+        {.isBlocked = 1, .memberName = "mFlushedNameOnDisk", .metaClassDescriptionIndex = String},
+        {.isBlocked = 0, .memberName = "eventLoggerEvents", .metaClassDescriptionIndex = EventLoggerEvent}, // TODO: fix
+    };
+    return genericRead(stream, node, flags, 4, descriptions);
+}
 
-struct EventStoragePage
+static int EventLoggerCoreRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    uint32_t version;
-    uint64_t sessionID;
-    uint32_t eventCount;
-};
+    node->child = calloc(1, sizeof(struct TreeNode));
+    struct TreeNode *currentNode = node->child;
+    currentNode->parent = node;
+    currentNode->memberName = "typeHeaderCount";
+    currentNode->description = getMetaClassDescriptionByIndex(long_type);
+    currentNode->description->read(stream, currentNode, flags);
 
-struct TypeHeader
-{
-    uint64_t symbol;
-    uint32_t count;
-    uint8_t *dataTypesBuffer;
-};
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "zero";
+    currentNode->description = getMetaClassDescriptionByIndex(long_type);
+    currentNode->description->read(stream, currentNode, flags);
 
-struct EventLoggerEvent
+    struct TreeNode *typeHeader = currentNode;
+
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
+    {
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode = currentNode->sibling;
+        currentNode->parent = node;
+
+        currentNode->child = calloc(1, sizeof(struct TreeNode));
+        struct TreeNode *typeHeaderChild = currentNode->child;
+        typeHeaderChild->parent = currentNode;
+        typeHeaderChild->memberName = "symbol";
+        typeHeaderChild->description = getMetaClassDescriptionByIndex(Symbol);
+        typeHeaderChild->description->read(stream, currentNode, flags);
+
+        typeHeaderChild->sibling = calloc(1, sizeof(struct TreeNode));
+        typeHeaderChild->sibling->parent = typeHeaderChild->parent;
+        typeHeaderChild = typeHeaderChild->sibling;
+        typeHeaderChild->memberName = "eventDataCount";
+        typeHeaderChild->description = getMetaClassDescriptionByIndex(long_type);
+        typeHeaderChild->description->read(stream, currentNode, flags);
+
+        uint32_t eventDataCount = *(uint32_t *)(typeHeaderChild->staticBuffer);
+        while (eventDataCount--)
+        {
+            typeHeaderChild->sibling = calloc(1, sizeof(struct TreeNode));
+            typeHeaderChild->sibling->parent = typeHeaderChild->parent;
+            typeHeaderChild = typeHeaderChild->sibling;
+            typeHeaderChild->memberName = "dataType";
+            typeHeaderChild->description = getMetaClassDescriptionByIndex(unsignedchar);
+            typeHeaderChild->description->read(stream, currentNode, flags);
+        }
+    }
+    for (uint32_t i = 0; i < *(uint32_t *)(node->child->staticBuffer); ++i)
+    {
+        typeHeader = typeHeader->sibling;
+        struct TreeNode *eventData = typeHeader->child->sibling->sibling;
+        while (eventData != NULL)
+        {
+            if (*((uint8_t *)(eventData->staticBuffer)) == 0)
+            {
+                currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+                currentNode = currentNode->sibling;
+                currentNode->parent = node;
+                currentNode->memberName = "symbol";
+                currentNode->description = getMetaClassDescriptionByIndex(Symbol);
+                currentNode->description->read(stream, currentNode, flags);
+            }
+            else if (*((uint8_t *)(eventData->staticBuffer)) == 1)
+            {
+                currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+                currentNode = currentNode->sibling;
+                currentNode->parent = node;
+                currentNode->description = getMetaClassDescriptionByIndex(int64);
+                currentNode->description->read(stream, currentNode, flags);
+            }
+            else if (*((uint8_t *)(eventData->staticBuffer)) == 2)
+            {
+                currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+                currentNode = currentNode->sibling;
+                currentNode->parent = node;
+                currentNode->description = getMetaClassDescriptionByIndex(double_type);
+                currentNode->description->read(stream, currentNode, flags);
+            }
+
+            currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+            currentNode = currentNode->sibling;
+            currentNode->parent = node;
+            currentNode->memberName = "severity";
+            currentNode->description = getMetaClassDescriptionByIndex(char_type);
+            currentNode->description->read(stream, currentNode, flags);
+
+            eventData = eventData->sibling;
+        }
+    }
+    return 0;
+}
+
+int EventLoggerEventRead(FILE *stream, struct TreeNode *node, uint32_t flags)
 {
-    uint32_t EventID;
-    uint32_t maxSeverity;
-    uint64_t dataCount;
-};
+    node->child = calloc(1, sizeof(struct TreeNode));
+    struct TreeNode *currentNode = node->child;
+    currentNode->parent = node;
+    currentNode->memberName = "mEventID";
+    currentNode->description = getMetaClassDescriptionByIndex(long_type);
+    currentNode->description->read(stream, currentNode, flags);
+
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->memberName = "mMaxSeverity";
+    currentNode->description = getMetaClassDescriptionByIndex(unsigned__int64);
+    currentNode->description->read(stream, currentNode, flags);
+
+    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+    currentNode->sibling->parent = currentNode->parent;
+    currentNode = currentNode->sibling;
+    currentNode->isBlocked = 1;
+    cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+    currentNode->memberName = "core";
+    EventLoggerCoreRead(stream, currentNode, flags);
+
+    return 0;
+}
