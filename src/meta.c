@@ -27,6 +27,7 @@
 #include <keyframe.h>
 #include <bankwavemap.h>
 #include <stdarg.h>
+#include <event.h>
 #include <stdlib.h>
 
 #define META_CLASS_DESCRIPTIONS_COUNT (sizeof(descriptions) / sizeof(*descriptions))
@@ -161,11 +162,11 @@ static const struct MetaClassDescription descriptions[] = {
     {0x229EF3B04212AEDC, "HandleLock<Scene>", HandleBaseRead, NULL},
     {0x230136B8537EB13B, "CompressedKeys<Handle<D3DMesh>>", NULL, NULL},
     {0x2309FB51D434529C, "BitSetBase<8>", NULL, NULL},
-    {0x238A520C4A924AA6, "EventLoggerEvent", NULL, NULL},
+    {0x238A520C4A924AA6, "EventLoggerEvent", EventLoggerEventRead, NULL},
     {0x2396FCD59456C981, "Map<String,PhonemeTable::PhonemeEntry,less<String>>", NULL, NULL},
     {0x239A652F3374B09C, "EnumTonemapType", intrinsic4Read, NULL},
     {0x23A058ACA47378FE, "TransitionMap", NULL, NULL},
-    {0x24032A7AD8BB721D, "EventStoragePage", NULL, NULL},
+    {0x24032A7AD8BB721D, "EventStoragePage", EventStoragePageRead, NULL},
     {0x24642A39023F0F34, "DCArray<String>", DCArray_String_Read, NULL},
     {0x2491B84DAED1E76B, "DCArray<T3MaterialPassData>", DCArray_T3MaterialPassData_Read, NULL},
     {0x24A03076F08204F4, "FlagsT3LightEnvGroupSet", intrinsic4Read, NULL},
@@ -260,7 +261,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x3A195525E24AFC93, "uint8", intrinsic1Read, NULL},
     {0x3A63217C2BB535F3, "SoundEventNameBase", SoundEventNameBaseRead, NULL},
     {0x3A7B60443850419E, "CompressedKeys<String>", NULL, NULL},
-    {0x3AAEB61240D3CFBA, "EventStorage", NULL, NULL},
+    {0x3AAEB61240D3CFBA, "EventStorage", EventStorageRead, NULL},
     {0x3AE7EAFC7629AF12, "Map<String,LocomotionDB::AnimationInfo,less<String>>", NULL, NULL},
     {0x3AFD7D3DAFBD6437, "EnumEmittersEnableType", intrinsic4Read, NULL},
     {0x3B160BC2AD5CB101, "T3MeshLOD", T3MeshLODRead, NULL},
@@ -461,7 +462,7 @@ static const struct MetaClassDescription descriptions[] = {
     {0x6B77C806C0E23EA1, "SingleValue<Vector3>", NULL, NULL},
     {0x6BB83C914E70CF53, "FileName<SoundEventBankDummy>", FileName_SoundEventBankDummy_Read, NULL},
     {0x6C1B0BA38A23328D, "AnimatedValueInterface<float>", AnimatedValueInterfaceGenericRead, NULL},
-    {0x6C8D05D6EB869AD0, "DCArray<EventStorage::PageEntry>", NULL, NULL},
+    {0x6C8D05D6EB869AD0, "DCArray<EventStorage::PageEntry>", DCArray_EventStorage__PageEntry_Read, NULL},
     {0x6D4051136C21FB5B, "T3MeshData", T3MeshDataRead, NULL},
     {0x6DCC6CB4CF833225, "HandleObjectInfo", NULL, NULL},
     {0x6DCCD180EF5DB842, "T3RenderStateBlock", NULL, NULL},
