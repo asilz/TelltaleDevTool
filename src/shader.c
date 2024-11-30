@@ -48,15 +48,15 @@ struct T3EffectDesc
     char *macroList;
     int mNameLength;
     uint8_t mbToolOnlyEffect;
-    uint32_t compilerFlags;
+    uint32_t compilerFlags; // BitSet<enum_T3EffectCompilerFlags,1,0>
     uint32_t category;
     uint32_t validFeatures[3];
     struct T3EffectFeatureQualityDesc
     {
-        uint32_t validFeaturesForQuality[3];
-        uint32_t validStaticFeatures[2];
-        uint32_t validDynamicFeatures;
-    } mFeatures[5]; // One for each quality
+        uint32_t validFeaturesForQuality[3]; // BitSet<enum_T3EffectFeature,84,0>
+        uint32_t validStaticFeatures[2];     // BitSet<enum_T3EffectFeature,54,0>
+        uint32_t validDynamicFeatures;       // BitSet<enum_T3EffectFeature,30,54>
+    } mFeatures[5];                          // One for each quality
     uint32_t excludedQuality;
     uint32_t excludedPlatforms;
     uint32_t stateHash;
@@ -334,7 +334,7 @@ struct T3EffectCacheProgram
         {
             uint32_t mRenderStateBlock[3];
             uint32_t mRenderStateMask[3];
-            uint32_t t3EffectCachePackageShaderIndex[3];
+            uint32_t t3EffectCachePackageShaderIndex[3]; // Index of T3EffectCacheShader
         } *mPassesDraw;
         struct T3EffectCachePassCompute
         {
@@ -372,6 +372,7 @@ uint32_t FNV1a(uint32_t hash, const char *input)
 
 int T3FXPackRead(FILE *stream)
 {
+    uint32_t shaderCount = 0;
     struct T3FXPackHeader header;
     fread(&header, sizeof(header), 1, stream);
 
@@ -391,9 +392,11 @@ int T3FXPackRead(FILE *stream)
         {
             programs[i].mPassesCompute = malloc(sizeof(struct T3EffectCachePassCompute) * programs[i].package.passCount);
             fread(programs[i].mPassesCompute, sizeof(struct T3EffectCachePassCompute), programs[i].package.passCount, stream);
+            ++shaderCount;
         }
         else
         {
+            shaderCount += 3;
             programs[i].mPassesDraw = malloc(sizeof(struct T3EffectCachePassDraw) * programs[i].package.passCount);
             fread(programs[i].mPassesDraw, sizeof(struct T3EffectCachePassDraw), programs[i].package.passCount, stream);
         }
@@ -403,8 +406,6 @@ int T3FXPackRead(FILE *stream)
     }
     free(shaders);
     free(programs);
-
-    printf("ftell = %ld\n", cftell(stream));
 
     /*
     char buf[1024];
