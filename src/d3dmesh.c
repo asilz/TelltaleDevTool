@@ -563,68 +563,89 @@ int D3DMeshRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     };
     genericRead(stream, node, flags, 6, descriptions);
 
+    int32_t version = *(int32_t *)(node->child->sibling->staticBuffer);
+    if (version < 19)
+    {
+        return 0;
+    }
+
     struct TreeNode *currentNode = node->child->sibling->sibling->sibling->sibling->sibling;
 
-    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
-    currentNode->sibling->parent = currentNode->parent;
-    currentNode = currentNode->sibling;
-
-    currentNode->child = malloc(sizeof(struct TreeNode));
-    currentNode->child->description = getMetaClassDescriptionByIndex(int_type);
-    currentNode->child->description->read(stream, currentNode->child, flags);
-    currentNode->child->parent = currentNode;
-    currentNode->child->serializeType = 0;
-    currentNode->child->memberName = "pairCount";
-    currentNode->child->isBlocked = 0;
-    currentNode->child->sibling = NULL;
-
-    struct TreeNode *mapNode = currentNode->child;
-
-    for (uint32_t i = 0; i < *(uint32_t *)(currentNode->child->staticBuffer) * 2; ++i)
+    if (version > 21)
     {
-        mapNode->sibling = calloc(1, sizeof(struct TreeNode));
-        mapNode = mapNode->sibling;
-        mapNode->parent = node;
-        if (i % 2) // if odd
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
+
+        currentNode->child = malloc(sizeof(struct TreeNode));
+        currentNode->child->description = getMetaClassDescriptionByIndex(int_type);
+        currentNode->child->description->read(stream, currentNode->child, flags);
+        currentNode->child->parent = currentNode;
+        currentNode->child->serializeType = 0;
+        currentNode->child->memberName = "pairCount";
+        currentNode->child->isBlocked = 0;
+        currentNode->child->sibling = NULL;
+
+        struct TreeNode *asyncResource = currentNode->child;
+
+        for (uint32_t i = 0; i < *(uint32_t *)(currentNode->child->staticBuffer) * 2; ++i)
         {
-            uint64_t typeSymbol;
-            fread(&typeSymbol, sizeof(typeSymbol), 1, stream);
-            mapNode->serializeType = 1;
-            cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-            mapNode->isBlocked = 1;
-            mapNode->description = getMetaClassDescriptionBySymbol(typeSymbol);
-            mapNode->description->read(stream, mapNode, flags);
-        }
-        else
-        {
-            mapNode->description = getMetaClassDescriptionByIndex(Symbol);
-            mapNode->description->read(stream, mapNode, flags);
+            asyncResource->sibling = calloc(1, sizeof(struct TreeNode));
+            asyncResource = asyncResource->sibling;
+            asyncResource->parent = node;
+            if (i % 2) // if odd
+            {
+                uint64_t typeSymbol;
+                fread(&typeSymbol, sizeof(typeSymbol), 1, stream);
+                asyncResource->serializeType = 1;
+                cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+                asyncResource->isBlocked = 1;
+                asyncResource->description = getMetaClassDescriptionBySymbol(typeSymbol);
+                asyncResource->description->read(stream, asyncResource, flags);
+            }
+            else
+            {
+                asyncResource->description = getMetaClassDescriptionByIndex(Symbol);
+                asyncResource->description->read(stream, asyncResource, flags);
+            }
         }
     }
 
     currentNode->sibling = calloc(1, sizeof(struct TreeNode));
     currentNode->sibling->parent = currentNode->parent;
     currentNode = currentNode->sibling;
-    currentNode->memberName = "unknown";
+    currentNode->memberName = "isExtraBlock";
     currentNode->description = getMetaClassDescriptionByIndex(int_type);
     currentNode->description->read(stream, currentNode, flags);
-
-    currentNode->sibling = calloc(1, sizeof(struct TreeNode));
-    currentNode->sibling->parent = currentNode->parent;
-    currentNode = currentNode->sibling;
-    currentNode->memberName = "isOcclusionMeshData";
-    currentNode->description = getMetaClassDescriptionByIndex(bool_type);
-    currentNode->description->read(stream, currentNode, flags);
-
-    if (*(currentNode->staticBuffer) == '1')
+    if (*(uint32_t *)currentNode->staticBuffer)
     {
         currentNode->sibling = calloc(1, sizeof(struct TreeNode));
         currentNode->sibling->parent = currentNode->parent;
         currentNode = currentNode->sibling;
-        cfseek(stream, sizeof(uint32_t), SEEK_CUR);
-        currentNode->isBlocked = 1;
-        currentNode->description = getMetaClassDescriptionByIndex(T3OcclusionMeshData);
+        currentNode->memberName = "extraBlock";
+        currentNode->description = getMetaClassDescriptionByIndex(int_type);
         currentNode->description->read(stream, currentNode, flags);
+    }
+
+    if (version > 51)
+    {
+        currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+        currentNode->sibling->parent = currentNode->parent;
+        currentNode = currentNode->sibling;
+        currentNode->memberName = "isOcclusionMeshData";
+        currentNode->description = getMetaClassDescriptionByIndex(bool_type);
+        currentNode->description->read(stream, currentNode, flags);
+
+        if (*(currentNode->staticBuffer) == '1')
+        {
+            currentNode->sibling = calloc(1, sizeof(struct TreeNode));
+            currentNode->sibling->parent = currentNode->parent;
+            currentNode = currentNode->sibling;
+            cfseek(stream, sizeof(uint32_t), SEEK_CUR);
+            currentNode->isBlocked = 1;
+            currentNode->description = getMetaClassDescriptionByIndex(T3OcclusionMeshData);
+            currentNode->description->read(stream, currentNode, flags);
+        }
     }
     currentNode->sibling = calloc(1, sizeof(struct TreeNode));
     currentNode->sibling->parent = currentNode->parent;
@@ -634,10 +655,10 @@ int D3DMeshRead(FILE *stream, struct TreeNode *node, uint32_t flags)
     currentNode->description = getMetaClassDescriptionByIndex(T3MeshData);
     currentNode->description->read(stream, currentNode, flags);
 
-    // node->children[node->childCount - 1]->description; TODO: Set description
     currentNode->sibling = calloc(1, sizeof(struct TreeNode));
     currentNode->sibling->parent = currentNode->parent;
     currentNode = currentNode->sibling;
+    currentNode->memberName = "asyncSection";
     int64_t startOfAsync = cftell(stream);
     cfseek(stream, 0, SEEK_END);
     currentNode->dataSize = cftell(stream) - startOfAsync;
