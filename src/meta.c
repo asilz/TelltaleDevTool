@@ -1028,14 +1028,14 @@ void readMetaStreamHeader(FILE *stream, struct MetaStreamHeader *header)
     }
 }
 
-void readMetaStream(FILE *stream, struct MetaStreamHeader *header)
+void readMetaStream(struct Blowfish *blowfish, FILE *stream, struct MetaStreamHeader *header)
 {
     readMetaStreamHeader(stream, header);
 
     if ((int32_t)header->defaultSize < 0)
     {
         uint32_t defaultStart = (uint32_t)cftell(stream);
-        streamDecrypt(&stream);
+        streamDecrypt(blowfish, &stream);
         header->defaultSize = (uint32_t)(cftell(stream) - defaultStart);
     }
     else
@@ -1046,7 +1046,7 @@ void readMetaStream(FILE *stream, struct MetaStreamHeader *header)
     if ((int32_t)header->debugSize < 0)
     {
         uint32_t debugStart = (uint32_t)cftell(stream);
-        streamDecrypt(&stream);
+        streamDecrypt(blowfish, &stream);
         header->debugSize = (uint32_t)(cftell(stream) - debugStart);
     }
     else
@@ -1057,7 +1057,7 @@ void readMetaStream(FILE *stream, struct MetaStreamHeader *header)
     if ((int32_t)header->asyncSize < 0)
     {
         uint32_t asyncStart = (uint32_t)cftell(stream);
-        streamDecrypt(&stream);
+        streamDecrypt(blowfish, &stream);
         header->asyncSize = (uint32_t)(cftell(stream) - asyncStart);
     }
     else

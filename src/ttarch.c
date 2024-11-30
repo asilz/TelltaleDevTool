@@ -107,7 +107,7 @@ int ZlibDecompress(void *source, unsigned int sourceLen, const void *dest, unsig
                                                                                           : 0 /*err*/;
 }
 
-int streamDecrypt(FILE **compressedStreamPtr)
+int streamDecrypt(struct Blowfish *blowfish, FILE **compressedStreamPtr)
 {
     int err;
 
@@ -134,18 +134,20 @@ int streamDecrypt(FILE **compressedStreamPtr)
     uint64_t *chunkOffsets = malloc(sizeof(uint64_t) * header.chunkCount);
     fread(chunkOffsets, sizeof(uint64_t), header.chunkCount, *compressedStreamPtr);
     cfseek(*compressedStreamPtr, chunkOffsets[0] + initialPosition, SEEK_SET);
-    for (uint32_t i = 1; i < header.chunkCount; ++i)
+    for (size_t i = 1; i < header.chunkCount; ++i)
     {
         fread(compressedChunk, chunkOffsets[i] - chunkOffsets[i - 1], 1, *compressedStreamPtr);
 
         if ((uint8_t)header.version == 'E')
         {
-            decryptData7((uint64_t *)compressedChunk, (chunkOffsets[i] - chunkOffsets[i - 1]) / sizeof(uint64_t));
+            for (size_t j = 0; j < (chunkOffsets[i] - chunkOffsets[i - 1]) / sizeof(uint64_t); ++j)
+            {
+                blowfish->decryptBlock(blowfish, (uint64_t *)compressedChunk + j);
+            }
         }
 
         uint32_t size = header.chunkDecompressedSize;
         ZlibDecompress(compressedChunk, chunkOffsets[i] - chunkOffsets[i - 1], decompressedChunk, &size);
-        // printf("%d", size);
         fwrite(decompressedChunk, header.chunkDecompressedSize, 1, outputStream);
     }
 
@@ -280,7 +282,9 @@ int streamToFile(FILE *stream, const char *outputPath)
 
     for (int i = fgetc(stream); i != EOF; i = fgetc(stream))
     {
+
         fputc(i, outputStream);
     }
+    fclose(outputStream);
     return 0;
 }

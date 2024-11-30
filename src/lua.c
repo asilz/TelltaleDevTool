@@ -2,7 +2,7 @@
 #include <lua.h>
 #include <stream.h>
 
-int decryptLua(const char *encryptedFilePath, const char *decryptedFilePath)
+int decryptLua(struct Blowfish *blowfish, const char *encryptedFilePath, const char *decryptedFilePath)
 {
     uint64_t buffer;
     FILE *encryptedFile = cfopen(encryptedFilePath, "rb");
@@ -28,7 +28,7 @@ int decryptLua(const char *encryptedFilePath, const char *decryptedFilePath)
             fwrite(&buffer, bytesRead, 1, decryptedFile);
             break;
         }
-        decryptBlock7(&buffer);
+        blowfish->decryptBlock(blowfish, &buffer);
         fwrite(&buffer, sizeof(uint64_t), 1, decryptedFile);
     }
 
@@ -45,7 +45,7 @@ int decryptLua(const char *encryptedFilePath, const char *decryptedFilePath)
     return 0;
 }
 
-int encryptLua(const char *decryptedFilePath, const char *encryptedFilePath)
+int encryptLua(struct Blowfish *blowfish, const char *decryptedFilePath, const char *encryptedFilePath)
 {
     uint64_t buffer;
     FILE *decryptedFile = cfopen(decryptedFilePath, "rb");
@@ -70,7 +70,7 @@ int encryptLua(const char *decryptedFilePath, const char *encryptedFilePath)
             fwrite(&buffer, bytesRead, 1, encryptedFile);
             break;
         }
-        encryptBlock7(&buffer);
+        blowfish->encryptBlock(blowfish, &buffer);
         fwrite(&buffer, sizeof(uint64_t), 1, encryptedFile);
     }
 

@@ -1,4 +1,4 @@
-
+struct Blowfish;
 
 /**
  * @brief Decompresses/decrypts a stream with a header such as ECTT or ZCTT
@@ -6,7 +6,7 @@
  *
  * @param compressedStreamPtr Pointer to a file stream
  */
-int streamDecrypt(FILE **compressedStreamPtr);
+int streamDecrypt(struct Blowfish *blowfish, FILE **compressedStreamPtr);
 
 /**
  * @brief Splits files contained in @p stream and stores them in @p folderPath

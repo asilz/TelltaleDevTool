@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <tree.h>
 
+struct Blowfish;
+
 struct MetaStreamCrc
 {
     uint64_t typeSymbolCrc;
@@ -17,7 +19,7 @@ struct MetaStreamHeader // Based on Lucas Saragosa's Telltale inspector
     struct MetaStreamCrc *crc;
 };
 
-void readMetaStream(FILE *stream, struct MetaStreamHeader *header);
+void readMetaStream(struct Blowfish *blowfish, FILE *stream, struct MetaStreamHeader *header);
 void writeMetaStreamHeader(FILE *stream, struct MetaStreamHeader *header);
 const struct MetaClassDescription *getMetaClassDescriptionBySymbol(uint64_t symbol);
 const struct MetaClassDescription *getMetaClassDescriptionByIndex(uint16_t index);
