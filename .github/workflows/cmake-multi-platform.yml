@@ -77,7 +77,7 @@ jobs:
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
-        ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=D:/a/TelltaleDevTool/TelltaleDevTool/vcpkg/scripts/buildsystems/vcpkg.cmake'}}
+        ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=D:/a/TelltaleDevTool/TelltaleDevTool/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_FLAGS="/W3 /WX-" -DCMAKE_C_FLAGS="/W3 /WX-"'}}
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
