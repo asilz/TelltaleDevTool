@@ -65,8 +65,8 @@ jobs:
         git clone https://github.com/Microsoft/vcpkg.git
         cd vcpkg
         .\bootstrap-vcpkg.sh
-        .\vcpkg integrate install
-        .\vcpkg install assimp
+        .\vcpkg.exe integrate install
+        .\vcpkg.exe install assimp
 
 
     - name: Configure CMake
