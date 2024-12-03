@@ -62,11 +62,10 @@ jobs:
     - name: Install dependencies on Windows
       if: matrix.os == 'windows-latest'
       run: |
-        git clone https://github.com/Microsoft/vcpkg.git
-        cd vcpkg
-        .\bootstrap-vcpkg.sh
-        .\vcpkg.exe integrate install
-        .\vcpkg.exe install assimp
+        git clone https://github.com/microsoft/vcpkg.git
+        .\vcpkg\bootstrap-vcpkg.bat
+        .\vcpkg\vcpkg.exe integrate install
+        .\vcpkg\vcpkg.exe install assimp
 
 
     - name: Configure CMake
