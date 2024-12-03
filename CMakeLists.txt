@@ -39,7 +39,6 @@ set(SOURCES
     src/ptable.c
     src/gltf2.c
     src/asset.c
-    src/array.c
     src/shader.c
     src/event.c
 )
