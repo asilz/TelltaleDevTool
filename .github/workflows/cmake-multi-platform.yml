@@ -63,8 +63,9 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         git clone https://github.com/microsoft/vcpkg.git
-        ./vcpkg/bootstrap-vcpkg.sh
-        ./vcpkg/vcpkg install assimp
+        cd vcpkg
+        .\bootstrap-vcpkg.bat
+        .\vcpkg.exe install assimp
 
 
     - name: Configure CMake
