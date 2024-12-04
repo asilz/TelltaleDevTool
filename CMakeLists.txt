@@ -44,10 +44,11 @@ set(SOURCES
 )
 
 add_executable(devtool ${SOURCES})
-target_link_libraries(devtool PRIVATE ZLIB::ZLIB assimp::assimp m)
+target_link_libraries(devtool PRIVATE ZLIB::ZLIB assimp::assimp)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
     target_compile_options(devtool PRIVATE -Wall -Werror=vla)
+    target_link_libraries(devtool PRIVATE m)
 endif()
 
 # target_link_libraries(devtool PRIVATE PkgConfig::GTK4)
