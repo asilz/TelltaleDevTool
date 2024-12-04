@@ -66,6 +66,11 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y libassimp-dev
+    - name: Install dependencies on MacOS
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew update
+        brew install assimp
     - name: Install dependencies on Windows
       if: matrix.os == 'windows-latest'
       run: |
